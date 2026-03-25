@@ -238,7 +238,8 @@ const SB_URL='https://nxjypjgqsywxukcnchmh.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54anlwamdxc3l3eHVrY25jaG1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMTAzNzQsImV4cCI6MjA4OTY4NjM3NH0.Hh1GErLUxJbswFJGi8xVEzD60AUkRX0JVPgo91pdVKY';
 const SB_TABLE='planner_state';
 async function sbGet(){try{const r=await fetch(SB_URL+'/rest/v1/'+SB_TABLE+'?id=eq.default&select=*',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});const d=await r.json();if(d&&d.length>0&&d[0].data){return{data:typeof d[0].data==='string'?JSON.parse(d[0].data):d[0].data,updated:d[0].updated_at}}return null}catch(e){console.warn('Supabase get error:',e);return null}}
-async function sbSet(data){try{await fetch(SB_URL+'/rest/v1/'+SB_TABLE,{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify({id:'default',data:JSON.stringify(data),updated_at:new Date().toISOString()})});return true}catch(e){console.warn('Supabase set error:',e);return false}},TODAY=new Date();TODAY.setHours(0,0,0,0);
+async function sbSet(data){try{await fetch(SB_URL+'/rest/v1/'+SB_TABLE,{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify({id:'default',data:JSON.stringify(data),updated_at:new Date().toISOString()})});return true}catch(e){console.warn('Supabase set error:',e);return false}}
+const TODAY=new Date();TODAY.setHours(0,0,0,0);
 const CAT_NAMES={bh:'Buddhist Hermeneutics',wh:'Western Hermeneutics',cn:'Chinese Classics',ab:'Abhidhamma',life:'Life Task'};
 const CAT_SHORT={bh:'BH',wh:'WH',cn:'CH',ab:'ABI',life:'LIFE'};
 const PRI_ORDER={high:0,med:1,low:2,normal:3};
