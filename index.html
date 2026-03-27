@@ -1,4 +1,4 @@
-<!-- Academic Planner v2.2 -->
+<!-- Academic Planner v2.3 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -251,7 +251,45 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 .pv-cat{font-size:.6rem;font-weight:700;text-transform:uppercase;color:#888}
 .pv-note{font-size:.72rem;color:#555;margin-top:4px;font-style:italic;border-left:2px solid #ddd;padding-left:6px}
 
-@media(max-width:700px){.day-row{grid-template-columns:66px 1fr auto}.life-item{grid-template-columns:auto 1fr auto auto}.li-days,.li-send{display:none}}
+/* Notes */
+.note-entry{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:8px;position:relative;cursor:grab}
+.note-entry.dragging{opacity:.3}
+.note-hdr{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.note-drag{color:var(--text-muted);font-size:.7rem;cursor:grab;user-select:none;flex-shrink:0}
+.note-ts{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:var(--text-dim)}
+.note-del{background:0;border:0;color:var(--text-muted);cursor:pointer;font-size:.7rem;margin-left:auto;padding:2px 6px;border-radius:3px;transition:all .12s}
+.note-del:hover{color:var(--danger);background:var(--danger-dim)}
+.note-text{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Outfit';font-size:.82rem;padding:8px 10px;border-radius:6px;resize:vertical;min-height:50px;line-height:1.6}
+.note-text:focus{outline:0;border-color:var(--text-dim)}
+
+/* Events */
+.evt-list{margin-bottom:16px}
+.evt-item{display:grid;grid-template-columns:90px 1fr auto auto;gap:8px;align-items:center;padding:10px 12px;background:var(--surface);border-radius:8px;border-left:3px solid var(--warning);margin-bottom:5px}
+.evt-item.past-evt{opacity:.4}
+.evt-date{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--text-dim)}
+.evt-name{font-size:.84rem;font-weight:600}
+.evt-meta{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--text-dim)}
+.evt-btns{display:flex;gap:3px}
+.evt-btn{background:0;border:0;color:var(--text-muted);cursor:pointer;font-size:.76rem;padding:2px 5px;border-radius:3px;transition:all .12s}
+.evt-btn:hover{color:var(--text-dim);background:var(--surface3)}
+.evt-btn.del:hover{color:var(--danger);background:var(--danger-dim)}
+.evt-add-form{display:flex;gap:5px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
+.evt-add-form input,.evt-add-form select{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Outfit';font-size:.78rem;padding:7px 10px;border-radius:6px}
+.evt-add-form input:focus{outline:0;border-color:var(--text-dim)}
+
+/* Event chips in sprint */
+.evt-chip{font-size:.72rem;padding:6px 10px;border-radius:10px;font-weight:500;line-height:1.3;display:inline-flex;align-items:center;gap:4px;background:var(--warning-dim);color:var(--warning);border:1px dashed var(--warning);cursor:default;position:relative}
+.evt-chip[data-tip]::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);padding:3px 8px;background:var(--text);color:var(--bg);font-size:.62rem;font-weight:600;border-radius:4px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;z-index:20}
+.evt-chip[data-tip]:hover::after{opacity:1}
+
+/* Task drag in Tasks tab */
+.life-cat-hdr{cursor:grab;user-select:none}
+.life-cat-hdr.drag-over{border-bottom:2px solid var(--warning)}
+.life-item{cursor:grab}
+.life-item.dragging{opacity:.3}
+.life-item.drag-over-item{box-shadow:0 -2px 0 0 var(--warning)}
+
+@media(max-width:700px){.day-row{grid-template-columns:66px 1fr auto}.life-item{grid-template-columns:auto 1fr auto auto}.li-days,.li-send{display:none}.evt-item{grid-template-columns:1fr auto}}
 </style>
 </head>
 <body>
@@ -260,6 +298,9 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 <div class="modal-overlay" id="lifeModal"><div class="modal"><h3>Edit Task</h3><label>Name</label><input id="lName" type="text"/><label>Hours</label><input id="lHrs" type="number" step="0.5" min="0"/><label>Category</label><select id="lCat"><option value="General">General</option><option value="Email">Email</option><option value="Projects">Projects</option><option value="Income">Income</option><option value="Garden">Garden</option><option value="Correspondence">Correspondence</option></select><label>Priority</label><select id="lPri"><option value="high">High</option><option value="med">Medium</option><option value="low">Low</option></select><label>Due date</label><input id="lDue" type="date"/><div class="modal-btns"><button class="mbtn danger" id="lDel">Delete</button><button class="mbtn secondary" id="lCanc">Cancel</button><button class="mbtn primary" id="lSave">Save</button></div></div></div>
 <!-- Add task modal -->
 <div class="modal-overlay" id="addModal"><div class="modal"><h3>Add Task</h3><label>Name</label><input id="aName" type="text"/><label>Hours</label><div class="hrs-stepper"><button class="step-btn" onclick="stepHrs(-0.5)">−</button><input id="aHrs" type="number" step="0.5" min="0" value="1"/><button class="step-btn" onclick="stepHrs(0.5)">+</button></div><label>Category</label><select id="aCat"><option value="life">Task</option><option value="bh">Buddhist Hermeneutics</option><option value="wh">Western Hermeneutics</option><option value="cn">Chinese Classics</option><option value="ab">Abhidhamma</option><option value="events">Event</option></select><label>Priority</label><div class="pri-toggle" id="aPriToggle" onclick="toggleAddPri()"><span class="pri-option active" data-val="normal">Normal</span><span class="pri-option" data-val="high">High</span></div><input type="hidden" id="aPri" value="normal"/><div class="modal-btns"><button class="mbtn secondary" id="aCanc">Cancel</button><button class="mbtn primary" id="aSave">Add</button></div></div></div>
+
+<!-- Event edit modal -->
+<div class="modal-overlay" id="evtModal"><div class="modal"><h3 id="evtModalTitle">Edit Event</h3><label>Name</label><input id="eName" type="text"/><label>Date</label><input id="eDate" type="date"/><label>End Date (for multi-day)</label><input id="eEndDate" type="date"/><label>Start Time</label><input id="eStart" type="time"/><label>End Time</label><input id="eEnd" type="time"/><label>Location</label><input id="eLoc" type="text"/><div style="margin-top:8px"><label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="eAllDay"/> All day event</label></div><div class="modal-btns"><button class="mbtn danger" id="eDel">Delete</button><button class="mbtn secondary" id="eCanc">Cancel</button><button class="mbtn primary" id="eSave">Save</button></div></div></div>
 
 <script>
 const SKEY='sprint-planner-v3';
@@ -289,7 +330,17 @@ function defaultLifeTasks(){return[{id:1001,name:'Return cell phone',hours:1,due
 function defaultDeliverables(){return[{cat:'cn',title:'Exam Study Guide',due:'2026-03-22',tag:'Exam Prep'},{cat:'cn',title:'Language Exam',due:'2026-04-03',tag:'Exam'},{cat:'bh',title:'Strand Paper Proposal',due:'2026-03-27',tag:'Proposal'},{cat:'bh',title:'Strand Paper Draft',due:'2026-04-17',tag:'Paper 8-10pp'},{cat:'bh',title:'Final Strand Paper',due:'2026-05-08',tag:'Paper'},{cat:'bh',title:'Paper Presentation',due:'2026-05-11',tag:'Pres.'},{cat:'wh',title:'Paper (1 or 2)',due:'2026-04-11',tag:'TBD',tbd:true},{cat:'ab',title:'Paper',due:'2026-04-23',tag:'Paper 5pp'},{cat:'ab',title:'Paper Presentation',due:'2026-05-14',tag:'Pres.'}]}
 function defaultMilestones(){return{cn:{title:'Chinese Classics Exam',due:'Exam: Fri 4/3',items:[{date:'Sat 3/21',label:'Make study guide + flashcards',detail:'',status:'active',note:''},{date:'3/22→4/2',label:'Daily flashcard reps',detail:'20-30 min/day',status:'',note:''},{date:'Thu 3/27',label:'In-class study day 1',detail:'',status:'',note:''},{date:'Mon 3/30',label:'In-class study day 2',detail:'',status:'',note:''},{date:'Wed 4/1',label:'In-class study day 3',detail:'',status:'',note:''},{date:'Thu 4/2',label:'Final review',detail:'',status:'',note:''},{date:'Fri 4/3',label:'EXAM DAY',detail:'',status:'',note:''}]},bh:{title:'BH Strand Paper',due:'Proposal 3/27 · Draft 4/17 · Final 5/8',items:[{date:'Sat 3/21',label:'Brainstorm topics',detail:'',status:'active',note:''},{date:'Sun 3/22',label:'Draft proposal',detail:'',status:'',note:''},{date:'Wed 3/25',label:'Polish + submit proposal',detail:'',status:'',note:''},{date:'Sat 4/4',label:'Deep research + sources',detail:'',status:'',note:''},{date:'Sun 4/5',label:'Detailed outline',detail:'',status:'',note:''},{date:'4/6→4/9',label:'Spring break drafting',detail:'4 days',status:'',note:''},{date:'4/10→4/13',label:'Revise multiple passes',detail:'',status:'',note:''},{date:'4/15→4/16',label:'Proofread + submit draft',detail:'',status:'',note:''},{date:'4/27→5/3',label:'Incorporate feedback',detail:'',status:'',note:''},{date:'5/4→5/7',label:'Final revision',detail:'',status:'',note:''},{date:'Fri 5/8',label:'FINAL PAPER DUE',detail:'',status:'',note:''},{date:'Mon 5/11',label:'PAPER PRESENTATION',detail:'',status:'',note:''}]},wh:{title:'Western Herm. Paper(s)',due:'~4/11? · 6h each',items:[{date:'TBD',label:'Watch for date',detail:'',status:'tbd',note:''},{date:'Day 1',label:'Write paper (6h)',detail:'',status:'tbd',note:''},{date:'If 2nd',label:'Same approach',detail:'',status:'tbd',note:''}]},ab:{title:'Abhidhamma Paper',due:'Paper 4/23 · Pres. 5/14',items:[{date:'3/26→4/16',label:'Complete Readings 1-4',detail:'',status:'',note:''},{date:'Sun 4/19',label:'Outline + evidence (3h)',detail:'',status:'',note:''},{date:'Wed 4/22',label:'Write full draft (3h)',detail:'',status:'',note:''},{date:'Thu 4/23',label:'Revise + submit (3h)',detail:'',status:'',note:''},{date:'Thu 4/23',label:'PAPER DUE',detail:'',status:'',note:''},{date:'5/10→5/13',label:'Prepare presentation',detail:'',status:'',note:''},{date:'Thu 5/14',label:'PAPER PRESENTATION',detail:'',status:'',note:''}]}}}
 
-let state={theme:'dark',activeTab:'dashboard',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),milestones:defaultMilestones(),dayNotes:{},hiddenDays:[],nextId:2000,printRange:'today7'};
+function defaultEvents(){return[
+{id:3001,name:'Seal Carving',date:'2026-04-18',startTime:'13:00',endTime:'16:00',location:'S228',allDay:false},
+{id:3002,name:'Seal Carving',date:'2026-04-19',startTime:'09:00',endTime:'11:00',location:'S228',allDay:false},
+{id:3003,name:'MA1 Cohort Meeting',date:'2026-03-30',startTime:'09:15',endTime:'10:45',location:"Ch'an Hall",allDay:false},
+{id:3004,name:'Environment Equity in China',date:'2026-04-23',startTime:'19:00',endTime:'20:30',location:'Sudhana Center',allDay:false},
+{id:3005,name:'Buddhist Debates',date:'2026-04-16',startTime:'19:00',endTime:'20:30',location:'Sudhana Center',allDay:false},
+{id:3006,name:'CEI',date:'2026-05-17',endDate:'2026-05-21',startTime:'',endTime:'',location:'',allDay:true},
+{id:3007,name:'Spring Break',date:'2026-04-04',endDate:'2026-04-12',startTime:'',endTime:'',location:'',allDay:true}
+]}
+
+let state={theme:'dark',activeTab:'dashboard',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),milestones:defaultMilestones(),events:defaultEvents(),notes:[],dayNotes:{},hiddenDays:[],nextId:4000,printRange:'today7'};
 let saveTimer=null,lastSaveTime=null,saveStatus='saved';
 function scheduleSave(){saveStatus='saving';updateSI();if(saveTimer)clearTimeout(saveTimer);saveTimer=setTimeout(doSave,1500)}
 async function doSave(){try{localStorage.setItem(SKEY,JSON.stringify(state));localStorage.setItem(SKEY+'-time',new Date().toISOString());lastSaveTime=new Date();saveStatus='saved';updateSI();if(navigator.onLine){updateConn('syncing');const ok=await sbSet(state);if(ok){localStorage.removeItem(SKEY+'-dirty');updateConn('online')}else{localStorage.setItem(SKEY+'-dirty','1');updateConn('offline')}}else{localStorage.setItem(SKEY+'-dirty','1');updateConn('offline')}}catch(e){saveStatus='error';updateSI()}}
@@ -307,7 +358,7 @@ let chosen=null;
 if(localData&&remoteData){const lt=localTime?new Date(localTime):new Date(0);const rt=remoteTime?new Date(remoteTime):new Date(0);chosen=rt>lt?remoteData:localData}
 else if(remoteData){chosen=remoteData}
 else if(localData){chosen=localData}
-if(chosen){if(chosen.lifeTasks)chosen.lifeTasks=chosen.lifeTasks.map(t=>({category:'General',priority:'med',inBank:false,...t}));if(chosen.tasks)chosen.tasks=chosen.tasks.map(t=>({lifeSourceId:null,...t}));if(!chosen.hiddenDays)chosen.hiddenDays=[];state={...state,...chosen};lastSaveTime=new Date();saveStatus='saved'}}
+if(chosen){if(chosen.lifeTasks)chosen.lifeTasks=chosen.lifeTasks.map(t=>({category:'General',priority:'med',inBank:false,...t}));if(chosen.tasks)chosen.tasks=chosen.tasks.map(t=>({lifeSourceId:null,...t}));if(!chosen.hiddenDays)chosen.hiddenDays=[];if(!chosen.events)chosen.events=defaultEvents();if(!chosen.notes)chosen.notes=[];state={...state,...chosen};lastSaveTime=new Date();saveStatus='saved'}}
 
 const $=s=>document.querySelector(s);
 let allocatingId=null,addingDate=null;
@@ -315,9 +366,9 @@ function isInSprint(lifeId){return state.tasks.some(t=>t.lifeSourceId===lifeId)|
 
 function render(){
   document.documentElement.setAttribute('data-theme',state.theme);
-  const tabs=['dashboard','sprints','backward','life','print'];
-  const tn={dashboard:'Dashboard',sprints:'Weekly Sprints',backward:'Backward Plans',life:'Tasks',print:'Print 7 Days'};
-  document.getElementById('app').innerHTML=`<div class="header"><h1>Academic Planner</h1><span class="today-badge">${fmtDate(TODAY)}</span><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',midnight:'🌲 Midnight',temple:'⛪ Temple'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v2.2</span></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}</div>${tabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${({dashboard:renderDash,sprints:renderSprints,backward:renderBackward,life:renderLife,print:renderPrint})[t]()}</div>`).join('')}`;updateSI()}
+  const tabs=['dashboard','sprints','backward','life','events','notes','print'];
+  const tn={dashboard:'Dashboard',sprints:'Weekly Sprints',backward:'Backward Plans',life:'Tasks',events:'Events',notes:'Notes',print:'Print 7 Days'};
+  document.getElementById('app').innerHTML=`<div class="header"><h1>Academic Planner</h1><span class="today-badge">${fmtDate(TODAY)}</span><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',midnight:'🌲 Midnight',temple:'⛪ Temple'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v2.3</span></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}</div>${tabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${({dashboard:renderDash,sprints:renderSprints,backward:renderBackward,life:renderLife,events:renderEvents,notes:renderNotes,print:renderPrint})[t]()}</div>`).join('')}`;updateSI()}
 
 function renderDash(){const cats=['cn','bh','wh','ab'];const groups={};cats.forEach(c=>{groups[c]=state.deliverables.filter(d=>d.cat===c)});const mx=Math.max(...cats.map(c=>groups[c].length)),gc=`repeat(${cats.length},1fr)`;let h=`<div class="dash-table"><div class="dash-col-hdrs" style="display:grid;grid-template-columns:${gc};gap:8px">${cats.map(c=>`<div class="dash-col-hdr ${c}">${CAT_NAMES[c]}</div>`).join('')}</div>`;for(let r=0;r<mx;r++){h+=`<div class="dash-grid-row" style="display:grid;grid-template-columns:${gc};gap:8px;margin-top:6px">`;cats.forEach(c=>{const d=groups[c][r];if(!d){h+=`<div class="dash-cell dash-cell-empty"></div>`;return}const dd=parseDate(d.due),dl=daysBetween(TODAY,dd),uc=dl<0?'past':dl<=7?'urgent':dl<=21?'soon':'ok',ds=dl<0?Math.abs(dl)+'d ago':dl===0?'TODAY':dl+'d',ts=d.tbd?'background:var(--surface3);color:var(--text-dim)':'background:var(--accent-'+c+'-dim);color:var(--accent-'+c+')';h+=`<div class="dash-cell"><div class="dc-title">${d.title}</div><div class="dc-due">${d.tbd?'~':''}${fmtDate(dd)}</div><div class="dc-days ${uc}">${ds}</div><span class="dc-tag" style="${ts}">${d.tag}</span></div>`});h+='</div>'}h+='</div>';const op=state.lifeTasks.filter(t=>!t.done);if(op.length)h+=`<div class="notes-box" style="border-left:3px solid var(--accent-life)"><div class="notes-box-title" style="color:var(--accent-life)">Tasks · ${op.length} open · ${op.reduce((s,t)=>s+t.hours,0)}h</div></div>`;h+=`<div class="notes-box"><div class="notes-box-title">Strategy</div><div class="notes-box-text"><strong>Readings = paper research.</strong> BH → strand paper. ABI → ABI paper.<br><strong>Spring Break:</strong> ~30h. BH drafting window.<br><strong>Abhidhamma:</strong> Outline 4/19, draft 4/22, submit 4/23.<br><strong>WH Paper(s):</strong> 6h each.</div></div>`;return h}
 
@@ -328,7 +379,8 @@ weeks.forEach(wk=>{const isCur=TODAY>=wk.start&&TODAY<=wk.end,isSB=wk.start<=new
 const hiddenInWk=wk.days.filter(d=>(state.hiddenDays||[]).includes(d.date)).length;
 h+=`<div class="week-section"><div class="week-hdr"><span class="week-hdr-title">Week ${wk.num}</span><span class="week-hdr-dates">${fmtDate(wk.start)} → ${fmtDate(wk.end)}</span>${badges.join('')}${hiddenInWk?`<button class="expand-week-btn" onclick="expandWeek(${wk.num})" title="Show ${hiddenInWk} hidden day${hiddenInWk>1?'s':''}">▼ ${hiddenInWk} hidden</button>`:''}<span class="week-hdr-hours">${tAl}/${tAv}h</span></div>`;
 wk.days.forEach(day=>{if((state.hiddenDays||[]).includes(day.date))return;const av=getAvailHours(day.date),tasks=state.tasks.filter(t=>t.date===day.date),al=tasks.filter(t=>!t.done).reduce((s,t)=>s+t.hours,0),isT=sameDay(day.dateObj,TODAY),bc=al>av?'over':al===av?'exact':'under',note=state.dayNotes[day.date]||'',isAT=allocatingId!==null;const canHide=isCur&&day.dateObj<=TODAY;
-h+=`<div class="day-row ${isT?'is-today':''} ${isAT?'alloc-target':''}" data-date="${day.date}" ondragover="event.preventDefault();this.classList.add('alloc-highlight')" ondrop="handleDrop(event,'${day.date}')" ondragleave="this.classList.remove('alloc-highlight')" ${isAT?`onclick="placeAllocated('${day.date}')"`:''}><div class="day-left"><span class="day-name">${fmtDate(day.dateObj)}</span><span class="day-meta">${av}h avail</span>${canHide?`<button class="hide-day-btn" onclick="event.stopPropagation();hideDay('${day.date}')" title="Hide this day">hide</button>`:''}</div><div class="day-tasks-area" ondragover="handleChipDragOver(event)" ondrop="handleChipDrop(event,'${day.date}')" ondragleave="clearDropIndicators(this)">${tasks.map(t=>renderChip(t)).join('')}</div><div class="day-right"><span class="day-budget ${bc}">${al}/${av}h</span><button class="add-day-btn" onclick="event.stopPropagation();openAddTask('${day.date}')" title="Add task">+</button></div><div class="day-note-row"><button class="day-note-btn" onclick="event.stopPropagation();toggleEl('dn-${day.date}')">${note?'📝':'+ note'}</button><textarea class="day-note-input" id="dn-${day.date}" style="display:${note?'block':'none'}" onclick="event.stopPropagation()" oninput="state.dayNotes['${day.date}']=this.value;scheduleSave()" placeholder="Notes...">${note}</textarea></div></div>`});h+='</div>'});return h}
+const dayEvts=getEventsForDate(day.date);const evtChips=dayEvts.map(ev=>`<span class="evt-chip" data-tip="${ev.tip}">📅 ${ev.label}</span>`).join('');
+h+=`<div class="day-row ${isT?'is-today':''} ${isAT?'alloc-target':''}" data-date="${day.date}" ondragover="event.preventDefault();this.classList.add('alloc-highlight')" ondrop="handleDrop(event,'${day.date}')" ondragleave="this.classList.remove('alloc-highlight')" ${isAT?`onclick="placeAllocated('${day.date}')"`:''}><div class="day-left"><span class="day-name">${fmtDate(day.dateObj)}</span><span class="day-meta">${av}h avail</span>${canHide?`<button class="hide-day-btn" onclick="event.stopPropagation();hideDay('${day.date}')" title="Hide this day">hide</button>`:''}</div><div class="day-tasks-area" ondragover="handleChipDragOver(event)" ondrop="handleChipDrop(event,'${day.date}')" ondragleave="clearDropIndicators(this)">${evtChips}${tasks.map(t=>renderChip(t)).join('')}</div><div class="day-right"><span class="day-budget ${bc}">${al}/${av}h</span><button class="add-day-btn" onclick="event.stopPropagation();openAddTask('${day.date}')" title="Add task">+</button></div><div class="day-note-row"><button class="day-note-btn" onclick="event.stopPropagation();toggleEl('dn-${day.date}')">${note?'📝':'+ note'}</button><textarea class="day-note-input" id="dn-${day.date}" style="display:${note?'block':'none'}" onclick="event.stopPropagation()" oninput="state.dayNotes['${day.date}']=this.value;scheduleSave()" placeholder="Notes...">${note}</textarea></div></div>`});h+='</div>'});return h}
 
 function renderChip(t){const isLife=t.cat==='life'&&t.lifeSourceId;let acts='';
 if(isLife){acts=`<span class="chip-acts"><button class="chip-btn life-return" onclick="event.stopPropagation();returnToBank(${t.id})" title="Return to bank">▲</button><button class="chip-btn" onclick="event.stopPropagation();toggleTaskDone(${t.id})" title="${t.done?'Undo':'Done'}">${t.done?'↩':'✓'}</button><button class="chip-btn" onclick="event.stopPropagation();openTaskEdit(${t.id})" title="Edit">✎</button><button class="chip-btn" onclick="event.stopPropagation();duplicateTask(${t.id})" title="Duplicate">⧉</button><button class="chip-btn life-remove" onclick="event.stopPropagation();deleteTask(${t.id})" title="Delete">✕</button></span>`}
@@ -338,13 +390,53 @@ return`<span class="chip ${t.cat} ${t.priority==='high'?'high':''} ${t.done?'don
 function renderBackward(){let h='';['cn','bh','wh','ab'].forEach(cat=>{const ms=state.milestones[cat];if(!ms)return;h+=`<div class="bp-section"><div class="bp-hdr"><span class="bp-dot ${cat}"></span><span class="bp-hdr-title">${ms.title}</span><span class="bp-hdr-due">${ms.due}</span></div><div class="ms-track">`;ms.items.forEach((it,i)=>{const hn=it.note&&it.note.length>0;h+=`<div><div class="ms-item ${it.status}" onclick="cycleMsStatus('${cat}',${i})"><span class="ms-date">${it.date}</span><span class="ms-label">${it.label}${it.detail?' <span class="ms-detail">— '+it.detail+'</span>':''}</span><button class="ms-note-btn ${hn?'has-note':''}" onclick="event.stopPropagation();toggleEl('mn-${cat}-${i}')" title="Note">📝</button></div><div class="ms-note-area" id="mn-${cat}-${i}" style="display:${hn?'block':'none'}"><textarea class="ms-note-input" placeholder="Add note..." onclick="event.stopPropagation()" oninput="state.milestones['${cat}'].items[${i}].note=this.value;scheduleSave()">${it.note||''}</textarea></div></div>`});h+='</div></div>'});h+=`<div class="notes-box"><div class="notes-box-text" style="font-size:.76rem"><em>Click milestones to cycle: pending → active → done</em></div></div>`;return h}
 
 function renderLife(){const op=state.lifeTasks.filter(t=>!t.done),dn=state.lifeTasks.filter(t=>t.done);const cats={};op.forEach(t=>{const c=t.category||'General';if(!cats[c])cats[c]=[];cats[c].push(t)});Object.values(cats).forEach(a=>a.sort((a,b)=>(PRI_ORDER[a.priority]||3)-(PRI_ORDER[b.priority]||3)));
-return`<div class="life-header"><span class="life-title">Tasks</span><span class="legend-hint">${op.length} open · ${op.reduce((s,t)=>s+t.hours,0)}h total</span></div><div class="life-add-form"><input class="life-input" id="lifeNewName" placeholder="Task name" style="flex:2;min-width:120px"/><input class="life-input" id="lifeNewHrs" type="number" step="0.5" min="0" placeholder="Hrs" style="width:58px"/><select class="life-select" id="lifeNewCat"><option value="General">General</option><option value="Email">Email</option><option value="Projects">Projects</option><option value="Income">Income</option><option value="Garden">Garden</option><option value="Correspondence">Correspondence</option></select><select class="life-select" id="lifeNewPri"><option value="high">High</option><option value="med">Medium</option><option value="low">Low</option></select><input class="life-input" id="lifeNewDue" type="date" style="width:125px"/><button class="life-btn" onclick="addLifeTask()">+ Add</button></div>${Object.keys(cats).sort().map(c=>`<div class="life-cat-group"><div class="life-cat-hdr">${c} (${cats[c].length})</div>${cats[c].map(t=>renderLifeItem(t)).join('')}</div>`).join('')}${dn.length?`<div class="life-cat-group"><div class="life-cat-hdr" style="opacity:.5">Completed (${dn.length})</div>${dn.map(t=>renderLifeItem(t)).join('')}</div>`:''}<div class="notes-box" style="margin-top:14px;border:1px dashed var(--accent-life)"><div class="notes-box-text" style="font-size:.76rem"><strong style="color:var(--accent-life)">→</strong> sends to Sprint bank. Tasks added in Sprint are mirrored here.</div></div>`}
+return`<div class="life-header"><span class="life-title">Tasks</span><span class="legend-hint">${op.length} open · ${op.reduce((s,t)=>s+t.hours,0)}h total</span></div><div class="life-add-form"><input class="life-input" id="lifeNewName" placeholder="Task name" style="flex:2;min-width:120px"/><input class="life-input" id="lifeNewHrs" type="number" step="0.5" min="0" placeholder="Hrs" style="width:58px"/><select class="life-select" id="lifeNewCat"><option value="General">General</option><option value="Email">Email</option><option value="Projects">Projects</option><option value="Income">Income</option><option value="Garden">Garden</option><option value="Correspondence">Correspondence</option></select><select class="life-select" id="lifeNewPri"><option value="high">High</option><option value="med">Medium</option><option value="low">Low</option></select><input class="life-input" id="lifeNewDue" type="date" style="width:125px"/><button class="life-btn" onclick="addLifeTask()">+ Add</button></div>${Object.keys(cats).sort().map(c=>`<div class="life-cat-group"><div class="life-cat-hdr" draggable="true" ondragstart="lifeCatDragStart(event,'${c}')" ondragover="lifeCatDragOver(event)" ondragleave="lifeCatDragLeave(event)" ondrop="lifeCatDrop(event,'${c}')">${c} (${cats[c].length})</div>${cats[c].map(t=>renderLifeItem(t,c)).join('')}</div>`).join('')}${dn.length?`<div class="life-cat-group"><div class="life-cat-hdr" style="opacity:.5">Completed (${dn.length})</div>${dn.map(t=>renderLifeItem(t,'')).join('')}</div>`:''}<div class="notes-box" style="margin-top:14px;border:1px dashed var(--accent-life)"><div class="notes-box-text" style="font-size:.76rem"><strong style="color:var(--accent-life)">→</strong> sends to Sprint bank. Tasks added in Sprint are mirrored here.</div></div>`}
 
-function renderLifeItem(t){const ds=t.due?fmtDate(parseDate(t.due)):'';let dH='';if(t.due&&!t.done){const dl=daysBetween(TODAY,parseDate(t.due)),dc=dl<=0?'urgent':dl<=3?'urgent':dl<=7?'soon':'ok';dH=`<span class="li-days ${dc}">${dl<0?Math.abs(dl)+'d ago':dl===0?'today':dl+'d'}</span>`}
+function renderLifeItem(t,cat){const ds=t.due?fmtDate(parseDate(t.due)):'';let dH='';if(t.due&&!t.done){const dl=daysBetween(TODAY,parseDate(t.due)),dc=dl<=0?'urgent':dl<=3?'urgent':dl<=7?'soon':'ok';dH=`<span class="li-days ${dc}">${dl<0?Math.abs(dl)+'d ago':dl===0?'today':dl+'d'}</span>`}
 const inSp=isInSprint(t.id);
 let sendBtn='<span></span>';
 if(!t.done){if(inSp){sendBtn=`<button class="li-send in-sprint" onclick="recallFromSprint(${t.id})" data-tip="Recall from Sprint">↩</button>`}else{sendBtn=`<button class="li-send" onclick="sendToBank(${t.id})" data-tip="Send to Sprint">→</button>`}}
-return`<div class="life-item ${t.done?'done-item':''}"><button class="li-check ${t.done?'checked':''}" onclick="toggleLifeDone(${t.id})">${t.done?'✓':''}</button><span class="li-name">${t.name}</span><span class="li-meta">${t.hours}h${ds?' · '+ds:''}</span>${dH}<span class="li-pri ${t.priority||'med'}">${(t.priority||'med').toUpperCase()}</span>${sendBtn}<span class="li-btns"><button class="li-btn" onclick="openLifeEdit(${t.id})">✎</button><button class="li-btn del" onclick="deleteLifeTask(${t.id})">✕</button></span></div>`}
+const ec=cat?cat.replace(/'/g,"\\'"):'';
+return`<div class="life-item ${t.done?'done-item':''}" draggable="true" ondragstart="lifeItemDragStart(event,${t.id},'${ec}')" ondragover="lifeItemDragOver(event)" ondragleave="lifeItemDragLeave(event)" ondrop="lifeItemDrop(event,${t.id},'${ec}')" ondragend="this.classList.remove('dragging')"><button class="li-check ${t.done?'checked':''}" onclick="toggleLifeDone(${t.id})">${t.done?'✓':''}</button><span class="li-name">${t.name}</span><span class="li-meta">${t.hours}h${ds?' · '+ds:''}</span>${dH}<span class="li-pri ${t.priority||'med'}">${(t.priority||'med').toUpperCase()}</span>${sendBtn}<span class="li-btns"><button class="li-btn" onclick="openLifeEdit(${t.id})">✎</button><button class="li-btn del" onclick="deleteLifeTask(${t.id})">✕</button></span></div>`}
+
+function renderNotes(){
+const notes=(state.notes||[]).slice().sort((a,b)=>b.id-a.id);
+let h=`<div class="life-header"><span class="life-title">Notes</span><span class="legend-hint">${notes.length} entries</span></div>`;
+h+=`<button class="life-btn" onclick="addNote()" style="margin-bottom:14px">+ Add Note</button>`;
+notes.forEach((n,i)=>{
+const ts=new Date(n.timestamp);const tStr=ts.toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'})+' '+ts.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+h+=`<div class="note-entry" draggable="true" data-note-id="${n.id}" ondragstart="noteDragStart(event,${n.id})" ondragover="noteDragOver(event)" ondrop="noteDrop(event,${n.id})" ondragend="this.classList.remove('dragging')"><div class="note-hdr"><span class="note-drag">⠿</span><span class="note-ts">${tStr}</span><button class="note-del" onclick="deleteNote(${n.id})">✕</button></div><textarea class="note-text" oninput="updateNote(${n.id},this.value)">${n.text||''}</textarea></div>`});
+return h}
+
+function renderEvents(){
+const evts=(state.events||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
+const weekEnd=new Date(TODAY);weekEnd.setDate(weekEnd.getDate()+(6-weekEnd.getDay()));
+const upcoming=evts.filter(e=>{const ed=e.endDate||e.date;return parseDate(ed)>=weekEnd});
+const past=evts.filter(e=>{const ed=e.endDate||e.date;return parseDate(ed)<weekEnd});
+let h=`<div class="life-header"><span class="life-title">Events</span><span class="legend-hint">${evts.length} total</span></div>`;
+h+=`<div class="evt-add-form"><input id="evtNewName" placeholder="Event name" style="flex:2;min-width:120px"/><input id="evtNewDate" type="date"/><input id="evtNewStart" type="time" style="width:100px"/><input id="evtNewEnd" type="time" style="width:100px"/><input id="evtNewLoc" placeholder="Location" style="width:120px"/><button class="life-btn" onclick="addEvent()">+ Add</button></div>`;
+if(upcoming.length){h+=`<div class="evt-list">`;upcoming.forEach(e=>h+=renderEvtItem(e,false));h+=`</div>`}
+if(past.length){h+=`<div class="evt-list"><div class="life-cat-hdr" style="opacity:.5">Past Events (${past.length})</div>`;past.forEach(e=>h+=renderEvtItem(e,true));h+=`</div>`}
+return h}
+
+function renderEvtItem(e,isPast){
+const fmtT=t=>{if(!t)return'';const[h,m]=t.split(':');const hr=parseInt(h);return(hr>12?hr-12:hr||12)+':'+m+(hr>=12?'pm':'am')};
+const multi=e.endDate&&e.endDate!==e.date;
+const dateStr=multi?fmtDate(parseDate(e.date))+' → '+fmtDate(parseDate(e.endDate)):fmtDate(parseDate(e.date));
+const timeStr=e.allDay?'All day':(e.startTime?fmtT(e.startTime)+(e.endTime?'–'+fmtT(e.endTime):''):'');
+return`<div class="evt-item ${isPast?'past-evt':''}"><span class="evt-date">${dateStr}</span><span class="evt-name">${e.name}${e.location?' · <span class="evt-meta">'+e.location+'</span>':''}</span><span class="evt-meta">${timeStr}</span><span class="evt-btns"><button class="evt-btn" onclick="openEvtEdit(${e.id})">✎</button><button class="evt-btn del" onclick="deleteEvent(${e.id})">✕</button></span></div>`}
+
+function getEventsForDate(dateStr){
+const evts=state.events||[];const chips=[];
+evts.forEach(e=>{
+const start=e.date,end=e.endDate||e.date;
+if(dateStr>=start&&dateStr<=end){
+const fmtT=t=>{if(!t)return'';const[h,m]=t.split(':');const hr=parseInt(h);return(hr>12?hr-12:hr||12)+':'+m+(hr>=12?'pm':'am')};
+let label=e.name;
+if(end!==start){const s=parseDate(start),en=parseDate(end),c=parseDate(dateStr);const total=Math.round((en-s)/864e5)+1;const day=Math.round((c-s)/864e5)+1;label+=` (${day}/${total})`}
+const tip=[e.allDay?'All day':(e.startTime?fmtT(e.startTime)+(e.endTime?'–'+fmtT(e.endTime):''):''),e.location].filter(Boolean).join(' · ');
+chips.push({label,tip:tip||e.name})}});
+return chips}
 
 function renderPrint(){
   const pr=state.printRange||'today7';let startDate;
@@ -419,6 +511,36 @@ function toggleLifeDone(id){const t=state.lifeTasks.find(t=>t.id===id);if(!t)ret
 function deleteLifeTask(id){if(!confirm('Delete?'))return;state.lifeTasks=state.lifeTasks.filter(t=>t.id!==id);state.tasks=state.tasks.filter(t=>t.lifeSourceId!==id);render();scheduleSave()}
 
 
+
+// ===== NOTES =====
+function addNote(){if(!state.notes)state.notes=[];state.notes.push({id:state.nextId++,timestamp:new Date().toISOString(),text:''});render();scheduleSave();setTimeout(()=>{const areas=document.querySelectorAll('.note-text');if(areas.length)areas[0].focus()},50)}
+function updateNote(id,text){const n=(state.notes||[]).find(n=>n.id===id);if(n){n.text=text;scheduleSave()}}
+function deleteNote(id){if(!confirm('Delete note?'))return;state.notes=(state.notes||[]).filter(n=>n.id!==id);render();scheduleSave()}
+let noteDragId=null;
+function noteDragStart(e,id){noteDragId=id;e.currentTarget.classList.add('dragging');e.dataTransfer.effectAllowed='move'}
+function noteDragOver(e){e.preventDefault()}
+function noteDrop(e,targetId){e.preventDefault();if(noteDragId===null||noteDragId===targetId)return;const arr=state.notes;const fromIdx=arr.findIndex(n=>n.id===noteDragId);const toIdx=arr.findIndex(n=>n.id===targetId);if(fromIdx<0||toIdx<0)return;const[item]=arr.splice(fromIdx,1);arr.splice(toIdx,0,item);noteDragId=null;render();scheduleSave()}
+
+// ===== EVENTS =====
+function addEvent(){const name=$('#evtNewName')?.value.trim();if(!name)return;if(!state.events)state.events=[];state.events.push({id:state.nextId++,name,date:$('#evtNewDate')?.value||isoDate(TODAY),endDate:'',startTime:$('#evtNewStart')?.value||'',endTime:$('#evtNewEnd')?.value||'',location:$('#evtNewLoc')?.value||'',allDay:false});$('#evtNewName').value='';$('#evtNewDate').value='';$('#evtNewStart').value='';$('#evtNewEnd').value='';$('#evtNewLoc').value='';render();scheduleSave()}
+function deleteEvent(id){if(!confirm('Delete event?'))return;state.events=(state.events||[]).filter(e=>e.id!==id);render();scheduleSave()}
+let editEvtId=null;
+function openEvtEdit(id){editEvtId=id;const e=(state.events||[]).find(e=>e.id===id);if(!e)return;$('#evtModalTitle').textContent='Edit Event';$('#eName').value=e.name;$('#eDate').value=e.date;$('#eEndDate').value=e.endDate||'';$('#eStart').value=e.startTime||'';$('#eEnd').value=e.endTime||'';$('#eLoc').value=e.location||'';$('#eAllDay').checked=!!e.allDay;$('#evtModal').classList.add('open')}
+$('#eSave').onclick=()=>{const e=(state.events||[]).find(e=>e.id===editEvtId);if(e){e.name=$('#eName').value;e.date=$('#eDate').value;e.endDate=$('#eEndDate').value||'';e.startTime=$('#eStart').value;e.endTime=$('#eEnd').value;e.location=$('#eLoc').value;e.allDay=$('#eAllDay').checked}$('#evtModal').classList.remove('open');render();scheduleSave()}
+$('#eDel').onclick=()=>{state.events=(state.events||[]).filter(e=>e.id!==editEvtId);$('#evtModal').classList.remove('open');render();scheduleSave()}
+$('#eCanc').onclick=()=>{$('#evtModal').classList.remove('open')}
+$('#evtModal').onclick=e=>{if(e.target.id==='evtModal')$('#evtModal').classList.remove('open')}
+
+// ===== TASKS TAB DRAG =====
+let lifeDragId=null,lifeDragCat=null;
+function lifeItemDragStart(e,id,cat){lifeDragId=id;lifeDragCat=cat;e.dataTransfer.effectAllowed='move';e.currentTarget.classList.add('dragging')}
+function lifeItemDragOver(e){e.preventDefault();e.currentTarget.classList.add('drag-over-item')}
+function lifeItemDragLeave(e){e.currentTarget.classList.remove('drag-over-item')}
+function lifeItemDrop(e,targetId,targetCat){e.preventDefault();e.currentTarget.classList.remove('drag-over-item');if(lifeDragId===null||lifeDragId===targetId)return;const t=state.lifeTasks.find(t=>t.id===lifeDragId);if(!t)return;if(targetCat&&targetCat!==t.category)t.category=targetCat;const arr=state.lifeTasks;const fromIdx=arr.findIndex(x=>x.id===lifeDragId);const toIdx=arr.findIndex(x=>x.id===targetId);const[item]=arr.splice(fromIdx,1);arr.splice(toIdx,0,item);lifeDragId=null;render();scheduleSave()}
+function lifeCatDragStart(e,cat){e.dataTransfer.setData('text/plain','cat:'+cat);e.dataTransfer.effectAllowed='move'}
+function lifeCatDragOver(e){e.preventDefault();e.currentTarget.classList.add('drag-over')}
+function lifeCatDragLeave(e){e.currentTarget.classList.remove('drag-over')}
+function lifeCatDrop(e,targetCat){e.preventDefault();e.currentTarget.classList.remove('drag-over');if(lifeDragId!==null){const t=state.lifeTasks.find(t=>t.id===lifeDragId);if(t){t.category=targetCat;lifeDragId=null;render();scheduleSave()}}}
 
 // ===== EXPORT / IMPORT =====
 function exportState(){
