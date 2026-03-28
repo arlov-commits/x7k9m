@@ -276,31 +276,30 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 .life-item.drag-over-item{box-shadow:0 -2px 0 0 var(--warning)}
 
 /* Syllabus */
-.syl-week{margin-bottom:20px}
-.syl-week-hdr{font-family:'Crimson Pro',serif;font-size:1rem;font-weight:600;padding-bottom:4px;border-bottom:1px solid var(--border);margin-bottom:8px;display:flex;align-items:baseline;gap:8px}
-.syl-week-dates{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--text-dim)}
-.syl-class{margin-bottom:12px;margin-left:4px}
-.syl-class-hdr{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;display:flex;align-items:center;gap:6px}
-.syl-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
-.syl-entry{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--surface);border-radius:7px;margin-bottom:4px;border:1px solid var(--border)}
-.syl-entry.done{opacity:.4}
-.syl-entry.paper{border-left:3px solid var(--danger)}.syl-entry.exam{border-left:3px solid var(--warning)}.syl-entry.presentation{border-left:3px solid var(--accent-ab)}
-.syl-check{width:18px;height:18px;border-radius:3px;border:2px solid var(--border);background:0;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ok);font-size:.65rem;transition:all .12s;flex-shrink:0;margin-top:2px}
-.syl-check:hover{border-color:var(--ok)}.syl-check.checked{background:var(--ok-dim);border-color:var(--ok)}
-.syl-body{flex:1;min-width:0}
-.syl-title-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.syl-title{font-size:.84rem;font-weight:600;cursor:pointer}.syl-title:hover{text-decoration:underline}
-.syl-type-tag{font-size:.56rem;font-weight:700;text-transform:uppercase;padding:1px 5px;border-radius:3px}
+.syl-table{width:100%;border-collapse:collapse;margin-bottom:20px}
+.syl-table th{font-family:'Crimson Pro',serif;font-size:.78rem;font-weight:600;text-align:left;padding:6px 8px;border-bottom:2px solid var(--border);color:var(--text-dim)}
+.syl-table td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;font-size:.82rem}
+.syl-table tr.done td{opacity:.4}
+.syl-table tr.done .syl-title{text-decoration:line-through}
+.syl-class-cell{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;padding-top:10px!important}
+.syl-dot{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:4px;vertical-align:middle}
+.syl-due-cell{font-family:'JetBrains Mono',monospace;font-size:.7rem;white-space:nowrap;color:var(--text-dim)}
+.syl-due-cell .syl-days{display:block;font-size:.64rem;font-weight:600}
+.syl-days.urgent{color:var(--danger)}.syl-days.soon{color:var(--warning)}.syl-days.ok{color:var(--ok)}.syl-days.past{color:var(--text-muted)}
+.syl-title{font-weight:500;cursor:pointer}.syl-title:hover{text-decoration:underline}
+.syl-type-tag{font-size:.56rem;font-weight:700;text-transform:uppercase;padding:1px 5px;border-radius:3px;margin-left:6px;vertical-align:middle}
 .syl-type-tag.reading{background:var(--surface3);color:var(--text-dim)}.syl-type-tag.paper{background:var(--danger-dim);color:var(--danger)}.syl-type-tag.exam{background:var(--warning-dim);color:var(--warning)}.syl-type-tag.presentation{background:var(--accent-ab-dim);color:var(--accent-ab)}
-.syl-meta{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:var(--text-dim);margin-top:2px}
-.syl-detail{font-size:.76rem;color:var(--text-dim);margin-top:4px;padding:6px 8px;background:var(--surface2);border-radius:4px;line-height:1.5;display:none}
+.syl-hrs{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--text-muted)}
+.syl-detail{font-size:.74rem;color:var(--text-dim);margin-top:3px;padding:4px 8px;background:var(--surface2);border-radius:4px;line-height:1.5;display:none}
 .syl-detail.open{display:block}
-.syl-btns{display:flex;gap:3px;flex-shrink:0}
-.syl-btn{background:0;border:0;color:var(--text-muted);cursor:pointer;font-size:.72rem;padding:2px 5px;border-radius:3px;transition:all .12s}
-.syl-btn:hover{color:var(--text-dim);background:var(--surface3)}.syl-btn.del:hover{color:var(--danger);background:var(--danger-dim)}
+.syl-check{width:16px;height:16px;border-radius:3px;border:2px solid var(--border);background:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:var(--ok);font-size:.6rem;transition:all .12s;flex-shrink:0;vertical-align:middle}
+.syl-check:hover{border-color:var(--ok)}.syl-check.checked{background:var(--ok-dim);border-color:var(--ok)}
+.syl-btns{display:inline-flex;gap:2px;margin-left:4px}
+.syl-btn{background:0;border:0;color:var(--text-muted);cursor:pointer;font-size:.68rem;padding:1px 4px;border-radius:3px;transition:all .12s;opacity:.4}
+.syl-btn:hover{opacity:1;color:var(--text-dim);background:var(--surface3)}.syl-btn.del:hover{color:var(--danger);background:var(--danger-dim)}
 .syl-add-form{display:flex;gap:5px;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap}
 .syl-add-form input,.syl-add-form select{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Outfit';font-size:.78rem;padding:7px 10px;border-radius:6px}
-.syl-complete-banner{padding:10px 14px;background:var(--ok-dim);border:1px solid var(--ok);border-radius:8px;color:var(--ok);font-weight:600;font-size:.82rem;margin-bottom:12px}
+.syl-row-paper td{border-left:3px solid var(--danger)}.syl-row-exam td:first-child{border-left:3px solid var(--warning)}.syl-row-presentation td:first-child{border-left:3px solid var(--accent-ab)}
 
 .hdr-row1,.hdr-row2{display:contents}
 @media(max-width:700px){.day-row{grid-template-columns:66px 1fr auto}.life-item{grid-template-columns:auto 1fr auto auto}.li-days,.li-send{display:none}.evt-item{grid-template-columns:1fr auto auto;gap:4px}.evt-item .evt-date{grid-column:1/-1}.evt-info{text-align:left}.header{gap:4px;flex-wrap:wrap}.hdr-row1{display:flex;align-items:center;gap:6px;width:100%;flex-shrink:0}.hdr-row1 .combined-status{margin-left:auto}.hdr-row2{display:flex;align-items:center;gap:6px;width:100%}.hdr-row2 .theme-toggle{margin-left:auto}.labeled-field label{display:none}.note-text{resize:both}}
@@ -345,12 +344,13 @@ function defaultTasks(){return[]}
 
 function defaultLifeTasks(){return[{id:1001,name:'Return cell phone',hours:1,due:'2026-03-21',done:false,category:'General',priority:'high',inBank:false},{id:1002,name:'Install garden shed',hours:3,due:'2026-03-21',done:false,category:'Garden',priority:'high',inBank:false},{id:1003,name:'Reply Bhante',hours:.5,due:'',done:false,category:'Email',priority:'high',inBank:false},{id:1004,name:'Reply Haste',hours:.5,due:'',done:false,category:'Email',priority:'med',inBank:false},{id:1005,name:'Make chanting book(s)',hours:4,due:'',done:false,category:'Projects',priority:'med',inBank:false},{id:1006,name:'Sell iPad',hours:1,due:'',done:false,category:'Income',priority:'med',inBank:false},{id:1007,name:'Sell cameras',hours:1,due:'',done:false,category:'Income',priority:'med',inBank:false},{id:1008,name:'Liquidate funds',hours:1,due:'',done:false,category:'Income',priority:'low',inBank:false},{id:1009,name:'Reply to prisoner',hours:1,due:'',done:false,category:'Correspondence',priority:'med',inBank:false}]}
 function defaultDeliverables(){return[
-{cat:'cn',title:'Language Exam',due:'2026-04-03',tag:'Complete'},
-{cat:'bh',title:'Strand Paper Draft',due:'2026-04-17',tag:'Paper 8-12pp'},
-{cat:'bh',title:'Final Strand Paper',due:'2026-05-08',tag:'Paper'},
-{cat:'bh',title:'BH Presentation',due:'2026-05-12',tag:'Pres.'},
+{cat:'cn',title:'Midterm Exam',due:'2026-04-03',tag:'Complete'},
+{cat:'bh',title:'Strand Paper Draft',due:'2026-04-17',tag:'8-12pp'},
+{cat:'ab',title:'ABI Draft Intro',due:'2026-04-23',tag:'Draft'},
 {cat:'wh',title:'WH Paper',due:'2026-04-30',tag:'5-7pp',tbd:true},
-{cat:'ab',title:'ABI Paper',due:'2026-05-08',tag:'Paper 3-5pp'},
+{cat:'bh',title:'Final Strand Paper',due:'2026-05-08',tag:'8-12pp'},
+{cat:'ab',title:'ABI Final Paper',due:'2026-05-08',tag:'3-5pp'},
+{cat:'bh',title:'BH Presentation',due:'2026-05-12',tag:'Pres.'},
 {cat:'ab',title:'ABI Presentation',due:'2026-05-14',tag:'Pres.'}
 ]}
 
@@ -366,32 +366,33 @@ function defaultEvents(){return[
 
 function defaultSyllabus(){return[
 // Abhidhamma
-{id:5001,cat:'ab',type:'reading',title:'Gethin + Skandhila + Dhammajoti',detail:'Gethin "Some Abhidharma Problems" pp.218-223; Skandhila Abhidharmāvatāra pp.71-end; Dhammajoti Sarvāstivāda Abhidharma pp.291-300',due:'2026-04-02',hours:6,done:false},
-{id:5002,cat:'ab',type:'reading',title:'Arthaviniścayasūtranibandhana I',detail:'Arthaviniścayasūtranibandhana pp.45-66 + Salvini translation',due:'2026-04-16',hours:6,done:false},
-{id:5003,cat:'ab',type:'reading',title:'Arthaviniścayasūtranibandhana II + Gethin',detail:'Arthaviniścayasūtranibandhana pp.67-114 + Gethin pp.234-252',due:'2026-04-23',hours:6,done:false},
-{id:5004,cat:'ab',type:'reading',title:'Abhidharmakośabhāṣya selections',detail:'Abhidharmakośabhāṣya pp.203-221, 505-9, 2523-2524, 2571-2579',due:'2026-04-30',hours:6,done:false},
-{id:5005,cat:'ab',type:'reading',title:'Abhidharmakośabhāṣya Vol.3',detail:'Abhidharmakośabhāṣya Vol.3 pp.1875-1933',due:'2026-05-07',hours:6,done:false},
-{id:5006,cat:'ab',type:'paper',title:'ABI Paper',detail:'Proposed question + draft intro due 4/23. Final due 5/8. 3-5 pages.',due:'2026-05-08',hours:5,done:false},
-{id:5007,cat:'ab',type:'presentation',title:'ABI Presentation',detail:'',due:'2026-05-14',hours:3,done:false},
+{id:5001,cat:'ab',type:'reading',title:'Gethin + Skandhila + Dhammajoti',detail:'Gethin pp.218-223; Skandhila Abhidharmāvatāra pp.71-end; Dhammajoti pp.291-300',due:'2026-04-02',hours:6,done:false},
+{id:5002,cat:'ab',type:'reading',title:'Arthaviniścayasūtranibandhana + Salvini',detail:'Arthaviniścayasūtranibandhana pp.45-66 + Salvini translation',due:'2026-04-16',hours:6,done:false},
+{id:5003,cat:'ab',type:'reading',title:'Arthaviniścayasūtranibandhana + Gethin',detail:'Arthaviniścayasūtranibandhana pp.67-114 + Gethin pp.234-252',due:'2026-04-23',hours:6,done:false},
+{id:5004,cat:'ab',type:'paper',title:'ABI Paper — draft intro',detail:'Proposed question + draft intro',due:'2026-04-23',hours:0,done:false},
+{id:5005,cat:'ab',type:'reading',title:'Abhidharmakośabhāṣya',detail:'pp.203-221, 505-9, 2523-2524, 2571-2579',due:'2026-04-30',hours:6,done:false},
+{id:5006,cat:'ab',type:'reading',title:'Abhidharmakośabhāṣya Vol.3',detail:'pp.1875-1933',due:'2026-05-07',hours:6,done:false},
+{id:5007,cat:'ab',type:'paper',title:'ABI Final Paper',detail:'3-5 pages, 3-5hrs',due:'2026-05-08',hours:5,done:false},
+{id:5008,cat:'ab',type:'presentation',title:'ABI Presentation',detail:'',due:'2026-05-14',hours:0,done:false},
 // Buddhist Hermeneutics
-{id:5010,cat:'bh',type:'reading',title:'Powers — Saṃdhinirmocana-sūtra',detail:'Hermeneutics and Tradition in the Saṃdhinirmocana-sūtra pp.78-82 & 138-147',due:'2026-03-31',hours:3,done:false},
-{id:5011,cat:'bh',type:'reading',title:'Hsüan-hua — Flower Adornment Preface',detail:'"Introduction" + "Texts of Preface to the Flower Adornment Sutra" pp.xv-xvii, 1-12. Due 4/13 and 4/16.',due:'2026-04-13',hours:4,done:false},
-{id:5012,cat:'bh',type:'reading',title:'Ching Liang — Prologue First Door',detail:'Master Ching Liang, Flower Adornment Sutra Prologue First Door',due:'2026-04-21',hours:4,done:false},
-{id:5013,cat:'bh',type:'reading',title:'Flower Adornment Sutra Ch.39',detail:"Bodhisattva Maitreya, Great Tower of Vairochana's Treasury of Adornments — Flower Adornment Sutra Ch.39. Due 4/27 and 4/28.",due:'2026-04-27',hours:5,done:false},
-{id:5014,cat:'bh',type:'paper',title:'BH Strand Paper Draft',detail:'First draft soft deadline. 8-12 pages, ~15-25hrs total in 2.5-3hr chunks.',due:'2026-04-17',hours:20,done:false},
-{id:5015,cat:'bh',type:'paper',title:'BH Final Strand Paper',detail:'Final due 5/8 11:59pm. 8-12 pages.',due:'2026-05-08',hours:10,done:false},
-{id:5016,cat:'bh',type:'presentation',title:'BH Presentation',detail:'',due:'2026-05-12',hours:4,done:false},
+{id:5010,cat:'bh',type:'reading',title:'Powers — Saṃdhinirmocana-sūtra',detail:'pp.78-82 & 138-147',due:'2026-03-31',hours:3,done:false},
+{id:5011,cat:'bh',type:'reading',title:'Hsüan-hua — Flower Adornment Sutra Preface',detail:'pp.xv-xvii, 1-12. Continues 4/16.',due:'2026-04-13',hours:4,done:false},
+{id:5012,cat:'bh',type:'paper',title:'BH Strand Paper Draft',detail:'Soft deadline. 8-12 pages.',due:'2026-04-17',hours:0,done:false},
+{id:5013,cat:'bh',type:'reading',title:'Ching Liang — Flower Adornment Sutra Prologue First Door',detail:'',due:'2026-04-21',hours:4,done:false},
+{id:5014,cat:'bh',type:'reading',title:'Bodhisattva Maitreya — Flower Adornment Sutra Ch.39',detail:'Continues 4/28.',due:'2026-04-27',hours:4,done:false},
+{id:5015,cat:'bh',type:'paper',title:'BH Final Strand Paper',detail:'8-12 pages.',due:'2026-05-08',hours:0,done:false},
+{id:5016,cat:'bh',type:'presentation',title:'BH Presentation',detail:'',due:'2026-05-12',hours:0,done:false},
 // Western Hermeneutics
-{id:5020,cat:'wh',type:'reading',title:'Heidegger — Language & Poetry',detail:'"A Dialogue on Language" from On the Way to Language + "Language" and "...Poetically Man Dwells..." from Poetry, Language, Thought',due:'2026-03-31',hours:4,done:false},
-{id:5021,cat:'wh',type:'reading',title:'Heidegger — Being in Time',detail:'Heidegger continued + Being in Time excerpt',due:'2026-04-14',hours:4,done:false},
-{id:5022,cat:'wh',type:'reading',title:'Irigaray — Forgetting of Air',detail:'The Forgetting of Air in Martin Heidegger',due:'2026-04-21',hours:4,done:false},
-{id:5023,cat:'wh',type:'reading',title:'Sartre — Existentialism is Humanism',detail:'IMPORTANT: Leading class discussion on this text.',due:'2026-04-28',hours:5,done:false},
-{id:5024,cat:'wh',type:'reading',title:'Lyotard — Postmodern Condition',detail:'The Postmodern Condition',due:'2026-05-05',hours:4,done:false},
-{id:5025,cat:'wh',type:'reading',title:'Wittgenstein — Philosophical Investigations',detail:'Philosophical Investigations (selections)',due:'2026-05-12',hours:4,done:false},
-{id:5026,cat:'wh',type:'reading',title:'TBA',detail:'To be announced',due:'2026-05-19',hours:4,done:false},
-{id:5027,cat:'wh',type:'paper',title:'WH Paper',detail:'5-7 pages. Due date TBA (~4/30). Estimate 4-5hrs.',due:'2026-04-30',hours:5,done:false},
+{id:5020,cat:'wh',type:'reading',title:'Heidegger — On the Way to Language + Poetry, Language, Thought',detail:'Ch.VI-VII',due:'2026-03-31',hours:4,done:false},
+{id:5021,cat:'wh',type:'reading',title:'Heidegger — Being in Time',detail:'Excerpt',due:'2026-04-14',hours:4,done:false},
+{id:5022,cat:'wh',type:'reading',title:'Irigaray — The Forgetting of Air in Martin Heidegger',detail:'',due:'2026-04-21',hours:4,done:false},
+{id:5023,cat:'wh',type:'reading',title:'Sartre — Existentialism is Humanism',detail:'LEADING DISCUSSION',due:'2026-04-28',hours:4,done:false},
+{id:5024,cat:'wh',type:'paper',title:'WH Paper',detail:'5-7 pages. Due date TBD.',due:'2026-04-30',hours:5,done:false},
+{id:5025,cat:'wh',type:'reading',title:'Lyotard — The Postmodern Condition',detail:'',due:'2026-05-05',hours:4,done:false},
+{id:5026,cat:'wh',type:'reading',title:'Wittgenstein — Philosophical Investigations',detail:'',due:'2026-05-12',hours:4,done:false},
+{id:5027,cat:'wh',type:'reading',title:'TBA',detail:'',due:'2026-05-19',hours:4,done:false},
 // Chinese Classics
-{id:5030,cat:'cn',type:'exam',title:'Chinese Classics Exam',detail:'Exam passed 4/3. No more readings.',due:'2026-04-03',hours:0,done:true}
+{id:5030,cat:'cn',type:'exam',title:'Chinese Classics Midterm Exam',detail:'',due:'2026-04-03',hours:0,done:true}
 ]}
 
 let state={theme:'dark',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],nextId:4000,printRange:'today'};
@@ -507,46 +508,47 @@ function renderPrint(){
   return`<div class="pv-day"><div class="pv-day-hdr"><span class="pv-day-name">${fmtDate(day.dateObj)}</span><span class="pv-day-hrs">${al}/${av}h</span></div><div class="pv-tasks">${tasks.length?tasks.map(t=>`<span class="pv-chip ${t.priority==='high'?'high':''} ${t.done?'done':''}"><span class="pv-cat">${CAT_SHORT[t.cat]||t.cat.toUpperCase()}</span> ${t.name}${t.hours>0?' ('+t.hours+'h)':''}</span>`).join(''):''}</div>${note?`<div class="pv-note">${note}</div>`:''}</div>`}).join('')}</div>`}
 
 function renderSyllabus(){
-const syl=(state.syllabus||[]).slice().sort((a,b)=>a.due.localeCompare(b.due));
-const weeks=generateWeeks();
-const weekMap={};
-syl.forEach(s=>{
-  const wk=weeks.find(w=>s.due>=isoDate(w.start)&&s.due<=isoDate(w.end));
-  const key=wk?wk.num:'other';
-  if(!weekMap[key])weekMap[key]=[];
-  weekMap[key].push(s);
-});
+const catPri={bh:0,wh:1,ab:2,cn:3};
+const syl=(state.syllabus||[]).slice().sort((a,b)=>a.due.localeCompare(b.due)||(catPri[a.cat]??9)-(catPri[b.cat]??9));
 const done=syl.filter(s=>s.done).length,rem=syl.length-done;
 let h=`<div class="life-header"><span class="life-title">Syllabus</span><span class="legend-hint">${rem} remaining · ${done} complete</span></div>`;
 h+=`<div class="syl-add-form"><input id="sylNewTitle" placeholder="Title" style="flex:2;min-width:120px"/><select id="sylNewCat"><option value="bh">BH</option><option value="wh">WH</option><option value="ab">ABI</option><option value="cn">CH</option></select><select id="sylNewType"><option value="reading">Reading</option><option value="paper">Paper</option><option value="exam">Exam</option><option value="presentation">Presentation</option></select><div class="labeled-field"><label>Due</label><input id="sylNewDue" type="date" placeholder="Due"/></div><input id="sylNewHrs" type="number" step="0.5" min="0" placeholder="Hrs" style="width:58px"/><button class="life-btn" onclick="addSylEntry()">+ Add</button></div>`;
-weeks.forEach(wk=>{
-  const entries=weekMap[wk.num];
-  if(!entries)return;
-  const byCat={};
-  entries.forEach(e=>{if(!byCat[e.cat])byCat[e.cat]=[];byCat[e.cat].push(e)});
-  const isCur=TODAY>=wk.start&&TODAY<=wk.end;
-  h+=`<div class="syl-week"><div class="syl-week-hdr">Week ${wk.num}${isCur?' <span class="week-badge current">This Week</span>':''} <span class="syl-week-dates">${fmtDateShort(wk.start)} → ${fmtDateShort(wk.end)}</span></div>`;
-  ['bh','wh','ab','cn'].forEach(cat=>{
-    if(!byCat[cat])return;
-    h+=`<div class="syl-class"><div class="syl-class-hdr"><span class="syl-dot" style="background:var(--accent-${cat})"></span>${CAT_NAMES[cat]}</div>`;
-    byCat[cat].forEach(e=>{
-      const dueD=parseDate(e.due),dl=daysBetween(TODAY,dueD);
-      const dueStr=fmtDate(dueD);
-      const urgClass=e.done?'':(dl<0?' past':dl<=3?' urgent':dl<=7?' soon':'');
-      h+=`<div class="syl-entry ${e.type} ${e.done?'done':''}"><button class="syl-check ${e.done?'checked':''}" onclick="toggleSylDone(${e.id})">${e.done?'✓':''}</button><div class="syl-body"><div class="syl-title-row"><span class="syl-title" onclick="toggleSylDetail(${e.id})">${e.title}</span><span class="syl-type-tag ${e.type}">${e.type}</span>${e.hours?`<span style="font-family:'JetBrains Mono';font-size:.64rem;color:var(--text-muted)">${e.hours}h</span>`:''}</div><div class="syl-meta${urgClass}">Due ${dueStr}${!e.done&&dl>=0?' · '+(dl===0?'TODAY':dl+'d'):''}</div>${e.detail?`<div class="syl-detail" id="syl-det-${e.id}">${e.detail}</div>`:''}</div><span class="syl-btns"><button class="syl-btn" onclick="openSylEdit(${e.id})">✎</button><button class="syl-btn del" onclick="deleteSylEntry(${e.id})">✕</button></span></div>`;
-    });
-    h+=`</div>`;
-  });
-  h+=`</div>`;
+h+=`<table class="syl-table"><thead><tr><th></th><th>Class</th><th>Due</th><th>Assignment</th><th>Hrs</th></tr></thead><tbody>`;
+// Group by due date, then within same due date merge class cells
+let prevCat=null,prevDue=null;
+// Count rows per (due+cat) group for rowspan
+const groups=[];let gi=-1;
+syl.forEach(e=>{
+  const key=e.due+'|'+e.cat;
+  if(!groups.length||groups[groups.length-1].key!==key){groups.push({key,cat:e.cat,due:e.due,entries:[e]});gi++}
+  else groups[gi].entries.push(e);
 });
-if(weekMap['other']){
-  h+=`<div class="syl-week"><div class="syl-week-hdr">Other</div>`;
-  weekMap['other'].forEach(e=>{
-    const dueD=parseDate(e.due),dl=daysBetween(TODAY,dueD),dueStr=fmtDate(dueD);
-    h+=`<div class="syl-entry ${e.type} ${e.done?'done':''}"><button class="syl-check ${e.done?'checked':''}" onclick="toggleSylDone(${e.id})">${e.done?'✓':''}</button><div class="syl-body"><div class="syl-title-row"><span class="syl-title" onclick="toggleSylDetail(${e.id})">${e.title}</span><span class="syl-type-tag ${e.type}">${e.type}</span></div><div class="syl-meta">Due ${dueStr}</div>${e.detail?`<div class="syl-detail" id="syl-det-${e.id}">${e.detail}</div>`:''}</div><span class="syl-btns"><button class="syl-btn" onclick="openSylEdit(${e.id})">✎</button><button class="syl-btn del" onclick="deleteSylEntry(${e.id})">✕</button></span></div>`;
+groups.forEach(g=>{
+  g.entries.forEach((e,ei)=>{
+    const dueD=parseDate(e.due),dl=daysBetween(TODAY,dueD);
+    const dueStr=fmtDateShort(dueD);
+    const urgClass=e.done?'past':(dl<0?'past':dl<=3?'urgent':dl<=7?'soon':'ok');
+    const daysStr=e.done?'':(dl<0?Math.abs(dl)+'d ago':dl===0?'today':dl+'d');
+    const rowClass=`${e.done?'done':''} syl-row-${e.type}`;
+    h+=`<tr class="${rowClass}">`;
+    // Checkbox
+    h+=`<td><button class="syl-check ${e.done?'checked':''}" onclick="toggleSylDone(${e.id})">${e.done?'✓':''}</button></td>`;
+    // Class cell — show on first entry of group
+    if(ei===0){
+      h+=`<td class="syl-class-cell"${g.entries.length>1?' rowspan="'+g.entries.length+'"':''}><span class="syl-dot" style="background:var(--accent-${e.cat})"></span>${CAT_SHORT[e.cat]}</td>`;
+    }
+    // Due cell — show on first entry of group
+    if(ei===0){
+      h+=`<td class="syl-due-cell"${g.entries.length>1?' rowspan="'+g.entries.length+'"':''}>${dueStr}<span class="syl-days ${urgClass}">${daysStr}</span></td>`;
+    }
+    // Title + type + detail + buttons
+    h+=`<td><span class="syl-title" onclick="toggleSylDetail(${e.id})">${e.title}</span><span class="syl-type-tag ${e.type}">${e.type}</span><span class="syl-btns"><button class="syl-btn" onclick="openSylEdit(${e.id})">✎</button><button class="syl-btn del" onclick="deleteSylEntry(${e.id})">✕</button></span>${e.detail?`<div class="syl-detail" id="syl-det-${e.id}">${e.detail}</div>`:''}</td>`;
+    // Hours
+    h+=`<td class="syl-hrs">${e.hours?e.hours+'h':''}</td>`;
+    h+=`</tr>`;
   });
-  h+=`</div>`;
-}
+});
+h+=`</tbody></table>`;
 return h}
 
 // ===== INTERACTIONS =====
