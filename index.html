@@ -1,4 +1,4 @@
-<!-- Academic Planner v2.9 -->
+<!-- Academic Planner v3.0 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -286,7 +286,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 .syl-table tr.done .syl-title-text{text-decoration:line-through}
 .syl-class-cell{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;width:44px}
 .syl-dot{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:4px;vertical-align:middle}
-.syl-due-cell{font-family:'JetBrains Mono',monospace;font-size:.7rem;white-space:nowrap;color:var(--text-dim);width:64px}
+.syl-due-cell{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--text-dim);min-width:64px}
 .syl-due-dow{display:block;font-size:.6rem;color:var(--text-muted);font-weight:400}
 .syl-due-cell .syl-days{display:block;font-size:.64rem;font-weight:600}
 .syl-days.urgent{color:var(--danger)}.syl-days.soon{color:var(--warning)}.syl-days.ok{color:var(--ok)}.syl-days.past{color:var(--text-muted)}
@@ -309,6 +309,10 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 .syl-hl-btn{background:0;border:0;cursor:pointer;font-size:.7rem;padding:1px 3px;border-radius:3px;opacity:.3;transition:all .12s;line-height:1}
 .syl-hl-btn:hover{opacity:.7}.syl-hl-btn.on{opacity:1}
 .syl-row-hl{background:var(--warning-dim)}
+.syl-bullet{display:block;padding-left:14px;position:relative}.syl-bullet::before{content:'•';position:absolute;left:4px}
+.chip.syl-mirror{cursor:default;opacity:.75;font-size:.72rem;padding:5px 9px;border:1px dashed;pointer-events:none}
+.settings-section{margin-bottom:18px}
+.settings-section label{display:block;font-size:.78rem;font-weight:600;color:var(--text-dim);margin:10px 0 4px}
 
 .hdr-row1,.hdr-row2{display:contents}
 @media(max-width:700px){.day-row{grid-template-columns:66px 1fr auto}.life-item{grid-template-columns:auto 1fr auto auto}.li-days,.li-send{display:none}.evt-item{grid-template-columns:1fr auto auto;gap:4px}.evt-item .evt-date{grid-column:1/-1}.evt-info{text-align:left}.header{gap:4px;flex-wrap:wrap}.hdr-row1{display:flex;align-items:center;gap:6px;width:100%;flex-shrink:0}.hdr-row1 .combined-status{margin-left:auto}.hdr-row2{display:flex;align-items:center;gap:6px;width:100%}.hdr-row2 .theme-toggle{margin-left:auto}.labeled-field label{display:none}.note-text{resize:both}}
@@ -346,10 +350,12 @@ function parseDate(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-
 function sameDay(a,b){return isoDate(a)===isoDate(b)}
 function nextMonday(){const d=new Date(TODAY);const dow=d.getDay();const diff=dow===0?1:(8-dow);d.setDate(d.getDate()+diff);return d}
 
-const SEM_START=new Date(2026,0,17);// Sat Jan 17, 2026 = Week 1 (Sat-Fri weeks)
-function semesterWeekNum(d){const diff=Math.floor((d-SEM_START)/864e5);return Math.floor(diff/7)+1}
+function getSemStart(){return parseDate(state.semesterStart||'2026-01-17')}
+function semesterWeekNum(d){const diff=Math.round((d-getSemStart())/864e5);return Math.floor(diff/7)+1}
+function semesterWeekStart(wkN){const s=getSemStart();const d=new Date(s);d.setDate(d.getDate()+(wkN-1)*7);return d}
+function weekStartOffset(d){return(d.getDay()-state.weekStartDay+7)%7}
 
-function generateWeeks(){const end=new Date(2026,4,30),weeks=[];let cur=new Date(TODAY);cur.setDate(cur.getDate()-((cur.getDay()+1)%7));if(cur>TODAY)cur.setDate(cur.getDate()-7);let wk=1;while(cur<=end){const days=[];for(let i=0;i<7;i++){const d=new Date(cur);d.setDate(d.getDate()+i);if(d>end)break;days.push({date:isoDate(d),dateObj:new Date(d)})}weeks.push({num:wk,start:new Date(cur),end:new Date(cur.getTime()+6*864e5),days});cur.setDate(cur.getDate()+7);wk++}return weeks}
+function generateWeeks(){const end=new Date(2026,4,30),weeks=[];const wsd=state.weekStartDay;let cur=new Date(TODAY);cur.setDate(cur.getDate()-weekStartOffset(cur));let wk=semesterWeekNum(cur);while(cur<=end){const days=[];for(let i=0;i<7;i++){const d=new Date(cur);d.setDate(d.getDate()+i);if(d>end)break;days.push({date:isoDate(d),dateObj:new Date(d)})}weeks.push({num:wk,start:new Date(cur),end:new Date(cur.getTime()+6*864e5),days});cur.setDate(cur.getDate()+7);wk++}return weeks}
 function getAvailHours(ds){const d=parseDate(ds),dow=d.getDay();if(d>=new Date(2026,3,5)&&d<=new Date(2026,3,11))return 5;if(ds==='2026-03-23')return 0;if(dow===1){return Math.round((d-new Date(2026,2,30))/(7*864e5))%2===0?4:0}return[7,0,0,4,3.5,0,10][dow]}
 
 function defaultTasks(){return[]}
@@ -407,7 +413,7 @@ function defaultSyllabus(){return[
 {id:5030,cat:'cn',type:'exam',title:'Chinese Classics Midterm Exam',detail:'',due:'2026-04-03',hours:0,done:true}
 ]}
 
-let state={theme:'dark',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],nextId:4000,printRange:'today'};
+let state={theme:'dark',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],nextId:4000,printRange:'today',weekStartDay:6,semesterStart:'2026-01-17'};
 let saveTimer=null,lastSaveTime=null,saveStatus='saved';
 function scheduleSave(){saveStatus='saving';updateSI();if(saveTimer)clearTimeout(saveTimer);saveTimer=setTimeout(doSave,1500)}
 async function doSave(){try{localStorage.setItem(SKEY,JSON.stringify(state));localStorage.setItem(SKEY+'-time',new Date().toISOString());lastSaveTime=new Date();saveStatus='saved';updateSI();if(navigator.onLine){updateConn('syncing');const ok=await sbSet(state);if(ok){localStorage.removeItem(SKEY+'-dirty');updateConn('online')}else{localStorage.setItem(SKEY+'-dirty','1');updateConn('offline')}}else{localStorage.setItem(SKEY+'-dirty','1');updateConn('offline')}}catch(e){saveStatus='error';updateSI()}}
@@ -434,10 +440,23 @@ function isInSprint(lifeId){return state.tasks.some(t=>t.lifeSourceId===lifeId)|
 function render(){
   document.documentElement.setAttribute('data-theme',state.theme);
   const tabs=['sprints','syllabus','life','events','print','notes','dashboard'];
-  const tn={dashboard:'Dashboard',sprints:'Week',syllabus:'Syllabus',life:'Tasks',events:'Events',notes:'Notes',print:'Print'};
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',midnight:'🌲 Midnight',temple:'⛪ Temple'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v2.9</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}</div>${tabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${({dashboard:renderDash,sprints:renderSprints,syllabus:renderSyllabus,life:renderLife,events:renderEvents,notes:renderNotes,print:renderPrint})[t]()}</div>`).join('')}`;updateSI()}
+  const allTabs=[...tabs,'settings'];
+  const tn={dashboard:'Dashboard',sprints:'Week',syllabus:'Syllabus',life:'Tasks',events:'Events',notes:'Notes',print:'Print',settings:'Settings'};
+  const renderers={dashboard:renderDash,sprints:renderSprints,syllabus:renderSyllabus,life:renderLife,events:renderEvents,notes:renderNotes,print:renderPrint,settings:renderSettings};
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',midnight:'🌲 Midnight',temple:'⛪ Temple'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v3.0</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}${state.activeTab==='settings'?`<button class="tab active">Settings</button>`:''}</div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;updateSI()}
 
-function renderDash(){const cats=['cn','bh','wh','ab'];const groups={};cats.forEach(c=>{groups[c]=state.deliverables.filter(d=>d.cat===c)});const mx=Math.max(...cats.map(c=>groups[c].length)),gc=`repeat(${cats.length},1fr)`;let h=`<div class="dash-table"><div class="dash-col-hdrs" style="display:grid;grid-template-columns:${gc};gap:8px">${cats.map(c=>`<div class="dash-col-hdr ${c}">${CAT_NAMES[c]}</div>`).join('')}</div>`;for(let r=0;r<mx;r++){h+=`<div class="dash-grid-row" style="display:grid;grid-template-columns:${gc};gap:8px;margin-top:6px">`;cats.forEach(c=>{const d=groups[c][r];if(!d){h+=`<div class="dash-cell dash-cell-empty"></div>`;return}const dd=parseDate(d.due),dl=daysBetween(TODAY,dd),uc=dl<0?'past':dl<=7?'urgent':dl<=21?'soon':'ok',ds=dl<0?Math.abs(dl)+'d ago':dl===0?'TODAY':dl+'d',ts=d.tbd?'background:var(--surface3);color:var(--text-dim)':'background:var(--accent-'+c+'-dim);color:var(--accent-'+c+')';h+=`<div class="dash-cell${uc==='past'?' dash-past':''}"><div class="dc-title">${d.title}</div><div class="dc-due">${d.tbd?'~':''}${fmtDate(dd)}</div><div class="dc-days ${uc}">${ds}</div><span class="dc-tag" style="${ts}">${d.tag}</span></div>`});h+='</div>'}h+='</div>';const op=state.lifeTasks.filter(t=>!t.done);if(op.length)h+=`<div class="notes-box" style="border-left:3px solid var(--accent-life)"><div class="notes-box-title" style="color:var(--accent-life)">Tasks · ${op.length} open · ${op.reduce((s,t)=>s+t.hours,0)}h</div></div>`;h+=`<div class="notes-box"><div class="notes-box-title">Strategy</div><div class="notes-box-text"><strong>Readings = paper research.</strong> BH → strand paper. ABI → ABI paper.<br><strong>Spring Break:</strong> ~30h available.<br><strong>See Syllabus tab</strong> for all deadlines.</div></div>`;return h}
+function renderDash(){
+  const hl=(state.syllabus||[]).filter(s=>s.highlighted&&!s.done).sort((a,b)=>a.due.localeCompare(b.due));
+  const cats=['bh','wh','ab','cn','custom'];
+  const groups={};cats.forEach(c=>{groups[c]=hl.filter(s=>s.cat===c)});
+  const activeCats=cats.filter(c=>groups[c].length>0);
+  if(!activeCats.length)return`<div class="life-header"><span class="life-title">Dashboard</span></div><div class="notes-box"><div class="notes-box-text" style="font-size:.82rem;color:var(--text-muted)">No highlighted entries. Use the ★ button in the Syllabus tab to highlight key deliverables.</div></div>`;
+  const gc=`repeat(${activeCats.length},1fr)`;
+  const mx=Math.max(...activeCats.map(c=>groups[c].length));
+  let h=`<div class="life-header"><span class="life-title">Dashboard</span><span class="legend-hint">${hl.length} highlighted</span></div>`;
+  h+=`<div class="dash-table"><div class="dash-col-hdrs" style="display:grid;grid-template-columns:${gc};gap:8px">${activeCats.map(c=>`<div class="dash-col-hdr ${c}">${CAT_NAMES[c]||c}</div>`).join('')}</div>`;
+  for(let r=0;r<mx;r++){h+=`<div class="dash-grid-row" style="display:grid;grid-template-columns:${gc};gap:8px;margin-top:6px">`;activeCats.forEach(c=>{const s=groups[c][r];if(!s){h+=`<div class="dash-cell dash-cell-empty"></div>`;return}const dd=parseDate(s.due),dl=daysBetween(TODAY,dd),uc=dl<0?'past':dl<=7?'urgent':dl<=21?'soon':'ok',ds=dl<0?Math.abs(dl)+'d ago':dl===0?'TODAY':dl+'d';h+=`<div class="dash-cell${uc==='past'?' dash-past':''}"><div class="dc-title">${s.title}</div><div class="dc-due">${fmtDate(dd)}</div><div class="dc-days ${uc}">${ds}</div><span class="dc-tag" style="background:var(--accent-${c}-dim,var(--surface3));color:var(--accent-${c},var(--text-dim))">${s.type}</span></div>`});h+='</div>'}
+  h+='</div>';return h}
 
 function renderSprints(){const weeks=generateWeeks();const bankTasks=state.lifeTasks.filter(t=>t.inBank&&!t.done&&!state.tasks.some(s=>s.lifeSourceId===t.id));
 let h=`<div class="legend"><div class="legend-item"><span class="legend-dot bh"></span>BH</div><div class="legend-item"><span class="legend-dot wh"></span>WH</div><div class="legend-item"><span class="legend-dot cn"></span>CN</div><div class="legend-item"><span class="legend-dot ab"></span>ABI</div><div class="legend-item"><span class="legend-dot events"></span>Events</div><div class="legend-item"><span class="legend-dot life"></span>Tasks</div></div>`;
@@ -447,7 +466,8 @@ const hiddenInWk=wk.days.filter(d=>(state.hiddenDays||[]).includes(d.date)).leng
 h+=`<div class="week-section"><div class="week-hdr"><span class="week-hdr-title">Week ${wk.num}</span><span class="week-hdr-dates">${fmtDateShort(wk.start)} → ${fmtDateShort(wk.end)}</span>${badges.join('')}${hiddenInWk?`<button class="expand-week-btn" onclick="expandWeek(${wk.num})" title="Show ${hiddenInWk} hidden day${hiddenInWk>1?'s':''}">▼ ${hiddenInWk} hidden</button>`:''}<span class="week-hdr-hours">${tAl}/${tAv}h</span></div>`;
 wk.days.forEach(day=>{if((state.hiddenDays||[]).includes(day.date))return;const av=getAvailHours(day.date),tasks=state.tasks.filter(t=>t.date===day.date),al=tasks.filter(t=>!t.done).reduce((s,t)=>s+t.hours,0),isT=sameDay(day.dateObj,TODAY),bc=al>av?'over':al===av?'exact':'under',note=state.dayNotes[day.date]||'',isAT=allocatingId!==null;const canHide=isCur&&day.dateObj<=TODAY;
 const dayEvts=getEventsForDate(day.date);const evtChips=dayEvts.map(ev=>`<span class="evt-chip" data-tip="${ev.tip}">📅 ${ev.label}</span>`).join('');
-h+=`<div class="day-row ${isT?'is-today':''} ${isAT?'alloc-target':''}" data-date="${day.date}" ondragover="event.preventDefault();this.classList.add('alloc-highlight')" ondrop="handleDrop(event,'${day.date}')" ondragleave="this.classList.remove('alloc-highlight')" ${isAT?`onclick="placeAllocated('${day.date}')"`:''}><div class="day-left"><span class="day-name">${fmtDate(day.dateObj)}</span><span class="day-meta">${av}h avail</span>${canHide?`<button class="hide-day-btn" onclick="event.stopPropagation();hideDay('${day.date}')" title="Hide this day">hide</button>`:''}</div><div class="day-tasks-area" ondragover="handleChipDragOver(event)" ondrop="handleChipDrop(event,'${day.date}')" ondragleave="clearDropIndicators(this)">${evtChips}${tasks.map(t=>renderChip(t)).join('')}</div><div class="day-right"><span class="day-budget ${bc}">${al}/${av}h</span><button class="add-day-btn" onclick="event.stopPropagation();openAddTask('${day.date}')" title="Add task">+</button></div><div class="day-note-row"><button class="day-note-btn" onclick="event.stopPropagation();toggleEl('dn-${day.date}')">${note?'📝':'+ note'}</button><textarea class="day-note-input" id="dn-${day.date}" style="display:${note?'block':'none'}" onclick="event.stopPropagation()" oninput="state.dayNotes['${day.date}']=this.value;scheduleSave()" placeholder="Notes...">${note}</textarea></div></div>`});h+='</div>'});return h}
+const sylChips=getSylForDate(day.date);const sylChipHtml=sylChips.map(sc=>{const tl=sc.type.charAt(0).toUpperCase()+sc.type.slice(1);return`<span class="chip ${sc.cat} syl-mirror" data-tip="${CAT_NAMES[sc.cat]||sc.cat}">[${tl}] ${sc.title}${sc.label}</span>`}).join('');
+h+=`<div class="day-row ${isT?'is-today':''} ${isAT?'alloc-target':''}" data-date="${day.date}" ondragover="event.preventDefault();this.classList.add('alloc-highlight')" ondrop="handleDrop(event,'${day.date}')" ondragleave="this.classList.remove('alloc-highlight')" ${isAT?`onclick="placeAllocated('${day.date}')"`:''}><div class="day-left"><span class="day-name">${fmtDate(day.dateObj)}</span><span class="day-meta">${av}h avail</span>${canHide?`<button class="hide-day-btn" onclick="event.stopPropagation();hideDay('${day.date}')" title="Hide this day">hide</button>`:''}</div><div class="day-tasks-area" ondragover="handleChipDragOver(event)" ondrop="handleChipDrop(event,'${day.date}')" ondragleave="clearDropIndicators(this)">${evtChips}${sylChipHtml}${tasks.map(t=>renderChip(t)).join('')}</div><div class="day-right"><span class="day-budget ${bc}">${al}/${av}h</span><button class="add-day-btn" onclick="event.stopPropagation();openAddTask('${day.date}')" title="Add task">+</button></div><div class="day-note-row"><button class="day-note-btn" onclick="event.stopPropagation();toggleEl('dn-${day.date}')">${note?'📝':'+ note'}</button><textarea class="day-note-input" id="dn-${day.date}" style="display:${note?'block':'none'}" onclick="event.stopPropagation()" oninput="state.dayNotes['${day.date}']=this.value;scheduleSave()" placeholder="Notes...">${note}</textarea></div></div>`});h+='</div>'});return h}
 
 function renderChip(t){const isLife=t.cat==='life'&&t.lifeSourceId;let acts='';
 if(isLife){acts=`<span class="chip-acts"><button class="chip-btn life-return" onclick="event.stopPropagation();returnToBank(${t.id})" title="Return to bank">▲</button><button class="chip-btn" onclick="event.stopPropagation();toggleTaskDone(${t.id})" title="${t.done?'Undo':'Done'}">${t.done?'↩':'✓'}</button><button class="chip-btn" onclick="event.stopPropagation();openTaskEdit(${t.id})" title="Edit">✎</button><button class="chip-btn" onclick="event.stopPropagation();duplicateTask(${t.id})" title="Duplicate">⧉</button><button class="chip-btn life-remove" onclick="event.stopPropagation();deleteTask(${t.id})" title="Delete">✕</button></span>`}
@@ -532,11 +552,11 @@ syl.forEach(s=>{
 });
 const weekNums=Object.keys(weekMap).map(Number).sort((a,b)=>a-b);
 let h=`<div class="life-header"><span class="life-title">Syllabus</span><span class="legend-hint">${rem} remaining · ${done} complete</span></div>`;
-h+=`<div class="syl-add-form"><input id="sylNewTitle" placeholder="Title" style="flex:2;min-width:120px"/><select id="sylNewCat"><option value="bh">BH</option><option value="wh">WH</option><option value="ab">ABI</option><option value="cn">CH</option><option value="custom">✎ Custom</option></select><select id="sylNewType"><option value="reading">Reading</option><option value="paper">Paper</option><option value="exam">Exam</option><option value="presentation">Presentation</option><option value="custom">Custom</option></select><div class="labeled-field"><label>Due</label><input id="sylNewDue" type="date" placeholder="Due"/></div><input id="sylNewHrs" type="number" step="0.5" min="0" placeholder="Hrs" style="width:58px"/><button class="life-btn" onclick="addSylEntry()">+ Add</button></div>`;
+h+=`<div class="syl-add-form"><input id="sylNewTitle" placeholder="Title" style="flex:2;min-width:120px"/><select id="sylNewCat"><option value="bh">BH</option><option value="wh">WH</option><option value="ab">ABI</option><option value="cn">CH</option><option value="custom">✎ Custom</option></select><select id="sylNewType"><option value="reading">Reading</option><option value="paper">Paper</option><option value="exam">Exam</option><option value="presentation">Presentation</option><option value="custom">Custom</option></select><div class="labeled-field"><label>Due</label><input id="sylNewDue" type="text" placeholder="M/D or YYYY-MM-DD" style="width:130px"/></div><div class="labeled-field"><label>End</label><input id="sylNewDueEnd" type="text" placeholder="M/D (opt)" style="width:100px"/></div><input id="sylNewHrs" type="number" step="0.5" min="0" placeholder="Hrs" style="width:58px"/><button class="life-btn" onclick="addSylEntry()">+ Add</button></div><div style="margin-bottom:18px;margin-top:-12px"><textarea id="sylNewDetail" placeholder="Description (optional, use '- ' for bullets)" style="width:100%;min-height:36px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Outfit';font-size:.76rem;padding:6px 9px;border-radius:6px;resize:vertical"></textarea></div>`;
 weekNums.forEach(wkN=>{
   const entries=weekMap[wkN];
-  const wkStart=new Date(SEM_START.getTime()+(wkN-1)*7*864e5);
-  const wkEnd=new Date(wkStart.getTime()+6*864e5);
+  const wkStart=semesterWeekStart(wkN);
+  const wkEnd=new Date(wkStart);wkEnd.setDate(wkEnd.getDate()+6);
   const isCur=TODAY>=wkStart&&TODAY<=wkEnd;
   h+=`<div class="syl-week-section"><div class="syl-week-hdr">Week ${wkN}${isCur?' <span class="week-badge current">This Week</span>':''} <span class="syl-week-dates">${fmtDateShort(wkStart)} → ${fmtDateShort(wkEnd)}</span></div>`;
   // Sub-group by due+cat for rowspan
@@ -567,8 +587,8 @@ weekNums.forEach(wkN=>{
         const dowLabel=dueEndD?dowStr+' → '+dowEndStr:dowStr;
         h+=`<td class="syl-due-cell"${g.entries.length>1?' rowspan="'+g.entries.length+'"':''}>${dueStr}<span class="syl-due-dow">${dowLabel}</span><span class="syl-days ${urgClass}">${daysStr}</span></td>`;
       }
-      const detailHtml=e.detail?(e.detail.replace(/\n/g,'<br>')):'';
-      h+=`<td><span class="syl-title-text" ondblclick="inlineSylEdit(${e.id},'title',this)">${e.title}</span><span class="syl-type-tag ${e.type}">${e.type==='custom'?'custom':e.type}</span>${detailHtml?`<div class="syl-detail-text" ondblclick="inlineSylEdit(${e.id},'detail',this)">${detailHtml}</div>`:''}</td>`;
+      const detailHtml=e.detail?e.detail.split('\n').map(line=>line.startsWith('- ')?`<div class="syl-bullet">${line.substring(2)}</div>`:`<div>${line}</div>`).join(''):'';
+      h+=`<td><span class="syl-title-text" ondblclick="inlineSylEdit(${e.id},'title',this)">${e.title}</span><span class="syl-type-tag ${e.type}">${e.type==='custom'?'custom':e.type}</span>${!e.type||e.type==='reading'?`<button class="syl-btn" onclick="addSylType(${e.id})" title="Add type" style="opacity:.3;font-size:.58rem">+type</button>`:''}${detailHtml?`<div class="syl-detail-text" ondblclick="inlineSylEdit(${e.id},'detail',this)">${detailHtml}</div>`:''}</td>`;
       h+=`<td class="syl-hrs-cell">${e.hours?e.hours+'h':''}</td>`;
       h+=`<td class="syl-btns-cell"><button class="syl-btn" onclick="openSylEdit(${e.id})">✎</button><button class="syl-btn del" onclick="deleteSylEntry(${e.id})">✕</button></td>`;
       h+=`</tr>`;
@@ -577,6 +597,41 @@ weekNums.forEach(wkN=>{
   h+=`</tbody></table></div>`;
 });
 return h}
+
+function renderSettings(){
+  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  return `<div class="life-header"><span class="life-title">Settings</span></div>
+  <div class="notes-box"><div class="notes-box-title">Semester Configuration</div>
+  <div class="settings-section"><label>Week Start Day</label>
+  <select class="life-select" onchange="state.weekStartDay=parseInt(this.value);render();scheduleSave()" style="width:160px">${days.map((d,i)=>`<option value="${i}"${state.weekStartDay===i?' selected':''}>${d}</option>`).join('')}</select></div>
+  <div class="settings-section"><label>Semester Start Date</label>
+  <input type="date" class="life-input" value="${state.semesterStart||'2026-01-17'}" onchange="state.semesterStart=this.value;render();scheduleSave()" style="width:160px"/></div></div>`}
+
+function getSylForDate(dateStr){
+  const chips=[];
+  (state.syllabus||[]).forEach(s=>{
+    if(s.done)return;
+    const start=s.due,end=s.dueEnd||s.due;
+    if(dateStr>=start&&dateStr<=end){
+      const startD=parseDate(start),endD=parseDate(end),curD=parseDate(dateStr);
+      const total=Math.round((endD-startD)/864e5)+1;
+      const day=Math.round((curD-startD)/864e5)+1;
+      const label=total>1?` (${day}/${total})`:'';
+      chips.push({entry:s,label,cat:s.cat,type:s.type,title:s.title});
+    }
+  });
+  return chips;
+}
+
+function normalizeDateInput(val){
+  if(!val)return val;
+  if(/^\d{4}-\d{2}-\d{2}$/.test(val))return val;
+  const m=val.match(/^(\d{1,2})[\/\-](\d{1,2})$/);
+  if(m)return new Date().getFullYear()+'-'+m[1].padStart(2,'0')+'-'+m[2].padStart(2,'0');
+  const m2=val.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if(m2){let y=parseInt(m2[3]);if(y<100)y+=2000;return y+'-'+m2[1].padStart(2,'0')+'-'+m2[2].padStart(2,'0')}
+  return val;
+}
 
 // ===== INTERACTIONS =====
 function switchTab(t){state.activeTab=t;allocatingId=null;render();scheduleSave();if(t==='notes')setTimeout(restoreNotesCursor,50)}
@@ -649,11 +704,11 @@ function moveNote(id,dir){const arr=state.notes;const sorted=arr.slice().sort((a
 function restoreNotesCursor(){if(notesCursor.id&&state.activeTab==='notes'){const ta=document.getElementById('nt-'+notesCursor.id);if(ta&&notesCursor.sel){ta.focus();ta.setSelectionRange(notesCursor.sel[0],notesCursor.sel[1]);ta.scrollTop=notesCursor.scroll}}}
 
 // ===== EVENTS =====
-function addEvent(){const name=$('#evtNewName')?.value.trim();if(!name)return;if(!state.events)state.events=[];state.events.push({id:state.nextId++,name,date:$('#evtNewDate')?.value||isoDate(TODAY),endDate:'',startTime:$('#evtNewStart')?.value||'',endTime:$('#evtNewEnd')?.value||'',location:$('#evtNewLoc')?.value||'',allDay:false});$('#evtNewName').value='';$('#evtNewDate').value='';$('#evtNewStart').value='';$('#evtNewEnd').value='';$('#evtNewLoc').value='';render();scheduleSave()}
+function addEvent(){const name=$('#evtNewName')?.value.trim();if(!name)return;if(!state.events)state.events=[];state.events.push({id:state.nextId++,name,date:normalizeDateInput($('#evtNewDate')?.value)||isoDate(TODAY),endDate:'',startTime:$('#evtNewStart')?.value||'',endTime:$('#evtNewEnd')?.value||'',location:$('#evtNewLoc')?.value||'',allDay:false});$('#evtNewName').value='';$('#evtNewDate').value='';$('#evtNewStart').value='';$('#evtNewEnd').value='';$('#evtNewLoc').value='';render();scheduleSave()}
 function deleteEvent(id){if(!confirm('Delete event?'))return;state.events=(state.events||[]).filter(e=>e.id!==id);render();scheduleSave()}
 let editEvtId=null;
 function openEvtEdit(id){editEvtId=id;const e=(state.events||[]).find(e=>e.id===id);if(!e)return;$('#evtModalTitle').textContent='Edit Event';$('#eName').value=e.name;$('#eDate').value=e.date;$('#eEndDate').value=e.endDate||'';$('#eStart').value=e.startTime||'';$('#eEnd').value=e.endTime||'';$('#eLoc').value=e.location||'';$('#eAllDay').checked=!!e.allDay;$('#evtModal').classList.add('open')}
-$('#eSave').onclick=()=>{const e=(state.events||[]).find(e=>e.id===editEvtId);if(e){e.name=$('#eName').value;e.date=$('#eDate').value;e.endDate=$('#eEndDate').value||'';e.startTime=$('#eStart').value;e.endTime=$('#eEnd').value;e.location=$('#eLoc').value;e.allDay=$('#eAllDay').checked}$('#evtModal').classList.remove('open');render();scheduleSave()}
+$('#eSave').onclick=()=>{const e=(state.events||[]).find(e=>e.id===editEvtId);if(e){e.name=$('#eName').value;e.date=normalizeDateInput($('#eDate').value)||e.date;e.endDate=normalizeDateInput($('#eEndDate').value)||'';e.startTime=$('#eStart').value;e.endTime=$('#eEnd').value;e.location=$('#eLoc').value;e.allDay=$('#eAllDay').checked}$('#evtModal').classList.remove('open');render();scheduleSave()}
 $('#eDel').onclick=()=>{state.events=(state.events||[]).filter(e=>e.id!==editEvtId);$('#evtModal').classList.remove('open');render();scheduleSave()}
 $('#eCanc').onclick=()=>{$('#evtModal').classList.remove('open')}
 $('#evtModal').onclick=e=>{if(e.target.id==='evtModal')$('#evtModal').classList.remove('open')}
@@ -678,10 +733,11 @@ function inlineSylEdit(id,field,el){const s=(state.syllabus||[]).find(s=>s.id===
 if(field==='title'){const inp=document.createElement('input');inp.type='text';inp.value=s.title;inp.className='syl-title-edit';el.replaceWith(inp);inp.focus();inp.select();function save(){s.title=inp.value.trim()||s.title;render();scheduleSave()}inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();save()}else if(e.key==='Escape')render()});inp.addEventListener('blur',save)}
 else if(field==='detail'){const ta=document.createElement('textarea');ta.value=s.detail||'';ta.className='syl-detail-edit';ta.rows=Math.max(2,(s.detail||'').split('\n').length+1);el.replaceWith(ta);ta.focus();function save(){s.detail=ta.value;render();scheduleSave()}ta.addEventListener('keydown',e=>{if(e.key==='Escape')render()});ta.addEventListener('blur',save)}}
 function deleteSylEntry(id){if(!confirm('Delete syllabus entry?'))return;state.syllabus=(state.syllabus||[]).filter(s=>s.id!==id);render();scheduleSave()}
-function addSylEntry(){const title=$('#sylNewTitle')?.value.trim();if(!title)return;state.syllabus.push({id:state.nextId++,cat:$('#sylNewCat').value,type:$('#sylNewType').value,title,detail:'',due:$('#sylNewDue')?.value||isoDate(TODAY),dueEnd:'',hours:parseFloat($('#sylNewHrs')?.value)||0,done:false,highlighted:false});$('#sylNewTitle').value='';$('#sylNewHrs').value='';$('#sylNewDue').value='';render();scheduleSave()}
+function addSylEntry(){const title=$('#sylNewTitle')?.value.trim();if(!title)return;const newId=state.nextId++;const dueVal=normalizeDateInput($('#sylNewDue')?.value?.trim())||isoDate(TODAY);const dueEndVal=normalizeDateInput($('#sylNewDueEnd')?.value?.trim())||'';state.syllabus.push({id:newId,cat:$('#sylNewCat').value,type:$('#sylNewType').value,title,detail:$('#sylNewDetail')?.value||'',due:dueVal,dueEnd:dueEndVal,hours:parseFloat($('#sylNewHrs')?.value)||0,done:false,highlighted:false});$('#sylNewTitle').value='';$('#sylNewHrs').value='';$('#sylNewDue').value='';$('#sylNewDueEnd').value='';$('#sylNewDetail').value='';render();scheduleSave();setTimeout(()=>{const wk=semesterWeekNum(parseDate(dueVal));const sec=document.querySelector(`.syl-week-section:has(.syl-week-hdr:first-child)`);const sections=document.querySelectorAll('.syl-week-section');for(const s of sections){if(s.querySelector('.syl-week-hdr')?.textContent?.includes('Week '+wk)){s.scrollIntoView({behavior:'smooth',block:'center'});break}}},60)}
+function addSylType(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;const t=prompt('Enter type (reading, paper, exam, presentation, or custom):',s.type);if(t&&t.trim()){s.type=t.trim().toLowerCase();render();scheduleSave()}}
 let editSylId=null;
 function openSylEdit(id){editSylId=id;const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;$('#sylModalTitle').textContent='Edit Syllabus Entry';$('#sTitle').value=s.title;$('#sDetail').value=s.detail||'';$('#sCat').value=s.cat;$('#sType').value=s.type;$('#sDue').value=s.due;$('#sDueEnd').value=s.dueEnd||'';$('#sHrs').value=s.hours;$('#sylModal').classList.add('open')}
-$('#sSave').onclick=()=>{const s=(state.syllabus||[]).find(s=>s.id===editSylId);if(s){s.title=$('#sTitle').value;s.detail=$('#sDetail').value;s.cat=$('#sCat').value;s.type=$('#sType').value;s.due=$('#sDue').value;s.dueEnd=$('#sDueEnd').value||'';s.hours=parseFloat($('#sHrs').value)||0}$('#sylModal').classList.remove('open');render();scheduleSave()}
+$('#sSave').onclick=()=>{const s=(state.syllabus||[]).find(s=>s.id===editSylId);if(s){s.title=$('#sTitle').value;s.detail=$('#sDetail').value;s.cat=$('#sCat').value;s.type=$('#sType').value;s.due=normalizeDateInput($('#sDue').value)||s.due;s.dueEnd=normalizeDateInput($('#sDueEnd').value)||'';s.hours=parseFloat($('#sHrs').value)||0}$('#sylModal').classList.remove('open');render();scheduleSave()}
 $('#sDel').onclick=()=>{if(!confirm('Delete syllabus entry?'))return;state.syllabus=(state.syllabus||[]).filter(s=>s.id!==editSylId);$('#sylModal').classList.remove('open');render();scheduleSave()}
 $('#sCanc').onclick=()=>{$('#sylModal').classList.remove('open')}
 $('#sylModal').onclick=e=>{if(e.target.id==='sylModal')$('#sylModal').classList.remove('open')}
