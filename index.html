@@ -1,4 +1,4 @@
-<!-- Academic Planner v2.5 -->
+<!-- Academic Planner v2.6 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -254,14 +254,15 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 
 /* Notes */
 .note-entry{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:8px;position:relative}
-.note-entry.dragging{opacity:.3}
 .note-hdr{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.note-drag{color:var(--text-muted);font-size:.7rem;cursor:grab;user-select:none;flex-shrink:0}
+.note-move{background:0;border:1px solid var(--border);color:var(--text-muted);cursor:pointer;font-size:.68rem;padding:2px 6px;border-radius:4px;transition:all .12s;line-height:1}
+.note-move:hover{color:var(--text);background:var(--surface2);border-color:var(--text-dim)}
+.note-move:disabled{opacity:.2;cursor:default}
 .note-ts{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:var(--text-dim)}
 .note-label{font-size:.58rem;color:var(--text-muted);font-style:italic}
 .note-del{background:0;border:0;color:var(--text-muted);cursor:pointer;font-size:.7rem;margin-left:auto;padding:2px 6px;border-radius:3px;transition:all .12s}
 .note-del:hover{color:var(--danger);background:var(--danger-dim)}
-.note-text{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Outfit';font-size:.82rem;padding:8px 10px;border-radius:6px;resize:vertical;min-height:50px;line-height:1.6}
+.note-text{width:100%;background:var(--surface3);border:1px solid var(--border);color:var(--text);font-family:'Outfit';font-size:.82rem;padding:8px 10px;border-radius:6px;resize:vertical;min-height:50px;line-height:1.6}
 .note-text:focus{outline:0;border-color:var(--text-dim)}
 
 /* Events */
@@ -277,7 +278,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 .evt-btn{background:0;border:0;color:var(--text-muted);cursor:pointer;font-size:.76rem;padding:2px 5px;border-radius:3px;transition:all .12s}
 .evt-btn:hover{color:var(--text-dim);background:var(--surface3)}
 .evt-btn.del:hover{color:var(--danger);background:var(--danger-dim)}
-.evt-add-form{display:flex;gap:5px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
+.evt-add-form{display:flex;gap:5px;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap}
 .evt-add-form input,.evt-add-form select{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Outfit';font-size:.78rem;padding:7px 10px;border-radius:6px}
 .evt-add-form input:focus{outline:0;border-color:var(--text-dim)}
 .labeled-field{display:flex;flex-direction:column;gap:1px}
@@ -296,7 +297,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 .life-item.drag-over-item{box-shadow:0 -2px 0 0 var(--warning)}
 
 .hdr-row1,.hdr-row2{display:contents}
-@media(max-width:700px){.day-row{grid-template-columns:66px 1fr auto}.life-item{grid-template-columns:auto 1fr auto auto}.li-days,.li-send{display:none}.evt-item{grid-template-columns:1fr auto auto;gap:4px}.evt-item .evt-date{grid-column:1/-1}.evt-info{text-align:left}.header{gap:4px;flex-wrap:wrap}.hdr-row1{display:flex;align-items:center;gap:6px;width:100%;flex-shrink:0}.hdr-row1 .combined-status{margin-left:auto}.hdr-row2{display:flex;align-items:center;gap:6px;width:100%}.hdr-row2 .theme-toggle{margin-left:auto}}
+@media(max-width:700px){.day-row{grid-template-columns:66px 1fr auto}.life-item{grid-template-columns:auto 1fr auto auto}.li-days,.li-send{display:none}.evt-item{grid-template-columns:1fr auto auto;gap:4px}.evt-item .evt-date{grid-column:1/-1}.evt-info{text-align:left}.header{gap:4px;flex-wrap:wrap}.hdr-row1{display:flex;align-items:center;gap:6px;width:100%;flex-shrink:0}.hdr-row1 .combined-status{margin-left:auto}.hdr-row2{display:flex;align-items:center;gap:6px;width:100%}.hdr-row2 .theme-toggle{margin-left:auto}.labeled-field label{display:none}.note-text{resize:both}}
 </style>
 </head>
 <body>
@@ -374,9 +375,9 @@ function isInSprint(lifeId){return state.tasks.some(t=>t.lifeSourceId===lifeId)|
 
 function render(){
   document.documentElement.setAttribute('data-theme',state.theme);
-  const tabs=['sprints','backward','life','events','notes','print','dashboard'];
-  const tn={dashboard:'Dashboard',sprints:'Week',backward:'Backward Plans',life:'Tasks',events:'Events',notes:'Notes',print:'Print 7 Days'};
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',midnight:'🌲 Midnight',temple:'⛪ Temple'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v2.5</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}</div>${tabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${({dashboard:renderDash,sprints:renderSprints,backward:renderBackward,life:renderLife,events:renderEvents,notes:renderNotes,print:renderPrint})[t]()}</div>`).join('')}`;updateSI()}
+  const tabs=['sprints','backward','life','events','print','notes','dashboard'];
+  const tn={dashboard:'Dashboard',sprints:'Week',backward:'Backward Plans',life:'Tasks',events:'Events',notes:'Notes',print:'Print'};
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',midnight:'🌲 Midnight',temple:'⛪ Temple'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v2.6</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}</div>${tabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${({dashboard:renderDash,sprints:renderSprints,backward:renderBackward,life:renderLife,events:renderEvents,notes:renderNotes,print:renderPrint})[t]()}</div>`).join('')}`;updateSI()}
 
 function renderDash(){const cats=['cn','bh','wh','ab'];const groups={};cats.forEach(c=>{groups[c]=state.deliverables.filter(d=>d.cat===c)});const mx=Math.max(...cats.map(c=>groups[c].length)),gc=`repeat(${cats.length},1fr)`;let h=`<div class="dash-table"><div class="dash-col-hdrs" style="display:grid;grid-template-columns:${gc};gap:8px">${cats.map(c=>`<div class="dash-col-hdr ${c}">${CAT_NAMES[c]}</div>`).join('')}</div>`;for(let r=0;r<mx;r++){h+=`<div class="dash-grid-row" style="display:grid;grid-template-columns:${gc};gap:8px;margin-top:6px">`;cats.forEach(c=>{const d=groups[c][r];if(!d){h+=`<div class="dash-cell dash-cell-empty"></div>`;return}const dd=parseDate(d.due),dl=daysBetween(TODAY,dd),uc=dl<0?'past':dl<=7?'urgent':dl<=21?'soon':'ok',ds=dl<0?Math.abs(dl)+'d ago':dl===0?'TODAY':dl+'d',ts=d.tbd?'background:var(--surface3);color:var(--text-dim)':'background:var(--accent-'+c+'-dim);color:var(--accent-'+c+')';h+=`<div class="dash-cell${uc==='past'?' dash-past':''}"><div class="dc-title">${d.title}</div><div class="dc-due">${d.tbd?'~':''}${fmtDate(dd)}</div><div class="dc-days ${uc}">${ds}</div><span class="dc-tag" style="${ts}">${d.tag}</span></div>`});h+='</div>'}h+='</div>';const op=state.lifeTasks.filter(t=>!t.done);if(op.length)h+=`<div class="notes-box" style="border-left:3px solid var(--accent-life)"><div class="notes-box-title" style="color:var(--accent-life)">Tasks · ${op.length} open · ${op.reduce((s,t)=>s+t.hours,0)}h</div></div>`;h+=`<div class="notes-box"><div class="notes-box-title">Strategy</div><div class="notes-box-text"><strong>Readings = paper research.</strong> BH → strand paper. ABI → ABI paper.<br><strong>Spring Break:</strong> ~30h. BH drafting window.<br><strong>Abhidhamma:</strong> Outline 4/19, draft 4/22, submit 4/23.<br><strong>WH Paper(s):</strong> 6h each.</div></div>`;return h}
 
@@ -412,10 +413,11 @@ function renderNotes(){
 const notes=(state.notes||[]).slice().sort((a,b)=>b.id-a.id);
 let h=`<div class="life-header"><span class="life-title">Notes</span><span class="legend-hint">${notes.length} entries</span></div>`;
 h+=`<button class="life-btn" onclick="addNote()" style="margin-bottom:14px">+ Add Note</button>`;
-notes.forEach((n,i)=>{
+notes.forEach((n,idx)=>{
 const ts=new Date(n.timestamp);const tStr=ts.toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'})+' '+ts.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
 const rows=Math.max(2,(n.text||'').split('\n').length+1);
-h+=`<div class="note-entry" data-note-id="${n.id}" ondragover="noteDragOver(event)" ondrop="noteDrop(event,${n.id})"><div class="note-hdr"><span class="note-drag" draggable="true" ondragstart="noteDragStart(event,${n.id})" ondragend="this.parentElement.parentElement.classList.remove('dragging')">⠿</span><span class="note-ts">${tStr}</span><span class="note-label">last updated</span><button class="note-del" onclick="deleteNote(${n.id})">✕</button></div><textarea class="note-text" rows="${rows}" oninput="updateNote(${n.id},this.value)">${n.text||''}</textarea></div>`});
+const isFirst=idx===0,isLast=idx===notes.length-1;
+h+=`<div class="note-entry" data-note-id="${n.id}"><div class="note-hdr"><button class="note-move" onclick="moveNote(${n.id},-1)" title="Move up"${isFirst?' disabled':''}>▲</button><button class="note-move" onclick="moveNote(${n.id},1)" title="Move down"${isLast?' disabled':''}>▼</button><span class="note-ts">${tStr}</span><span class="note-label">last updated</span><button class="note-del" onclick="deleteNote(${n.id})">✕</button></div><textarea class="note-text" id="nt-${n.id}" rows="${rows}" oninput="updateNote(${n.id},this.value)" onfocus="notesCursor.id=${n.id}" onblur="notesCursor.sel=[this.selectionStart,this.selectionEnd];notesCursor.scroll=this.scrollTop">${n.text||''}</textarea></div>`});
 return h}
 
 function renderEvents(){
@@ -424,7 +426,7 @@ const weekEnd=new Date(TODAY);weekEnd.setDate(weekEnd.getDate()+(6-weekEnd.getDa
 const upcoming=evts.filter(e=>{const ed=e.endDate||e.date;return parseDate(ed)>=weekEnd});
 const past=evts.filter(e=>{const ed=e.endDate||e.date;return parseDate(ed)<weekEnd});
 let h=`<div class="life-header"><span class="life-title">Events</span><span class="legend-hint">${evts.length} total</span></div>`;
-h+=`<div class="evt-add-form"><input id="evtNewName" placeholder="Event name" style="flex:2;min-width:120px"/><div class="labeled-field"><label>Date</label><input id="evtNewDate" type="date"/></div><div class="labeled-field"><label>Start</label><input id="evtNewStart" type="time" style="width:100px"/></div><div class="labeled-field"><label>End</label><input id="evtNewEnd" type="time" style="width:100px"/></div><input id="evtNewLoc" placeholder="Location" style="width:120px"/><button class="life-btn" onclick="addEvent()">+ Add</button></div>`;
+h+=`<div class="evt-add-form"><input id="evtNewName" placeholder="Event name" style="flex:2;min-width:120px"/><div class="labeled-field"><label>Date</label><input id="evtNewDate" type="date" placeholder="Date"/></div><div class="labeled-field"><label>Start</label><input id="evtNewStart" type="time" placeholder="Start" style="width:100px"/></div><div class="labeled-field"><label>End</label><input id="evtNewEnd" type="time" placeholder="End" style="width:100px"/></div><input id="evtNewLoc" placeholder="Location" style="width:120px"/><button class="life-btn" onclick="addEvent()">+ Add</button></div>`;
 if(upcoming.length){h+=`<div class="evt-list">`;upcoming.forEach(e=>h+=renderEvtItem(e,false));h+=`</div>`}
 if(past.length){h+=`<div class="evt-list"><div class="life-cat-hdr" style="opacity:.5">Past Events (${past.length})</div>`;past.forEach(e=>h+=renderEvtItem(e,true));h+=`</div>`}
 return h}
@@ -456,12 +458,12 @@ function renderPrint(){
   else startDate=parseDate(pr);
   const days=[];for(let i=0;i<7;i++){const d=new Date(startDate);d.setDate(d.getDate()+i);days.push({date:isoDate(d),dateObj:new Date(d)})}
   const customVal=pr!=='today'&&pr!=='tomorrow'&&pr!=='nextweek'?pr:'';
-  return`<div class="pv-controls"><button class="pv-range-btn ${pr==='today'?'active':''}" onclick="setPrintRange('today')">Today</button><button class="pv-range-btn ${pr==='tomorrow'?'active':''}" onclick="setPrintRange('tomorrow')">Tomorrow</button><button class="pv-range-btn ${pr==='nextweek'?'active':''}" onclick="setPrintRange('nextweek')">Next Mon–Sun</button><input type="date" class="pv-date-pick" value="${customVal}" onchange="setPrintRange(this.value)" title="Custom start date"/></div>
+  return`<div class="pv-controls"><button class="pv-range-btn ${pr==='today'?'active':''}" onclick="setPrintRange('today')">Today</button><button class="pv-range-btn ${pr==='tomorrow'?'active':''}" onclick="setPrintRange('tomorrow')">Tomorrow</button><button class="pv-range-btn ${pr==='nextweek'?'active':''}" onclick="setPrintRange('nextweek')">Next Mon–Sun</button><input type="date" class="pv-date-pick" value="${customVal}" onchange="setPrintRange(this.value)" placeholder="Date" title="Custom start date"/></div>
   <div class="print-view"><div class="pv-title">Academic Plan · 7 Days</div><div class="pv-sub">${fmtDate(days[0].dateObj)} through ${fmtDate(days[6].dateObj)}</div>${days.map(day=>{const av=getAvailHours(day.date),tasks=state.tasks.filter(t=>t.date===day.date),al=tasks.filter(t=>!t.done).reduce((s,t)=>s+t.hours,0),note=state.dayNotes[day.date]||'';
   return`<div class="pv-day"><div class="pv-day-hdr"><span class="pv-day-name">${fmtDate(day.dateObj)}</span><span class="pv-day-hrs">${al}/${av}h</span></div><div class="pv-tasks">${tasks.length?tasks.map(t=>`<span class="pv-chip ${t.priority==='high'?'high':''} ${t.done?'done':''}"><span class="pv-cat">${CAT_SHORT[t.cat]||t.cat.toUpperCase()}</span> ${t.name}${t.hours>0?' ('+t.hours+'h)':''}</span>`).join(''):''}</div>${note?`<div class="pv-note">${note}</div>`:''}</div>`}).join('')}</div>`}
 
 // ===== INTERACTIONS =====
-function switchTab(t){state.activeTab=t;allocatingId=null;render();scheduleSave()}
+function switchTab(t){state.activeTab=t;allocatingId=null;render();scheduleSave();if(t==='notes')setTimeout(restoreNotesCursor,50)}
 function setTheme(t){state.theme=t;render();scheduleSave()}
 function cycleTheme(){const ts=['dark','light','ember','persia','ocean','pistachio','midnight','temple'];const i=(ts.indexOf(state.theme)+1)%ts.length;setTheme(ts[i])}
 function toggleTheme(){cycleTheme()}
@@ -524,13 +526,12 @@ function deleteLifeTask(id){if(!confirm('Delete?'))return;state.lifeTasks=state.
 
 
 // ===== NOTES =====
+const notesCursor={id:null,sel:null,scroll:0};
 function addNote(){if(!state.notes)state.notes=[];state.notes.push({id:state.nextId++,timestamp:new Date().toISOString(),text:''});render();scheduleSave();setTimeout(()=>{const areas=document.querySelectorAll('.note-text');if(areas.length)areas[0].focus()},50)}
 function updateNote(id,text){const n=(state.notes||[]).find(n=>n.id===id);if(n){n.text=text;n.timestamp=new Date().toISOString();const tsEl=document.querySelector(`[data-note-id="${id}"] .note-ts`);if(tsEl){const ts=new Date(n.timestamp);tsEl.textContent=ts.toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'})+' '+ts.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}scheduleSave()}}
 function deleteNote(id){const n=(state.notes||[]).find(n=>n.id===id);if(n&&n.text&&n.text.trim()){if(!confirm('Delete note?'))return}state.notes=(state.notes||[]).filter(n=>n.id!==id);render();scheduleSave()}
-let noteDragId=null;
-function noteDragStart(e,id){noteDragId=id;e.currentTarget.closest('.note-entry').classList.add('dragging');e.dataTransfer.effectAllowed='move'}
-function noteDragOver(e){e.preventDefault()}
-function noteDrop(e,targetId){e.preventDefault();if(noteDragId===null||noteDragId===targetId)return;const arr=state.notes;const fromIdx=arr.findIndex(n=>n.id===noteDragId);const toIdx=arr.findIndex(n=>n.id===targetId);if(fromIdx<0||toIdx<0)return;const[item]=arr.splice(fromIdx,1);arr.splice(toIdx,0,item);noteDragId=null;render();scheduleSave()}
+function moveNote(id,dir){const arr=state.notes;const sorted=arr.slice().sort((a,b)=>b.id-a.id);const si=sorted.findIndex(n=>n.id===id);const ti=si+dir;if(ti<0||ti>=sorted.length)return;const ai=arr.indexOf(sorted[si]);const bi=arr.indexOf(sorted[ti]);[arr[ai],arr[bi]]=[arr[bi],arr[ai]];render();scheduleSave()}
+function restoreNotesCursor(){if(notesCursor.id&&state.activeTab==='notes'){const ta=document.getElementById('nt-'+notesCursor.id);if(ta&&notesCursor.sel){ta.focus();ta.setSelectionRange(notesCursor.sel[0],notesCursor.sel[1]);ta.scrollTop=notesCursor.scroll}}}
 
 // ===== EVENTS =====
 function addEvent(){const name=$('#evtNewName')?.value.trim();if(!name)return;if(!state.events)state.events=[];state.events.push({id:state.nextId++,name,date:$('#evtNewDate')?.value||isoDate(TODAY),endDate:'',startTime:$('#evtNewStart')?.value||'',endTime:$('#evtNewEnd')?.value||'',location:$('#evtNewLoc')?.value||'',allDay:false});$('#evtNewName').value='';$('#evtNewDate').value='';$('#evtNewStart').value='';$('#evtNewEnd').value='';$('#evtNewLoc').value='';render();scheduleSave()}
