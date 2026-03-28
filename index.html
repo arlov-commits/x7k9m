@@ -291,7 +291,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 .syl-days.urgent{color:var(--danger)}.syl-days.soon{color:var(--warning)}.syl-days.ok{color:var(--ok)}.syl-days.past{color:var(--text-muted)}
 .syl-title-text{font-weight:500}
 .syl-type-tag{font-size:.56rem;font-weight:700;text-transform:uppercase;padding:1px 5px;border-radius:3px;margin-left:6px;vertical-align:middle;display:inline-block}
-.syl-type-tag.reading{background:var(--surface3);color:var(--text-dim)}.syl-type-tag.paper{background:var(--danger-dim);color:var(--danger)}.syl-type-tag.exam{background:var(--warning-dim);color:var(--warning)}.syl-type-tag.presentation{background:var(--accent-ab-dim);color:var(--accent-ab)}
+.syl-type-tag.reading{background:var(--surface3);color:var(--text-dim)}.syl-type-tag.paper{background:var(--danger-dim);color:var(--danger)}.syl-type-tag.exam{background:var(--warning-dim);color:var(--warning)}.syl-type-tag.presentation{background:var(--accent-ab-dim);color:var(--accent-ab)}.syl-type-tag.custom{background:var(--surface3);color:var(--text-muted)}
 .syl-hrs-cell{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--text-muted);width:36px;text-align:right}
 .syl-detail-text{font-size:.76rem;color:var(--text-dim);margin-top:4px;line-height:1.6}
 .syl-detail-edit{width:100%;margin-top:4px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Outfit';font-size:.76rem;padding:5px 8px;border-radius:4px;resize:vertical;min-height:28px;line-height:1.5}
@@ -305,10 +305,9 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 .syl-btn:hover{opacity:1;color:var(--text-dim);background:var(--surface3)}.syl-btn.del:hover{color:var(--danger);background:var(--danger-dim)}
 .syl-add-form{display:flex;gap:5px;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap}
 .syl-add-form input,.syl-add-form select{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Outfit';font-size:.78rem;padding:7px 10px;border-radius:6px}
-.syl-controls{display:flex;gap:8px;align-items:center;margin-bottom:10px}
-.syl-toggle{font-size:.72rem;color:var(--text-dim);background:var(--surface);border:1px solid var(--border);padding:3px 9px;border-radius:5px;cursor:pointer;font-family:'Outfit'}
-.syl-toggle:hover{color:var(--text);border-color:var(--text-dim)}.syl-toggle.active{background:var(--surface3);color:var(--text)}
-.syl-row-highlight.paper{background:var(--danger-dim)}.syl-row-highlight.exam{background:var(--warning-dim)}.syl-row-highlight.presentation{background:var(--accent-ab-dim)}
+.syl-hl-btn{background:0;border:0;cursor:pointer;font-size:.7rem;padding:1px 3px;border-radius:3px;opacity:.3;transition:all .12s;line-height:1}
+.syl-hl-btn:hover{opacity:.7}.syl-hl-btn.on{opacity:1}
+.syl-row-hl{background:var(--warning-dim)}
 
 .hdr-row1,.hdr-row2{display:contents}
 @media(max-width:700px){.day-row{grid-template-columns:66px 1fr auto}.life-item{grid-template-columns:auto 1fr auto auto}.li-days,.li-send{display:none}.evt-item{grid-template-columns:1fr auto auto;gap:4px}.evt-item .evt-date{grid-column:1/-1}.evt-info{text-align:left}.header{gap:4px;flex-wrap:wrap}.hdr-row1{display:flex;align-items:center;gap:6px;width:100%;flex-shrink:0}.hdr-row1 .combined-status{margin-left:auto}.hdr-row2{display:flex;align-items:center;gap:6px;width:100%}.hdr-row2 .theme-toggle{margin-left:auto}.labeled-field label{display:none}.note-text{resize:both}}
@@ -322,7 +321,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 <div class="modal-overlay" id="addModal"><div class="modal"><h3>Add Task</h3><label>Name</label><input id="aName" type="text"/><label>Hours</label><div class="hrs-stepper"><button class="step-btn" onclick="stepHrs(-0.5)">−</button><input id="aHrs" type="number" step="0.5" min="0" value="1"/><button class="step-btn" onclick="stepHrs(0.5)">+</button></div><label>Category</label><select id="aCat"><option value="life">Task</option><option value="bh">Buddhist Hermeneutics</option><option value="wh">Western Hermeneutics</option><option value="cn">Chinese Classics</option><option value="ab">Abhidhamma</option><option value="events">Event</option></select><label>Priority</label><div class="pri-toggle" id="aPriToggle" onclick="toggleAddPri()"><span class="pri-option active" data-val="normal">Normal</span><span class="pri-option" data-val="high">High</span></div><input type="hidden" id="aPri" value="normal"/><label>Linked Reading</label><select id="aSyl"><option value="">None</option></select><div class="modal-btns"><button class="mbtn secondary" id="aCanc">Cancel</button><button class="mbtn primary" id="aSave">Add</button></div></div></div>
 
 <!-- Syllabus edit modal -->
-<div class="modal-overlay" id="sylModal"><div class="modal"><h3 id="sylModalTitle">Edit Syllabus Entry</h3><label>Title</label><input id="sTitle" type="text"/><label>Detail</label><textarea id="sDetail" style="width:100%;min-height:60px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Outfit';font-size:.78rem;padding:6px 9px;border-radius:5px;resize:vertical"></textarea><label>Class</label><select id="sCat"><option value="bh">Buddhist Hermeneutics</option><option value="wh">Western Hermeneutics</option><option value="cn">Chinese Classics</option><option value="ab">Abhidhamma</option></select><label>Type</label><select id="sType"><option value="reading">Reading</option><option value="paper">Paper</option><option value="exam">Exam</option><option value="presentation">Presentation</option></select><label>Due Date</label><input id="sDue" type="date"/><label>Hours Estimate</label><input id="sHrs" type="number" step="0.5" min="0"/><div class="modal-btns"><button class="mbtn danger" id="sDel">Delete</button><button class="mbtn secondary" id="sCanc">Cancel</button><button class="mbtn primary" id="sSave">Save</button></div></div></div>
+<div class="modal-overlay" id="sylModal"><div class="modal"><h3 id="sylModalTitle">Edit Syllabus Entry</h3><label>Title</label><input id="sTitle" type="text"/><label>Detail</label><textarea id="sDetail" style="width:100%;min-height:60px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Outfit';font-size:.78rem;padding:6px 9px;border-radius:5px;resize:vertical"></textarea><label>Class</label><select id="sCat"><option value="bh">Buddhist Hermeneutics</option><option value="wh">Western Hermeneutics</option><option value="cn">Chinese Classics</option><option value="ab">Abhidhamma</option><option value="custom">Custom</option></select><label>Type</label><select id="sType"><option value="reading">Reading</option><option value="paper">Paper</option><option value="exam">Exam</option><option value="presentation">Presentation</option><option value="custom">Custom</option></select><label>Due Date</label><input id="sDue" type="date"/><label>End Date (multi-day)</label><input id="sDueEnd" type="date"/><label>Hours Estimate</label><input id="sHrs" type="number" step="0.5" min="0"/><div class="modal-btns"><button class="mbtn danger" id="sDel">Delete</button><button class="mbtn secondary" id="sCanc">Cancel</button><button class="mbtn primary" id="sSave">Save</button></div></div></div>
 
 <!-- Event edit modal -->
 <div class="modal-overlay" id="evtModal"><div class="modal"><h3 id="evtModalTitle">Edit Event</h3><label>Name</label><input id="eName" type="text"/><label>Date</label><input id="eDate" type="date"/><label>End Date (for multi-day)</label><input id="eEndDate" type="date"/><label>Start Time</label><input id="eStart" type="time"/><label>End Time</label><input id="eEnd" type="time"/><label>Location</label><input id="eLoc" type="text"/><div style="margin-top:8px"><label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="eAllDay"/> All day event</label></div><div class="modal-btns"><button class="mbtn danger" id="eDel">Delete</button><button class="mbtn secondary" id="eCanc">Cancel</button><button class="mbtn primary" id="eSave">Save</button></div></div></div>
@@ -335,8 +334,8 @@ const SB_TABLE='planner_state';
 async function sbGet(){try{const r=await fetch(SB_URL+'/rest/v1/'+SB_TABLE+'?id=eq.default&select=*',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});const d=await r.json();if(d&&d.length>0&&d[0].data){return{data:typeof d[0].data==='string'?JSON.parse(d[0].data):d[0].data,updated:d[0].updated_at}}return null}catch(e){console.warn('SB get err:',e);return null}}
 async function sbSet(data){try{await fetch(SB_URL+'/rest/v1/'+SB_TABLE,{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify({id:'default',data:JSON.stringify(data),updated_at:new Date().toISOString()})});return true}catch(e){console.warn('SB set err:',e);return false}}
 const TODAY=new Date();TODAY.setHours(0,0,0,0);
-const CAT_NAMES={bh:'Buddhist Hermeneutics',wh:'Western Hermeneutics',cn:'Chinese Classics',ab:'Abhidhamma',life:'Task',events:'Event'};
-const CAT_SHORT={bh:'BH',wh:'WH',cn:'CH',ab:'ABI',life:'TSK',events:'EVT'};
+const CAT_NAMES={bh:'Buddhist Hermeneutics',wh:'Western Hermeneutics',cn:'Chinese Classics',ab:'Abhidhamma',custom:'Custom',life:'Task',events:'Event'};
+const CAT_SHORT={bh:'BH',wh:'WH',cn:'CH',ab:'ABI',custom:'✎',life:'TSK',events:'EVT'};
 const PRI_ORDER={high:0,med:1,low:2,normal:3};
 function daysBetween(a,b){return Math.ceil((b-a)/864e5)}
 function fmtDate(d){return['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]+' '+(d.getMonth()+1)+'/'+d.getDate()}
@@ -346,7 +345,7 @@ function parseDate(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-
 function sameDay(a,b){return isoDate(a)===isoDate(b)}
 function nextMonday(){const d=new Date(TODAY);const dow=d.getDay();const diff=dow===0?1:(8-dow);d.setDate(d.getDate()+diff);return d}
 
-const SEM_START=new Date(2026,0,19);// Jan 19, 2026 = Week 1
+const SEM_START=new Date(2026,0,24);// Sat Jan 24, 2026 = Week 1 (semester starts Sat, week 10 = 3/28-4/3)
 function semesterWeekNum(d){const diff=Math.floor((d-SEM_START)/864e5);return Math.floor(diff/7)+1}
 
 function generateWeeks(){const end=new Date(2026,4,30),weeks=[];let cur=new Date(TODAY);cur.setDate(cur.getDate()-((cur.getDay()+1)%7));if(cur>TODAY)cur.setDate(cur.getDate()-7);let wk=1;while(cur<=end){const days=[];for(let i=0;i<7;i++){const d=new Date(cur);d.setDate(d.getDate()+i);if(d>end)break;days.push({date:isoDate(d),dateObj:new Date(d)})}weeks.push({num:wk,start:new Date(cur),end:new Date(cur.getTime()+6*864e5),days});cur.setDate(cur.getDate()+7);wk++}return weeks}
@@ -388,10 +387,10 @@ function defaultSyllabus(){return[
 {id:5008,cat:'ab',type:'presentation',title:'ABI Presentation',detail:'',due:'2026-05-14',hours:0,done:false},
 // Buddhist Hermeneutics
 {id:5010,cat:'bh',type:'reading',title:'Powers — Saṃdhinirmocana-sūtra',detail:'pp.78-82 & 138-147',due:'2026-03-31',hours:3,done:false},
-{id:5011,cat:'bh',type:'reading',title:'Hsüan-hua — Flower Adornment Sutra Preface',detail:'pp.xv-xvii, 1-12\nContinues 4/16',due:'2026-04-13',hours:4,done:false},
+{id:5011,cat:'bh',type:'reading',title:'Hsüan-hua — Flower Adornment Sutra Preface',detail:'pp.xv-xvii, 1-12',due:'2026-04-13',dueEnd:'2026-04-16',hours:4,done:false},
 {id:5012,cat:'bh',type:'paper',title:'BH Strand Paper Draft',detail:'Soft deadline\n8-12 pages',due:'2026-04-17',hours:0,done:false},
 {id:5013,cat:'bh',type:'reading',title:'Ching Liang — Flower Adornment Sutra Prologue First Door',detail:'',due:'2026-04-21',hours:4,done:false},
-{id:5014,cat:'bh',type:'reading',title:'Bodhisattva Maitreya — Flower Adornment Sutra Ch.39',detail:'Continues 4/28',due:'2026-04-27',hours:4,done:false},
+{id:5014,cat:'bh',type:'reading',title:'Bodhisattva Maitreya — Flower Adornment Sutra Ch.39',detail:'',due:'2026-04-27',dueEnd:'2026-04-28',hours:4,done:false},
 {id:5015,cat:'bh',type:'paper',title:'BH Final Strand Paper',detail:'8-12 pages',due:'2026-05-08',hours:0,done:false},
 {id:5016,cat:'bh',type:'presentation',title:'BH Presentation',detail:'',due:'2026-05-12',hours:0,done:false},
 // Western Hermeneutics
@@ -407,7 +406,7 @@ function defaultSyllabus(){return[
 {id:5030,cat:'cn',type:'exam',title:'Chinese Classics Midterm Exam',detail:'',due:'2026-04-03',hours:0,done:true}
 ]}
 
-let state={theme:'dark',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],nextId:4000,printRange:'today',sylHighlight:true};
+let state={theme:'dark',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],nextId:4000,printRange:'today'};
 let saveTimer=null,lastSaveTime=null,saveStatus='saved';
 function scheduleSave(){saveStatus='saving';updateSI();if(saveTimer)clearTimeout(saveTimer);saveTimer=setTimeout(doSave,1500)}
 async function doSave(){try{localStorage.setItem(SKEY,JSON.stringify(state));localStorage.setItem(SKEY+'-time',new Date().toISOString());lastSaveTime=new Date();saveStatus='saved';updateSI();if(navigator.onLine){updateConn('syncing');const ok=await sbSet(state);if(ok){localStorage.removeItem(SKEY+'-dirty');updateConn('online')}else{localStorage.setItem(SKEY+'-dirty','1');updateConn('offline')}}else{localStorage.setItem(SKEY+'-dirty','1');updateConn('offline')}}catch(e){saveStatus='error';updateSI()}}
@@ -520,10 +519,9 @@ function renderPrint(){
   return`<div class="pv-day"><div class="pv-day-hdr"><span class="pv-day-name">${fmtDate(day.dateObj)}</span><span class="pv-day-hrs">${al}/${av}h</span></div><div class="pv-tasks">${tasks.length?tasks.map(t=>`<span class="pv-chip ${t.priority==='high'?'high':''} ${t.done?'done':''}"><span class="pv-cat">${CAT_SHORT[t.cat]||t.cat.toUpperCase()}</span> ${t.name}${t.hours>0?' ('+t.hours+'h)':''}</span>`).join(''):''}</div>${note?`<div class="pv-note">${note}</div>`:''}</div>`}).join('')}</div>`}
 
 function renderSyllabus(){
-const catPri={bh:0,wh:1,ab:2,cn:3};
+const catPri={bh:0,wh:1,ab:2,cn:3,custom:4};
 const syl=(state.syllabus||[]).slice().sort((a,b)=>a.due.localeCompare(b.due)||(catPri[a.cat]??9)-(catPri[b.cat]??9));
 const done=syl.filter(s=>s.done).length,rem=syl.length-done;
-const hl=state.sylHighlight!==false;
 // Group by semester week
 const weekMap={};
 syl.forEach(s=>{
@@ -533,8 +531,7 @@ syl.forEach(s=>{
 });
 const weekNums=Object.keys(weekMap).map(Number).sort((a,b)=>a-b);
 let h=`<div class="life-header"><span class="life-title">Syllabus</span><span class="legend-hint">${rem} remaining · ${done} complete</span></div>`;
-h+=`<div class="syl-controls"><button class="syl-toggle ${hl?'active':''}" onclick="toggleSylHighlight()">Highlight deliverables</button></div>`;
-h+=`<div class="syl-add-form"><input id="sylNewTitle" placeholder="Title" style="flex:2;min-width:120px"/><select id="sylNewCat"><option value="bh">BH</option><option value="wh">WH</option><option value="ab">ABI</option><option value="cn">CH</option></select><select id="sylNewType"><option value="reading">Reading</option><option value="paper">Paper</option><option value="exam">Exam</option><option value="presentation">Presentation</option></select><div class="labeled-field"><label>Due</label><input id="sylNewDue" type="date" placeholder="Due"/></div><input id="sylNewHrs" type="number" step="0.5" min="0" placeholder="Hrs" style="width:58px"/><button class="life-btn" onclick="addSylEntry()">+ Add</button></div>`;
+h+=`<div class="syl-add-form"><input id="sylNewTitle" placeholder="Title" style="flex:2;min-width:120px"/><select id="sylNewCat"><option value="bh">BH</option><option value="wh">WH</option><option value="ab">ABI</option><option value="cn">CH</option><option value="custom">✎ Custom</option></select><select id="sylNewType"><option value="reading">Reading</option><option value="paper">Paper</option><option value="exam">Exam</option><option value="presentation">Presentation</option><option value="custom">Custom</option></select><div class="labeled-field"><label>Due</label><input id="sylNewDue" type="date" placeholder="Due"/></div><input id="sylNewHrs" type="number" step="0.5" min="0" placeholder="Hrs" style="width:58px"/><button class="life-btn" onclick="addSylEntry()">+ Add</button></div>`;
 weekNums.forEach(wkN=>{
   const entries=weekMap[wkN];
   const wkStart=new Date(SEM_START.getTime()+(wkN-1)*7*864e5);
@@ -552,21 +549,23 @@ weekNums.forEach(wkN=>{
   groups.forEach(g=>{
     g.entries.forEach((e,ei)=>{
       const dueD=parseDate(e.due),dl=daysBetween(TODAY,dueD);
-      const dueStr=fmtDateShort(dueD);
-      const urgClass=e.done?'past':(dl<0?'past':dl<=3?'urgent':dl<=7?'soon':'ok');
-      const daysStr=e.done?'':(dl<0?Math.abs(dl)+'d ago':dl===0?'today':dl+'d');
-      const isDeliverable=e.type!=='reading';
-      const hlClass=hl&&isDeliverable?'syl-row-highlight '+e.type:'';
-      h+=`<tr class="${e.done?'done':''} ${hlClass}">`;
+      const dueEndD=e.dueEnd?parseDate(e.dueEnd):null;
+      const dueStr=dueEndD?fmtDateShort(dueD)+' → '+fmtDateShort(dueEndD):fmtDateShort(dueD);
+      const dlRef=dueEndD?daysBetween(TODAY,dueEndD):dl;
+      const urgClass=e.done?'past':(dlRef<0?'past':dlRef<=3?'urgent':dlRef<=7?'soon':'ok');
+      const daysStr=e.done?'':(dlRef<0?Math.abs(dlRef)+'d ago':dlRef===0?'today':dlRef+'d');
+      const isHl=!!e.highlighted;
+      h+=`<tr class="${e.done?'done':''} ${isHl?'syl-row-hl':''}">`;
       h+=`<td style="width:28px"><button class="syl-check ${e.done?'checked':''}" onclick="toggleSylDone(${e.id})">${e.done?'✓':''}</button></td>`;
       if(ei===0){
-        h+=`<td class="syl-class-cell"${g.entries.length>1?' rowspan="'+g.entries.length+'"':''}><span class="syl-dot" style="background:var(--accent-${e.cat})"></span>${CAT_SHORT[e.cat]}</td>`;
+        const dotStyle=e.cat==='custom'?'background:var(--text-muted)':'background:var(--accent-'+e.cat+')';
+        h+=`<td class="syl-class-cell"${g.entries.length>1?' rowspan="'+g.entries.length+'"':''}><span class="syl-dot" style="${dotStyle}"></span>${CAT_SHORT[e.cat]||e.cat}</td>`;
         h+=`<td class="syl-due-cell"${g.entries.length>1?' rowspan="'+g.entries.length+'"':''}>${dueStr}<span class="syl-days ${urgClass}">${daysStr}</span></td>`;
       }
       const detailHtml=e.detail?(e.detail.replace(/\n/g,'<br>')):'';
-      h+=`<td><span class="syl-title-text" ondblclick="inlineSylEdit(${e.id},'title',this)">${e.title}</span><span class="syl-type-tag ${e.type}">${e.type}</span>${detailHtml?`<div class="syl-detail-text" ondblclick="inlineSylEdit(${e.id},'detail',this)">${detailHtml}</div>`:''}</td>`;
+      h+=`<td><span class="syl-title-text" ondblclick="inlineSylEdit(${e.id},'title',this)">${e.title}</span><span class="syl-type-tag ${e.type}">${e.type==='custom'?'custom':e.type}</span>${detailHtml?`<div class="syl-detail-text" ondblclick="inlineSylEdit(${e.id},'detail',this)">${detailHtml}</div>`:''}</td>`;
       h+=`<td class="syl-hrs-cell">${e.hours?e.hours+'h':''}</td>`;
-      h+=`<td class="syl-btns-cell"><button class="syl-btn" onclick="openSylEdit(${e.id})">✎</button><button class="syl-btn del" onclick="deleteSylEntry(${e.id})">✕</button></td>`;
+      h+=`<td class="syl-btns-cell"><button class="syl-hl-btn ${isHl?'on':''}" onclick="toggleSylHL(${e.id})" title="Highlight">★</button><button class="syl-btn" onclick="openSylEdit(${e.id})">✎</button><button class="syl-btn del" onclick="deleteSylEntry(${e.id})">✕</button></td>`;
       h+=`</tr>`;
     });
   });
@@ -668,16 +667,16 @@ function lifeCatDragLeave(e){e.currentTarget.classList.remove('drag-over')}
 function lifeCatDrop(e,targetCat){e.preventDefault();e.currentTarget.classList.remove('drag-over');if(lifeDragId!==null){const t=state.lifeTasks.find(t=>t.id===lifeDragId);if(t){t.category=targetCat;lifeDragId=null;render();scheduleSave();return}}if(dragCatName&&dragCatName!==targetCat){if(!state.catOrder)state.catOrder=[];const cats=new Set();state.lifeTasks.filter(t=>!t.done).forEach(t=>{const c=t.category||'General';cats.add(c)});let order=state.catOrder.filter(c=>cats.has(c));cats.forEach(c=>{if(!order.includes(c))order.push(c)});const fi=order.indexOf(dragCatName),ti=order.indexOf(targetCat);if(fi>=0&&ti>=0){order.splice(fi,1);order.splice(ti,0,dragCatName);state.catOrder=order}dragCatName=null;render();scheduleSave()}}
 
 // ===== SYLLABUS =====
-function toggleSylHighlight(){state.sylHighlight=!state.sylHighlight;render();scheduleSave()}
+function toggleSylHL(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=!s.highlighted;render();scheduleSave()}
 function toggleSylDone(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.done=!s.done;if(s.done){state.tasks.forEach(t=>{if(t.syllabusId===id)t.done=true})}render();scheduleSave()}
 function inlineSylEdit(id,field,el){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;
 if(field==='title'){const inp=document.createElement('input');inp.type='text';inp.value=s.title;inp.className='syl-title-edit';el.replaceWith(inp);inp.focus();inp.select();function save(){s.title=inp.value.trim()||s.title;render();scheduleSave()}inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();save()}else if(e.key==='Escape')render()});inp.addEventListener('blur',save)}
 else if(field==='detail'){const ta=document.createElement('textarea');ta.value=s.detail||'';ta.className='syl-detail-edit';ta.rows=Math.max(2,(s.detail||'').split('\n').length+1);el.replaceWith(ta);ta.focus();function save(){s.detail=ta.value;render();scheduleSave()}ta.addEventListener('keydown',e=>{if(e.key==='Escape')render()});ta.addEventListener('blur',save)}}
 function deleteSylEntry(id){if(!confirm('Delete syllabus entry?'))return;state.syllabus=(state.syllabus||[]).filter(s=>s.id!==id);render();scheduleSave()}
-function addSylEntry(){const title=$('#sylNewTitle')?.value.trim();if(!title)return;state.syllabus.push({id:state.nextId++,cat:$('#sylNewCat').value,type:$('#sylNewType').value,title,detail:'',due:$('#sylNewDue')?.value||isoDate(TODAY),hours:parseFloat($('#sylNewHrs')?.value)||0,done:false});$('#sylNewTitle').value='';$('#sylNewHrs').value='';$('#sylNewDue').value='';render();scheduleSave()}
+function addSylEntry(){const title=$('#sylNewTitle')?.value.trim();if(!title)return;state.syllabus.push({id:state.nextId++,cat:$('#sylNewCat').value,type:$('#sylNewType').value,title,detail:'',due:$('#sylNewDue')?.value||isoDate(TODAY),dueEnd:'',hours:parseFloat($('#sylNewHrs')?.value)||0,done:false,highlighted:false});$('#sylNewTitle').value='';$('#sylNewHrs').value='';$('#sylNewDue').value='';render();scheduleSave()}
 let editSylId=null;
-function openSylEdit(id){editSylId=id;const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;$('#sylModalTitle').textContent='Edit Syllabus Entry';$('#sTitle').value=s.title;$('#sDetail').value=s.detail||'';$('#sCat').value=s.cat;$('#sType').value=s.type;$('#sDue').value=s.due;$('#sHrs').value=s.hours;$('#sylModal').classList.add('open')}
-$('#sSave').onclick=()=>{const s=(state.syllabus||[]).find(s=>s.id===editSylId);if(s){s.title=$('#sTitle').value;s.detail=$('#sDetail').value;s.cat=$('#sCat').value;s.type=$('#sType').value;s.due=$('#sDue').value;s.hours=parseFloat($('#sHrs').value)||0}$('#sylModal').classList.remove('open');render();scheduleSave()}
+function openSylEdit(id){editSylId=id;const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;$('#sylModalTitle').textContent='Edit Syllabus Entry';$('#sTitle').value=s.title;$('#sDetail').value=s.detail||'';$('#sCat').value=s.cat;$('#sType').value=s.type;$('#sDue').value=s.due;$('#sDueEnd').value=s.dueEnd||'';$('#sHrs').value=s.hours;$('#sylModal').classList.add('open')}
+$('#sSave').onclick=()=>{const s=(state.syllabus||[]).find(s=>s.id===editSylId);if(s){s.title=$('#sTitle').value;s.detail=$('#sDetail').value;s.cat=$('#sCat').value;s.type=$('#sType').value;s.due=$('#sDue').value;s.dueEnd=$('#sDueEnd').value||'';s.hours=parseFloat($('#sHrs').value)||0}$('#sylModal').classList.remove('open');render();scheduleSave()}
 $('#sDel').onclick=()=>{if(!confirm('Delete syllabus entry?'))return;state.syllabus=(state.syllabus||[]).filter(s=>s.id!==editSylId);$('#sylModal').classList.remove('open');render();scheduleSave()}
 $('#sCanc').onclick=()=>{$('#sylModal').classList.remove('open')}
 $('#sylModal').onclick=e=>{if(e.target.id==='sylModal')$('#sylModal').classList.remove('open')}
