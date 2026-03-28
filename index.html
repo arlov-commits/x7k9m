@@ -495,7 +495,8 @@ const notes=(state.notes||[]).slice();
 if(!notes.length||notes[0].order===undefined){notes.forEach((n,i)=>{n.order=i})}
 notes.sort((a,b)=>a.order-b.order);
 let h=`<div class="life-header"><span class="life-title">Notes</span><span class="legend-hint">${notes.length} entries</span></div>`;
-h+=`<button class="life-btn" onclick="addNote()" style="margin-bottom:14px">+ Add Note</button>`;
+const noteUrl=location.origin+location.pathname+'?action=newnote';
+h+=`<div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap"><button class="life-btn" onclick="addNote()">+ Add Note</button><button class="life-btn" onclick="copyNoteUrl()" id="copyNoteUrlBtn" title="Copy quick-note URL for home screen shortcut" style="font-size:.68rem;opacity:.7">🔗 Copy Quick Note URL</button></div>`;
 notes.forEach((n,idx)=>{
 const ts=new Date(n.timestamp);const tStr=ts.toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'})+' '+ts.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
 const rows=Math.max(2,(n.text||'').split('\n').length+1);
@@ -716,6 +717,8 @@ const notesCursor={id:null,sel:null,scroll:0};
 function addNote(){if(!state.notes)state.notes=[];const minOrder=state.notes.length?Math.min(...state.notes.map(n=>n.order??0))-1:0;state.notes.push({id:state.nextId++,timestamp:new Date().toISOString(),text:'',order:minOrder});render();scheduleSave();setTimeout(()=>{const areas=document.querySelectorAll('.note-text');if(areas.length)areas[0].focus()},50)}
 function updateNote(id,text){const n=(state.notes||[]).find(n=>n.id===id);if(n){n.text=text;n.timestamp=new Date().toISOString();const tsEl=document.querySelector(`[data-note-id="${id}"] .note-ts`);if(tsEl){const ts=new Date(n.timestamp);tsEl.textContent=ts.toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'})+' '+ts.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}scheduleSave()}}
 function deleteNote(id){const n=(state.notes||[]).find(n=>n.id===id);if(n&&n.text&&n.text.trim()){if(!confirm('Delete note?'))return}state.notes=(state.notes||[]).filter(n=>n.id!==id);render();scheduleSave()}
+function copyNoteUrl(){const url=location.origin+location.pathname+'?action=newnote';navigator.clipboard.writeText(url).then(()=>{const btn=document.getElementById('copyNoteUrlBtn');if(btn){btn.textContent='✓ Copied!';setTimeout(()=>{btn.textContent='🔗 Copy Quick Note URL'},1500)}}).catch(()=>{prompt('Copy this URL:',url)})}
+function handleUrlAction(){const params=new URLSearchParams(location.search);const action=params.get('action');if(action==='newnote'){history.replaceState(null,'',location.pathname);state.activeTab='notes';if(!state.notes)state.notes=[];const minOrder=state.notes.length?Math.min(...state.notes.map(n=>n.order??0))-1:0;state.notes.push({id:state.nextId++,timestamp:new Date().toISOString(),text:'',order:minOrder});render();scheduleSave();setTimeout(()=>{const areas=document.querySelectorAll('.note-text');if(areas.length)areas[0].focus()},100)}}
 function moveNote(id,dir){const arr=state.notes;arr.forEach((n,i)=>{if(n.order===undefined)n.order=i});const sorted=arr.slice().sort((a,b)=>a.order-b.order);const si=sorted.findIndex(n=>n.id===id);const ti=si+dir;if(ti<0||ti>=sorted.length)return;const tmp=sorted[si].order;sorted[si].order=sorted[ti].order;sorted[ti].order=tmp;render();scheduleSave()}
 function restoreNotesCursor(){if(notesCursor.id&&state.activeTab==='notes'){const ta=document.getElementById('nt-'+notesCursor.id);if(ta&&notesCursor.sel){ta.focus();ta.setSelectionRange(notesCursor.sel[0],notesCursor.sel[1]);ta.scrollTop=notesCursor.scroll}}}
 
@@ -794,7 +797,7 @@ function importState(){
   };
   input.click();
 }
-async function init(){await loadState();render();updateConn(navigator.onLine?'online':'offline');window.addEventListener('online',()=>{updateConn('online');syncIfDirty()});window.addEventListener('offline',()=>{updateConn('offline')});if(localStorage.getItem(SKEY+'-dirty'))syncIfDirty();if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW reg failed:',e))}}
+async function init(){await loadState();render();handleUrlAction();updateConn(navigator.onLine?'online':'offline');window.addEventListener('online',()=>{updateConn('online');syncIfDirty()});window.addEventListener('offline',()=>{updateConn('offline')});if(localStorage.getItem(SKEY+'-dirty'))syncIfDirty();if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW reg failed:',e))}}
 init();
 </script>
 </body>
