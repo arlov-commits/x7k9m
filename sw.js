@@ -1,4 +1,4 @@
-const CACHE_NAME = 'academic-planner-v2.7';
+const CACHE_NAME = 'academic-planner-v2.8';
 const ASSETS = ['./', './index.html'];
 
 self.addEventListener('install', e => {

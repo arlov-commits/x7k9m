@@ -1,4 +1,4 @@
-<!-- Academic Planner v2.7 -->
+<!-- Academic Planner v2.8 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -142,27 +142,6 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 .day-note-btn{font-size:.64rem;color:var(--text-muted);cursor:pointer;background:0;border:0;font-family:'Outfit';padding:1px 0}.day-note-btn:hover{color:var(--text-dim)}
 .day-note-input{width:100%;margin-top:3px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Outfit';font-size:.76rem;padding:5px 9px;border-radius:5px;resize:vertical;min-height:28px}
 .day-note-input:focus{outline:0;border-color:var(--text-dim)}
-
-/* Backward */
-.bp-section{margin-bottom:26px}
-.bp-hdr{display:flex;align-items:center;gap:9px;margin-bottom:10px}
-.bp-dot{width:10px;height:10px;border-radius:50%}
-.bp-dot.bh{background:var(--accent-bh)}.bp-dot.wh{background:var(--accent-wh)}.bp-dot.cn{background:var(--accent-cn)}.bp-dot.ab{background:var(--accent-ab)}
-.bp-hdr-title{font-family:'Crimson Pro',serif;font-size:1.05rem;font-weight:600}
-.bp-hdr-due{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--text-dim);margin-left:auto}
-.ms-track{position:relative;padding-left:22px}
-.ms-track::before{content:'';position:absolute;left:4px;top:0;bottom:0;width:1px;background:var(--border)}
-.ms-item{position:relative;padding:7px 12px;margin-bottom:4px;background:var(--surface);border-radius:6px;display:flex;align-items:center;gap:10px;border:1px solid transparent;cursor:pointer;transition:background .12s}
-.ms-item:hover{background:var(--surface2)}.ms-item.tbd{border:1px dashed var(--text-muted);background:0;cursor:default}
-.ms-item::before{content:'';position:absolute;left:-18px;top:50%;transform:translateY(-50%);width:7px;height:7px;border-radius:50%;border:2px solid var(--border);background:var(--bg)}
-.ms-item.active::before{background:var(--warning);border-color:var(--warning)}.ms-item.done::before{background:var(--ok);border-color:var(--ok)}
-.ms-date{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--text-dim);min-width:75px;flex-shrink:0}
-.ms-label{font-size:.8rem;font-weight:500;flex:1}.ms-detail{color:var(--text-dim);font-weight:400;font-size:.74rem}
-.ms-note-btn{width:22px;height:22px;border-radius:50%;border:none;background:0;color:var(--text-muted);cursor:pointer;font-size:.6rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;opacity:.5}
-.ms-note-btn:hover{opacity:1;background:var(--surface3)}.ms-note-btn.has-note{opacity:.85;color:var(--accent-life);background:var(--accent-life-dim)}
-.ms-note-area{width:100%;margin-top:3px;padding:0 12px 6px}
-.ms-note-input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Outfit';font-size:.74rem;padding:5px 8px;border-radius:5px;resize:vertical;min-height:26px}
-.ms-note-input:focus{outline:0;border-color:var(--text-dim)}
 
 /* Life Tasks */
 .life-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
@@ -375,39 +354,6 @@ function defaultDeliverables(){return[
 {cat:'ab',title:'ABI Paper',due:'2026-05-08',tag:'Paper 3-5pp'},
 {cat:'ab',title:'ABI Presentation',due:'2026-05-14',tag:'Pres.'}
 ]}
-function defaultMilestones(){return{
-cn:{title:'Chinese Classics',due:'Exam passed 4/3',items:[
-{date:'Fri 4/3',label:'EXAM — COMPLETE',detail:'',status:'done',note:''}
-]},
-bh:{title:'BH Strand Paper',due:'Draft 4/17 · Final 5/8 · Pres. 5/12',items:[
-{date:'Mon 3/31',label:'Powers reading due',detail:'Hermeneutics & Tradition pp.78-82, 138-147',status:'',note:''},
-{date:'4/13→4/16',label:'Hsüan-hua reading due',detail:'Intro + Preface to Flower Adornment Sutra',status:'',note:''},
-{date:'Thu 4/17',label:'STRAND PAPER DRAFT',detail:'Soft deadline, 8-12 pages',status:'',note:''},
-{date:'Mon 4/21',label:'Ching Liang reading due',detail:'Flower Adornment Sutra Prologue First Door',status:'',note:''},
-{date:'4/27→4/28',label:'Flower Adornment Ch.39 due',detail:'Bodhisattva Maitreya, Great Tower',status:'',note:''},
-{date:'Fri 5/8',label:'FINAL STRAND PAPER DUE',detail:'11:59pm, 8-12 pages',status:'',note:''},
-{date:'Tue 5/12',label:'PAPER PRESENTATION',detail:'',status:'',note:''}
-]},
-wh:{title:'Western Hermeneutics',due:'Paper ~4/30 · 5-7pp',items:[
-{date:'Mon 3/31',label:'Heidegger reading due',detail:'Dialogue on Language + Poetry, Language, Thought',status:'',note:''},
-{date:'Mon 4/14',label:'Heidegger 2 + Being in Time',detail:'',status:'',note:''},
-{date:'Mon 4/21',label:'Irigaray reading due',detail:'Forgetting of Air in Martin Heidegger',status:'',note:''},
-{date:'Mon 4/28',label:'Sartre — LEADING DISCUSSION',detail:'Existentialism is Humanism',status:'',note:''},
-{date:'~4/30',label:'PAPER DUE',detail:'5-7 pages, ~4-5hrs',status:'tbd',note:''},
-{date:'Mon 5/5',label:'Lyotard reading due',detail:'The Postmodern Condition',status:'',note:''},
-{date:'Mon 5/12',label:'Wittgenstein reading due',detail:'Philosophical Investigations',status:'',note:''},
-{date:'Mon 5/19',label:'TBA',detail:'',status:'tbd',note:''}
-]},
-ab:{title:'Abhidhamma',due:'Paper 5/8 · Pres. 5/14',items:[
-{date:'Thu 4/2',label:'Reading 1 due',detail:'Gethin + Skandhila + Dhammajoti',status:'',note:''},
-{date:'Thu 4/16',label:'Reading 2 due',detail:'Arthaviniścayasūtranibandhana pp.45-66',status:'',note:''},
-{date:'Thu 4/23',label:'Reading 3 + paper draft intro',detail:'Arthaviniścaya pp.67-114 + Gethin pp.234-252',status:'',note:''},
-{date:'Thu 4/30',label:'Reading 4 due',detail:'Abhidharmakośabhāṣya selections',status:'',note:''},
-{date:'Thu 5/7',label:'Reading 5 due',detail:'Abhidharmakośabhāṣya Vol.3 pp.1875-1933',status:'',note:''},
-{date:'Fri 5/8',label:'FINAL PAPER DUE',detail:'3-5 pages',status:'',note:''},
-{date:'Thu 5/14',label:'PAPER PRESENTATION',detail:'',status:'',note:''}
-]}
-}}
 
 function defaultEvents(){return[
 {id:3001,name:'Seal Carving',date:'2026-04-18',startTime:'13:00',endTime:'16:00',location:'S228',allDay:false},
@@ -449,7 +395,7 @@ function defaultSyllabus(){return[
 {id:5030,cat:'cn',type:'exam',title:'Chinese Classics Exam',detail:'Exam passed 4/3. No more readings.',due:'2026-04-03',hours:0,done:true}
 ]}
 
-let state={theme:'dark',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),milestones:defaultMilestones(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],nextId:4000,printRange:'today'};
+let state={theme:'dark',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],nextId:4000,printRange:'today'};
 let saveTimer=null,lastSaveTime=null,saveStatus='saved';
 function scheduleSave(){saveStatus='saving';updateSI();if(saveTimer)clearTimeout(saveTimer);saveTimer=setTimeout(doSave,1500)}
 async function doSave(){try{localStorage.setItem(SKEY,JSON.stringify(state));localStorage.setItem(SKEY+'-time',new Date().toISOString());lastSaveTime=new Date();saveStatus='saved';updateSI();if(navigator.onLine){updateConn('syncing');const ok=await sbSet(state);if(ok){localStorage.removeItem(SKEY+'-dirty');updateConn('online')}else{localStorage.setItem(SKEY+'-dirty','1');updateConn('offline')}}else{localStorage.setItem(SKEY+'-dirty','1');updateConn('offline')}}catch(e){saveStatus='error';updateSI()}}
@@ -475,9 +421,9 @@ function isInSprint(lifeId){return state.tasks.some(t=>t.lifeSourceId===lifeId)|
 
 function render(){
   document.documentElement.setAttribute('data-theme',state.theme);
-  const tabs=['sprints','syllabus','backward','life','events','print','notes','dashboard'];
-  const tn={dashboard:'Dashboard',sprints:'Week',syllabus:'Syllabus',backward:'Backward Plans',life:'Tasks',events:'Events',notes:'Notes',print:'Print'};
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',midnight:'🌲 Midnight',temple:'⛪ Temple'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v2.7</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}</div>${tabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${({dashboard:renderDash,sprints:renderSprints,syllabus:renderSyllabus,backward:renderBackward,life:renderLife,events:renderEvents,notes:renderNotes,print:renderPrint})[t]()}</div>`).join('')}`;updateSI()}
+  const tabs=['sprints','syllabus','life','events','print','notes','dashboard'];
+  const tn={dashboard:'Dashboard',sprints:'Week',syllabus:'Syllabus',life:'Tasks',events:'Events',notes:'Notes',print:'Print'};
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',midnight:'🌲 Midnight',temple:'⛪ Temple'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v2.8</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}</div>${tabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${({dashboard:renderDash,sprints:renderSprints,syllabus:renderSyllabus,life:renderLife,events:renderEvents,notes:renderNotes,print:renderPrint})[t]()}</div>`).join('')}`;updateSI()}
 
 function renderDash(){const cats=['cn','bh','wh','ab'];const groups={};cats.forEach(c=>{groups[c]=state.deliverables.filter(d=>d.cat===c)});const mx=Math.max(...cats.map(c=>groups[c].length)),gc=`repeat(${cats.length},1fr)`;let h=`<div class="dash-table"><div class="dash-col-hdrs" style="display:grid;grid-template-columns:${gc};gap:8px">${cats.map(c=>`<div class="dash-col-hdr ${c}">${CAT_NAMES[c]}</div>`).join('')}</div>`;for(let r=0;r<mx;r++){h+=`<div class="dash-grid-row" style="display:grid;grid-template-columns:${gc};gap:8px;margin-top:6px">`;cats.forEach(c=>{const d=groups[c][r];if(!d){h+=`<div class="dash-cell dash-cell-empty"></div>`;return}const dd=parseDate(d.due),dl=daysBetween(TODAY,dd),uc=dl<0?'past':dl<=7?'urgent':dl<=21?'soon':'ok',ds=dl<0?Math.abs(dl)+'d ago':dl===0?'TODAY':dl+'d',ts=d.tbd?'background:var(--surface3);color:var(--text-dim)':'background:var(--accent-'+c+'-dim);color:var(--accent-'+c+')';h+=`<div class="dash-cell${uc==='past'?' dash-past':''}"><div class="dc-title">${d.title}</div><div class="dc-due">${d.tbd?'~':''}${fmtDate(dd)}</div><div class="dc-days ${uc}">${ds}</div><span class="dc-tag" style="${ts}">${d.tag}</span></div>`});h+='</div>'}h+='</div>';const op=state.lifeTasks.filter(t=>!t.done);if(op.length)h+=`<div class="notes-box" style="border-left:3px solid var(--accent-life)"><div class="notes-box-title" style="color:var(--accent-life)">Tasks · ${op.length} open · ${op.reduce((s,t)=>s+t.hours,0)}h</div></div>`;h+=`<div class="notes-box"><div class="notes-box-title">Strategy</div><div class="notes-box-text"><strong>Readings = paper research.</strong> BH → strand paper. ABI → ABI paper.<br><strong>Spring Break:</strong> ~30h. BH drafting window.<br><strong>Abhidhamma:</strong> Outline 4/19, draft 4/22, submit 4/23.<br><strong>WH Paper(s):</strong> 6h each.</div></div>`;return h}
 
@@ -496,8 +442,6 @@ if(isLife){acts=`<span class="chip-acts"><button class="chip-btn life-return" on
 else{acts=`<span class="chip-acts"><button class="chip-btn" onclick="event.stopPropagation();toggleTaskDone(${t.id})" title="${t.done?'Undo':'Done'}">${t.done?'↩':'✓'}</button><button class="chip-btn" onclick="event.stopPropagation();openTaskEdit(${t.id})" title="Edit">✎</button><button class="chip-btn" onclick="event.stopPropagation();duplicateTask(${t.id})" title="Duplicate">⧉</button><button class="chip-btn life-remove" onclick="event.stopPropagation();deleteTask(${t.id})" title="Delete">✕</button></span>`}
 const _sylT=t.syllabusId?(state.syllabus||[]).find(s=>s.id===t.syllabusId):null;const _tip=(CAT_NAMES[t.cat]||t.cat)+(_sylT?' · '+_sylT.title:'');
 return`<span class="chip ${t.cat} ${t.priority==='high'?'high':''} ${t.done?'done':''}" draggable="true" data-id="${t.id}" data-tip="${_tip}" ondblclick="event.stopPropagation();inlineEditChip(${t.id},this)" ondragstart="dragId=${t.id};event.dataTransfer.setData('text/plain','${t.id}');event.dataTransfer.effectAllowed='move';this.classList.add('dragging')" ondragend="this.classList.remove('dragging')">${t.priority==='high'?'<span style="font-size:.58rem">★</span>':''}${t.name}${t.hours>0?' ('+t.hours+'h)':''}${acts}</span>`}
-
-function renderBackward(){let h='';['cn','bh','wh','ab'].forEach(cat=>{const ms=state.milestones[cat];if(!ms)return;h+=`<div class="bp-section"><div class="bp-hdr"><span class="bp-dot ${cat}"></span><span class="bp-hdr-title">${ms.title}</span><span class="bp-hdr-due">${ms.due}</span></div><div class="ms-track">`;ms.items.forEach((it,i)=>{const hn=it.note&&it.note.length>0;h+=`<div><div class="ms-item ${it.status}" onclick="cycleMsStatus('${cat}',${i})"><span class="ms-date">${it.date}</span><span class="ms-label">${it.label}${it.detail?' <span class="ms-detail">— '+it.detail+'</span>':''}</span><button class="ms-note-btn ${hn?'has-note':''}" onclick="event.stopPropagation();toggleEl('mn-${cat}-${i}')" title="Note">📝</button></div><div class="ms-note-area" id="mn-${cat}-${i}" style="display:${hn?'block':'none'}"><textarea class="ms-note-input" placeholder="Add note..." onclick="event.stopPropagation()" oninput="state.milestones['${cat}'].items[${i}].note=this.value;scheduleSave()">${it.note||''}</textarea></div></div>`});h+='</div></div>'});h+=`<div class="notes-box"><div class="notes-box-text" style="font-size:.76rem"><em>Click milestones to cycle: pending → active → done</em></div></div>`;return h}
 
 function renderLife(){const op=state.lifeTasks.filter(t=>!t.done),dn=state.lifeTasks.filter(t=>t.done);const cats={};op.forEach(t=>{const c=t.category||'General';if(!cats[c])cats[c]=[];cats[c].push(t)});Object.values(cats).forEach(a=>a.sort((a,b)=>(PRI_ORDER[a.priority]||3)-(PRI_ORDER[b.priority]||3)));
 const catKeys=Object.keys(cats);const order=state.catOrder||[];const sortedCats=order.filter(c=>catKeys.includes(c)).concat(catKeys.filter(c=>!order.includes(c)));
@@ -639,8 +583,6 @@ function completeLifeChip(sid){const t=state.tasks.find(t=>t.id===sid);if(!t)ret
 function removeLifeChip(sid){const t=state.tasks.find(t=>t.id===sid);if(!t)return;const lt=state.lifeTasks.find(l=>l.id===t.lifeSourceId);if(lt){lt.inBank=false;lt.done=false}state.tasks=state.tasks.filter(t=>t.id!==sid);render();scheduleSave()}
 function toggleTaskDone(id){const t=state.tasks.find(t=>t.id===id);if(!t)return;t.done=!t.done;if(t.lifeSourceId){const lt=state.lifeTasks.find(l=>l.id===t.lifeSourceId);if(lt)lt.done=t.done}render();scheduleSave()}
 function duplicateTask(id){const t=state.tasks.find(t=>t.id===id);if(!t)return;const dup={...t,id:Date.now()+Math.floor(Math.random()*1000),done:false,lifeSourceId:null};state.tasks.push(dup);render();scheduleSave()}
-function cycleMsStatus(cat,idx){const it=state.milestones[cat].items[idx];if(it.status===''||it.status==='tbd')it.status='active';else if(it.status==='active')it.status='done';else it.status='';render();scheduleSave()}
-
 // Add task modal
 function stepHrs(d){const el=$('#aHrs');el.value=Math.max(0,parseFloat(el.value||0)+d)}
 function toggleAddPri(){const tog=$('#aPriToggle'),hid=$('#aPri');const isHigh=hid.value==='high';hid.value=isHigh?'normal':'high';tog.className=isHigh?'pri-toggle':'pri-toggle high';tog.querySelectorAll('.pri-option').forEach(o=>o.classList.toggle('active'))}
