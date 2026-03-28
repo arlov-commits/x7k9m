@@ -287,6 +287,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 .syl-class-cell{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;width:44px}
 .syl-dot{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:4px;vertical-align:middle}
 .syl-due-cell{font-family:'JetBrains Mono',monospace;font-size:.7rem;white-space:nowrap;color:var(--text-dim);width:64px}
+.syl-due-dow{display:block;font-size:.6rem;color:var(--text-muted);font-weight:400}
 .syl-due-cell .syl-days{display:block;font-size:.64rem;font-weight:600}
 .syl-days.urgent{color:var(--danger)}.syl-days.soon{color:var(--warning)}.syl-days.ok{color:var(--ok)}.syl-days.past{color:var(--text-muted)}
 .syl-title-text{font-weight:500}
@@ -345,7 +346,7 @@ function parseDate(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-
 function sameDay(a,b){return isoDate(a)===isoDate(b)}
 function nextMonday(){const d=new Date(TODAY);const dow=d.getDay();const diff=dow===0?1:(8-dow);d.setDate(d.getDate()+diff);return d}
 
-const SEM_START=new Date(2026,0,24);// Sat Jan 24, 2026 = Week 1 (semester starts Sat, week 10 = 3/28-4/3)
+const SEM_START=new Date(2026,0,17);// Sat Jan 17, 2026 = Week 1 (Sat-Fri weeks)
 function semesterWeekNum(d){const diff=Math.floor((d-SEM_START)/864e5);return Math.floor(diff/7)+1}
 
 function generateWeeks(){const end=new Date(2026,4,30),weeks=[];let cur=new Date(TODAY);cur.setDate(cur.getDate()-((cur.getDay()+1)%7));if(cur>TODAY)cur.setDate(cur.getDate()-7);let wk=1;while(cur<=end){const days=[];for(let i=0;i<7;i++){const d=new Date(cur);d.setDate(d.getDate()+i);if(d>end)break;days.push({date:isoDate(d),dateObj:new Date(d)})}weeks.push({num:wk,start:new Date(cur),end:new Date(cur.getTime()+6*864e5),days});cur.setDate(cur.getDate()+7);wk++}return weeks}
@@ -555,17 +556,21 @@ weekNums.forEach(wkN=>{
       const urgClass=e.done?'past':(dlRef<0?'past':dlRef<=3?'urgent':dlRef<=7?'soon':'ok');
       const daysStr=e.done?'':(dlRef<0?Math.abs(dlRef)+'d ago':dlRef===0?'today':dlRef+'d');
       const isHl=!!e.highlighted;
+      const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      const dowStr=DOW[dueD.getDay()];
+      const dowEndStr=dueEndD?DOW[dueEndD.getDay()]:'';
       h+=`<tr class="${e.done?'done':''} ${isHl?'syl-row-hl':''}">`;
-      h+=`<td style="width:28px"><button class="syl-check ${e.done?'checked':''}" onclick="toggleSylDone(${e.id})">${e.done?'✓':''}</button></td>`;
+      h+=`<td style="width:28px"><button class="syl-check ${e.done?'checked':''}" onclick="toggleSylDone(${e.id})">${e.done?'✓':''}</button><br><button class="syl-hl-btn ${isHl?'on':''}" onclick="toggleSylHL(${e.id})" title="Highlight">★</button></td>`;
       if(ei===0){
         const dotStyle=e.cat==='custom'?'background:var(--text-muted)':'background:var(--accent-'+e.cat+')';
         h+=`<td class="syl-class-cell"${g.entries.length>1?' rowspan="'+g.entries.length+'"':''}><span class="syl-dot" style="${dotStyle}"></span>${CAT_SHORT[e.cat]||e.cat}</td>`;
-        h+=`<td class="syl-due-cell"${g.entries.length>1?' rowspan="'+g.entries.length+'"':''}>${dueStr}<span class="syl-days ${urgClass}">${daysStr}</span></td>`;
+        const dowLabel=dueEndD?dowStr+' → '+dowEndStr:dowStr;
+        h+=`<td class="syl-due-cell"${g.entries.length>1?' rowspan="'+g.entries.length+'"':''}>${dueStr}<span class="syl-due-dow">${dowLabel}</span><span class="syl-days ${urgClass}">${daysStr}</span></td>`;
       }
       const detailHtml=e.detail?(e.detail.replace(/\n/g,'<br>')):'';
       h+=`<td><span class="syl-title-text" ondblclick="inlineSylEdit(${e.id},'title',this)">${e.title}</span><span class="syl-type-tag ${e.type}">${e.type==='custom'?'custom':e.type}</span>${detailHtml?`<div class="syl-detail-text" ondblclick="inlineSylEdit(${e.id},'detail',this)">${detailHtml}</div>`:''}</td>`;
       h+=`<td class="syl-hrs-cell">${e.hours?e.hours+'h':''}</td>`;
-      h+=`<td class="syl-btns-cell"><button class="syl-hl-btn ${isHl?'on':''}" onclick="toggleSylHL(${e.id})" title="Highlight">★</button><button class="syl-btn" onclick="openSylEdit(${e.id})">✎</button><button class="syl-btn del" onclick="deleteSylEntry(${e.id})">✕</button></td>`;
+      h+=`<td class="syl-btns-cell"><button class="syl-btn" onclick="openSylEdit(${e.id})">✎</button><button class="syl-btn del" onclick="deleteSylEntry(${e.id})">✕</button></td>`;
       h+=`</tr>`;
     });
   });
