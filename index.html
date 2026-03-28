@@ -1,4 +1,4 @@
-<!-- Academic Planner v2.8 -->
+<!-- Academic Planner v2.9 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -276,30 +276,39 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 .life-item.drag-over-item{box-shadow:0 -2px 0 0 var(--warning)}
 
 /* Syllabus */
-.syl-table{width:100%;border-collapse:collapse;margin-bottom:20px}
-.syl-table th{font-family:'Crimson Pro',serif;font-size:.78rem;font-weight:600;text-align:left;padding:6px 8px;border-bottom:2px solid var(--border);color:var(--text-dim)}
-.syl-table td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;font-size:.82rem}
+.syl-week-section{margin-bottom:24px}
+.syl-week-hdr{font-family:'Crimson Pro',serif;font-size:1rem;font-weight:600;padding-bottom:4px;border-bottom:1px solid var(--border);margin-bottom:8px;display:flex;align-items:baseline;gap:8px}
+.syl-week-dates{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--text-dim)}
+.syl-table{width:100%;border-collapse:collapse;margin-bottom:8px}
+.syl-table td{padding:8px 8px;vertical-align:top;font-size:.82rem}
+.syl-table tr{border-bottom:1px solid var(--border)}
 .syl-table tr.done td{opacity:.4}
-.syl-table tr.done .syl-title{text-decoration:line-through}
-.syl-class-cell{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;padding-top:10px!important}
+.syl-table tr.done .syl-title-text{text-decoration:line-through}
+.syl-class-cell{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;width:44px}
 .syl-dot{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:4px;vertical-align:middle}
-.syl-due-cell{font-family:'JetBrains Mono',monospace;font-size:.7rem;white-space:nowrap;color:var(--text-dim)}
+.syl-due-cell{font-family:'JetBrains Mono',monospace;font-size:.7rem;white-space:nowrap;color:var(--text-dim);width:64px}
 .syl-due-cell .syl-days{display:block;font-size:.64rem;font-weight:600}
 .syl-days.urgent{color:var(--danger)}.syl-days.soon{color:var(--warning)}.syl-days.ok{color:var(--ok)}.syl-days.past{color:var(--text-muted)}
-.syl-title{font-weight:500;cursor:pointer}.syl-title:hover{text-decoration:underline}
-.syl-type-tag{font-size:.56rem;font-weight:700;text-transform:uppercase;padding:1px 5px;border-radius:3px;margin-left:6px;vertical-align:middle}
+.syl-title-text{font-weight:500}
+.syl-type-tag{font-size:.56rem;font-weight:700;text-transform:uppercase;padding:1px 5px;border-radius:3px;margin-left:6px;vertical-align:middle;display:inline-block}
 .syl-type-tag.reading{background:var(--surface3);color:var(--text-dim)}.syl-type-tag.paper{background:var(--danger-dim);color:var(--danger)}.syl-type-tag.exam{background:var(--warning-dim);color:var(--warning)}.syl-type-tag.presentation{background:var(--accent-ab-dim);color:var(--accent-ab)}
-.syl-hrs{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--text-muted)}
-.syl-detail{font-size:.74rem;color:var(--text-dim);margin-top:3px;padding:4px 8px;background:var(--surface2);border-radius:4px;line-height:1.5;display:none}
-.syl-detail.open{display:block}
+.syl-hrs-cell{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--text-muted);width:36px;text-align:right}
+.syl-detail-text{font-size:.76rem;color:var(--text-dim);margin-top:4px;line-height:1.6}
+.syl-detail-edit{width:100%;margin-top:4px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Outfit';font-size:.76rem;padding:5px 8px;border-radius:4px;resize:vertical;min-height:28px;line-height:1.5}
+.syl-detail-edit:focus{outline:0;border-color:var(--text-dim)}
+.syl-title-edit{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Outfit';font-size:.82rem;padding:2px 6px;border-radius:4px;width:100%}
+.syl-title-edit:focus{outline:0;border-color:var(--text-dim)}
 .syl-check{width:16px;height:16px;border-radius:3px;border:2px solid var(--border);background:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:var(--ok);font-size:.6rem;transition:all .12s;flex-shrink:0;vertical-align:middle}
 .syl-check:hover{border-color:var(--ok)}.syl-check.checked{background:var(--ok-dim);border-color:var(--ok)}
-.syl-btns{display:inline-flex;gap:2px;margin-left:4px}
+.syl-btns-cell{width:44px;white-space:nowrap}
 .syl-btn{background:0;border:0;color:var(--text-muted);cursor:pointer;font-size:.68rem;padding:1px 4px;border-radius:3px;transition:all .12s;opacity:.4}
 .syl-btn:hover{opacity:1;color:var(--text-dim);background:var(--surface3)}.syl-btn.del:hover{color:var(--danger);background:var(--danger-dim)}
 .syl-add-form{display:flex;gap:5px;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap}
 .syl-add-form input,.syl-add-form select{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Outfit';font-size:.78rem;padding:7px 10px;border-radius:6px}
-.syl-row-paper td{border-left:3px solid var(--danger)}.syl-row-exam td:first-child{border-left:3px solid var(--warning)}.syl-row-presentation td:first-child{border-left:3px solid var(--accent-ab)}
+.syl-controls{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.syl-toggle{font-size:.72rem;color:var(--text-dim);background:var(--surface);border:1px solid var(--border);padding:3px 9px;border-radius:5px;cursor:pointer;font-family:'Outfit'}
+.syl-toggle:hover{color:var(--text);border-color:var(--text-dim)}.syl-toggle.active{background:var(--surface3);color:var(--text)}
+.syl-row-highlight.paper{background:var(--danger-dim)}.syl-row-highlight.exam{background:var(--warning-dim)}.syl-row-highlight.presentation{background:var(--accent-ab-dim)}
 
 .hdr-row1,.hdr-row2{display:contents}
 @media(max-width:700px){.day-row{grid-template-columns:66px 1fr auto}.life-item{grid-template-columns:auto 1fr auto auto}.li-days,.li-send{display:none}.evt-item{grid-template-columns:1fr auto auto;gap:4px}.evt-item .evt-date{grid-column:1/-1}.evt-info{text-align:left}.header{gap:4px;flex-wrap:wrap}.hdr-row1{display:flex;align-items:center;gap:6px;width:100%;flex-shrink:0}.hdr-row1 .combined-status{margin-left:auto}.hdr-row2{display:flex;align-items:center;gap:6px;width:100%}.hdr-row2 .theme-toggle{margin-left:auto}.labeled-field label{display:none}.note-text{resize:both}}
@@ -337,6 +346,9 @@ function parseDate(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-
 function sameDay(a,b){return isoDate(a)===isoDate(b)}
 function nextMonday(){const d=new Date(TODAY);const dow=d.getDay();const diff=dow===0?1:(8-dow);d.setDate(d.getDate()+diff);return d}
 
+const SEM_START=new Date(2026,0,19);// Jan 19, 2026 = Week 1
+function semesterWeekNum(d){const diff=Math.floor((d-SEM_START)/864e5);return Math.floor(diff/7)+1}
+
 function generateWeeks(){const end=new Date(2026,4,30),weeks=[];let cur=new Date(TODAY);cur.setDate(cur.getDate()-((cur.getDay()+1)%7));if(cur>TODAY)cur.setDate(cur.getDate()-7);let wk=1;while(cur<=end){const days=[];for(let i=0;i<7;i++){const d=new Date(cur);d.setDate(d.getDate()+i);if(d>end)break;days.push({date:isoDate(d),dateObj:new Date(d)})}weeks.push({num:wk,start:new Date(cur),end:new Date(cur.getTime()+6*864e5),days});cur.setDate(cur.getDate()+7);wk++}return weeks}
 function getAvailHours(ds){const d=parseDate(ds),dow=d.getDay();if(d>=new Date(2026,3,5)&&d<=new Date(2026,3,11))return 5;if(ds==='2026-03-23')return 0;if(dow===1){return Math.round((d-new Date(2026,2,30))/(7*864e5))%2===0?4:0}return[7,0,0,4,3.5,0,10][dow]}
 
@@ -366,9 +378,9 @@ function defaultEvents(){return[
 
 function defaultSyllabus(){return[
 // Abhidhamma
-{id:5001,cat:'ab',type:'reading',title:'Gethin + Skandhila + Dhammajoti',detail:'Gethin pp.218-223; Skandhila Abhidharmāvatāra pp.71-end; Dhammajoti pp.291-300',due:'2026-04-02',hours:6,done:false},
-{id:5002,cat:'ab',type:'reading',title:'Arthaviniścayasūtranibandhana + Salvini',detail:'Arthaviniścayasūtranibandhana pp.45-66 + Salvini translation',due:'2026-04-16',hours:6,done:false},
-{id:5003,cat:'ab',type:'reading',title:'Arthaviniścayasūtranibandhana + Gethin',detail:'Arthaviniścayasūtranibandhana pp.67-114 + Gethin pp.234-252',due:'2026-04-23',hours:6,done:false},
+{id:5001,cat:'ab',type:'reading',title:'Gethin + Skandhila + Dhammajoti',detail:'Gethin pp.218-223\nSkandhila Abhidharmāvatāra pp.71-end\nDhammajoti pp.291-300',due:'2026-04-02',hours:6,done:false},
+{id:5002,cat:'ab',type:'reading',title:'Arthaviniścayasūtranibandhana + Salvini',detail:'Arthaviniścayasūtranibandhana pp.45-66\nSalvini translation',due:'2026-04-16',hours:6,done:false},
+{id:5003,cat:'ab',type:'reading',title:'Arthaviniścayasūtranibandhana + Gethin',detail:'Arthaviniścayasūtranibandhana pp.67-114\nGethin pp.234-252',due:'2026-04-23',hours:6,done:false},
 {id:5004,cat:'ab',type:'paper',title:'ABI Paper — draft intro',detail:'Proposed question + draft intro',due:'2026-04-23',hours:0,done:false},
 {id:5005,cat:'ab',type:'reading',title:'Abhidharmakośabhāṣya',detail:'pp.203-221, 505-9, 2523-2524, 2571-2579',due:'2026-04-30',hours:6,done:false},
 {id:5006,cat:'ab',type:'reading',title:'Abhidharmakośabhāṣya Vol.3',detail:'pp.1875-1933',due:'2026-05-07',hours:6,done:false},
@@ -376,18 +388,18 @@ function defaultSyllabus(){return[
 {id:5008,cat:'ab',type:'presentation',title:'ABI Presentation',detail:'',due:'2026-05-14',hours:0,done:false},
 // Buddhist Hermeneutics
 {id:5010,cat:'bh',type:'reading',title:'Powers — Saṃdhinirmocana-sūtra',detail:'pp.78-82 & 138-147',due:'2026-03-31',hours:3,done:false},
-{id:5011,cat:'bh',type:'reading',title:'Hsüan-hua — Flower Adornment Sutra Preface',detail:'pp.xv-xvii, 1-12. Continues 4/16.',due:'2026-04-13',hours:4,done:false},
-{id:5012,cat:'bh',type:'paper',title:'BH Strand Paper Draft',detail:'Soft deadline. 8-12 pages.',due:'2026-04-17',hours:0,done:false},
+{id:5011,cat:'bh',type:'reading',title:'Hsüan-hua — Flower Adornment Sutra Preface',detail:'pp.xv-xvii, 1-12\nContinues 4/16',due:'2026-04-13',hours:4,done:false},
+{id:5012,cat:'bh',type:'paper',title:'BH Strand Paper Draft',detail:'Soft deadline\n8-12 pages',due:'2026-04-17',hours:0,done:false},
 {id:5013,cat:'bh',type:'reading',title:'Ching Liang — Flower Adornment Sutra Prologue First Door',detail:'',due:'2026-04-21',hours:4,done:false},
-{id:5014,cat:'bh',type:'reading',title:'Bodhisattva Maitreya — Flower Adornment Sutra Ch.39',detail:'Continues 4/28.',due:'2026-04-27',hours:4,done:false},
-{id:5015,cat:'bh',type:'paper',title:'BH Final Strand Paper',detail:'8-12 pages.',due:'2026-05-08',hours:0,done:false},
+{id:5014,cat:'bh',type:'reading',title:'Bodhisattva Maitreya — Flower Adornment Sutra Ch.39',detail:'Continues 4/28',due:'2026-04-27',hours:4,done:false},
+{id:5015,cat:'bh',type:'paper',title:'BH Final Strand Paper',detail:'8-12 pages',due:'2026-05-08',hours:0,done:false},
 {id:5016,cat:'bh',type:'presentation',title:'BH Presentation',detail:'',due:'2026-05-12',hours:0,done:false},
 // Western Hermeneutics
 {id:5020,cat:'wh',type:'reading',title:'Heidegger — On the Way to Language + Poetry, Language, Thought',detail:'Ch.VI-VII',due:'2026-03-31',hours:4,done:false},
 {id:5021,cat:'wh',type:'reading',title:'Heidegger — Being in Time',detail:'Excerpt',due:'2026-04-14',hours:4,done:false},
 {id:5022,cat:'wh',type:'reading',title:'Irigaray — The Forgetting of Air in Martin Heidegger',detail:'',due:'2026-04-21',hours:4,done:false},
 {id:5023,cat:'wh',type:'reading',title:'Sartre — Existentialism is Humanism',detail:'LEADING DISCUSSION',due:'2026-04-28',hours:4,done:false},
-{id:5024,cat:'wh',type:'paper',title:'WH Paper',detail:'5-7 pages. Due date TBD.',due:'2026-04-30',hours:5,done:false},
+{id:5024,cat:'wh',type:'paper',title:'WH Paper',detail:'5-7 pages\nDue date TBD',due:'2026-04-30',hours:5,done:false},
 {id:5025,cat:'wh',type:'reading',title:'Lyotard — The Postmodern Condition',detail:'',due:'2026-05-05',hours:4,done:false},
 {id:5026,cat:'wh',type:'reading',title:'Wittgenstein — Philosophical Investigations',detail:'',due:'2026-05-12',hours:4,done:false},
 {id:5027,cat:'wh',type:'reading',title:'TBA',detail:'',due:'2026-05-19',hours:4,done:false},
@@ -395,7 +407,7 @@ function defaultSyllabus(){return[
 {id:5030,cat:'cn',type:'exam',title:'Chinese Classics Midterm Exam',detail:'',due:'2026-04-03',hours:0,done:true}
 ]}
 
-let state={theme:'dark',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],nextId:4000,printRange:'today'};
+let state={theme:'dark',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],nextId:4000,printRange:'today',sylHighlight:true};
 let saveTimer=null,lastSaveTime=null,saveStatus='saved';
 function scheduleSave(){saveStatus='saving';updateSI();if(saveTimer)clearTimeout(saveTimer);saveTimer=setTimeout(doSave,1500)}
 async function doSave(){try{localStorage.setItem(SKEY,JSON.stringify(state));localStorage.setItem(SKEY+'-time',new Date().toISOString());lastSaveTime=new Date();saveStatus='saved';updateSI();if(navigator.onLine){updateConn('syncing');const ok=await sbSet(state);if(ok){localStorage.removeItem(SKEY+'-dirty');updateConn('online')}else{localStorage.setItem(SKEY+'-dirty','1');updateConn('offline')}}else{localStorage.setItem(SKEY+'-dirty','1');updateConn('offline')}}catch(e){saveStatus='error';updateSI()}}
@@ -423,7 +435,7 @@ function render(){
   document.documentElement.setAttribute('data-theme',state.theme);
   const tabs=['sprints','syllabus','life','events','print','notes','dashboard'];
   const tn={dashboard:'Dashboard',sprints:'Week',syllabus:'Syllabus',life:'Tasks',events:'Events',notes:'Notes',print:'Print'};
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',midnight:'🌲 Midnight',temple:'⛪ Temple'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v2.8</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}</div>${tabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${({dashboard:renderDash,sprints:renderSprints,syllabus:renderSyllabus,life:renderLife,events:renderEvents,notes:renderNotes,print:renderPrint})[t]()}</div>`).join('')}`;updateSI()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',midnight:'🌲 Midnight',temple:'⛪ Temple'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v2.9</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}</div>${tabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${({dashboard:renderDash,sprints:renderSprints,syllabus:renderSyllabus,life:renderLife,events:renderEvents,notes:renderNotes,print:renderPrint})[t]()}</div>`).join('')}`;updateSI()}
 
 function renderDash(){const cats=['cn','bh','wh','ab'];const groups={};cats.forEach(c=>{groups[c]=state.deliverables.filter(d=>d.cat===c)});const mx=Math.max(...cats.map(c=>groups[c].length)),gc=`repeat(${cats.length},1fr)`;let h=`<div class="dash-table"><div class="dash-col-hdrs" style="display:grid;grid-template-columns:${gc};gap:8px">${cats.map(c=>`<div class="dash-col-hdr ${c}">${CAT_NAMES[c]}</div>`).join('')}</div>`;for(let r=0;r<mx;r++){h+=`<div class="dash-grid-row" style="display:grid;grid-template-columns:${gc};gap:8px;margin-top:6px">`;cats.forEach(c=>{const d=groups[c][r];if(!d){h+=`<div class="dash-cell dash-cell-empty"></div>`;return}const dd=parseDate(d.due),dl=daysBetween(TODAY,dd),uc=dl<0?'past':dl<=7?'urgent':dl<=21?'soon':'ok',ds=dl<0?Math.abs(dl)+'d ago':dl===0?'TODAY':dl+'d',ts=d.tbd?'background:var(--surface3);color:var(--text-dim)':'background:var(--accent-'+c+'-dim);color:var(--accent-'+c+')';h+=`<div class="dash-cell${uc==='past'?' dash-past':''}"><div class="dc-title">${d.title}</div><div class="dc-due">${d.tbd?'~':''}${fmtDate(dd)}</div><div class="dc-days ${uc}">${ds}</div><span class="dc-tag" style="${ts}">${d.tag}</span></div>`});h+='</div>'}h+='</div>';const op=state.lifeTasks.filter(t=>!t.done);if(op.length)h+=`<div class="notes-box" style="border-left:3px solid var(--accent-life)"><div class="notes-box-title" style="color:var(--accent-life)">Tasks · ${op.length} open · ${op.reduce((s,t)=>s+t.hours,0)}h</div></div>`;h+=`<div class="notes-box"><div class="notes-box-title">Strategy</div><div class="notes-box-text"><strong>Readings = paper research.</strong> BH → strand paper. ABI → ABI paper.<br><strong>Spring Break:</strong> ~30h available.<br><strong>See Syllabus tab</strong> for all deadlines.</div></div>`;return h}
 
@@ -511,44 +523,55 @@ function renderSyllabus(){
 const catPri={bh:0,wh:1,ab:2,cn:3};
 const syl=(state.syllabus||[]).slice().sort((a,b)=>a.due.localeCompare(b.due)||(catPri[a.cat]??9)-(catPri[b.cat]??9));
 const done=syl.filter(s=>s.done).length,rem=syl.length-done;
+const hl=state.sylHighlight!==false;
+// Group by semester week
+const weekMap={};
+syl.forEach(s=>{
+  const wk=semesterWeekNum(parseDate(s.due));
+  if(!weekMap[wk])weekMap[wk]=[];
+  weekMap[wk].push(s);
+});
+const weekNums=Object.keys(weekMap).map(Number).sort((a,b)=>a-b);
 let h=`<div class="life-header"><span class="life-title">Syllabus</span><span class="legend-hint">${rem} remaining · ${done} complete</span></div>`;
+h+=`<div class="syl-controls"><button class="syl-toggle ${hl?'active':''}" onclick="toggleSylHighlight()">Highlight deliverables</button></div>`;
 h+=`<div class="syl-add-form"><input id="sylNewTitle" placeholder="Title" style="flex:2;min-width:120px"/><select id="sylNewCat"><option value="bh">BH</option><option value="wh">WH</option><option value="ab">ABI</option><option value="cn">CH</option></select><select id="sylNewType"><option value="reading">Reading</option><option value="paper">Paper</option><option value="exam">Exam</option><option value="presentation">Presentation</option></select><div class="labeled-field"><label>Due</label><input id="sylNewDue" type="date" placeholder="Due"/></div><input id="sylNewHrs" type="number" step="0.5" min="0" placeholder="Hrs" style="width:58px"/><button class="life-btn" onclick="addSylEntry()">+ Add</button></div>`;
-h+=`<table class="syl-table"><thead><tr><th></th><th>Class</th><th>Due</th><th>Assignment</th><th>Hrs</th></tr></thead><tbody>`;
-// Group by due date, then within same due date merge class cells
-let prevCat=null,prevDue=null;
-// Count rows per (due+cat) group for rowspan
-const groups=[];let gi=-1;
-syl.forEach(e=>{
-  const key=e.due+'|'+e.cat;
-  if(!groups.length||groups[groups.length-1].key!==key){groups.push({key,cat:e.cat,due:e.due,entries:[e]});gi++}
-  else groups[gi].entries.push(e);
-});
-groups.forEach(g=>{
-  g.entries.forEach((e,ei)=>{
-    const dueD=parseDate(e.due),dl=daysBetween(TODAY,dueD);
-    const dueStr=fmtDateShort(dueD);
-    const urgClass=e.done?'past':(dl<0?'past':dl<=3?'urgent':dl<=7?'soon':'ok');
-    const daysStr=e.done?'':(dl<0?Math.abs(dl)+'d ago':dl===0?'today':dl+'d');
-    const rowClass=`${e.done?'done':''} syl-row-${e.type}`;
-    h+=`<tr class="${rowClass}">`;
-    // Checkbox
-    h+=`<td><button class="syl-check ${e.done?'checked':''}" onclick="toggleSylDone(${e.id})">${e.done?'✓':''}</button></td>`;
-    // Class cell — show on first entry of group
-    if(ei===0){
-      h+=`<td class="syl-class-cell"${g.entries.length>1?' rowspan="'+g.entries.length+'"':''}><span class="syl-dot" style="background:var(--accent-${e.cat})"></span>${CAT_SHORT[e.cat]}</td>`;
-    }
-    // Due cell — show on first entry of group
-    if(ei===0){
-      h+=`<td class="syl-due-cell"${g.entries.length>1?' rowspan="'+g.entries.length+'"':''}>${dueStr}<span class="syl-days ${urgClass}">${daysStr}</span></td>`;
-    }
-    // Title + type + detail + buttons
-    h+=`<td><span class="syl-title" onclick="toggleSylDetail(${e.id})">${e.title}</span><span class="syl-type-tag ${e.type}">${e.type}</span><span class="syl-btns"><button class="syl-btn" onclick="openSylEdit(${e.id})">✎</button><button class="syl-btn del" onclick="deleteSylEntry(${e.id})">✕</button></span>${e.detail?`<div class="syl-detail" id="syl-det-${e.id}">${e.detail}</div>`:''}</td>`;
-    // Hours
-    h+=`<td class="syl-hrs">${e.hours?e.hours+'h':''}</td>`;
-    h+=`</tr>`;
+weekNums.forEach(wkN=>{
+  const entries=weekMap[wkN];
+  const wkStart=new Date(SEM_START.getTime()+(wkN-1)*7*864e5);
+  const wkEnd=new Date(wkStart.getTime()+6*864e5);
+  const isCur=TODAY>=wkStart&&TODAY<=wkEnd;
+  h+=`<div class="syl-week-section"><div class="syl-week-hdr">Week ${wkN}${isCur?' <span class="week-badge current">This Week</span>':''} <span class="syl-week-dates">${fmtDateShort(wkStart)} → ${fmtDateShort(wkEnd)}</span></div>`;
+  // Sub-group by due+cat for rowspan
+  const groups=[];
+  entries.forEach(e=>{
+    const key=e.due+'|'+e.cat;
+    if(!groups.length||groups[groups.length-1].key!==key)groups.push({key,cat:e.cat,due:e.due,entries:[e]});
+    else groups[groups.length-1].entries.push(e);
   });
+  h+=`<table class="syl-table"><tbody>`;
+  groups.forEach(g=>{
+    g.entries.forEach((e,ei)=>{
+      const dueD=parseDate(e.due),dl=daysBetween(TODAY,dueD);
+      const dueStr=fmtDateShort(dueD);
+      const urgClass=e.done?'past':(dl<0?'past':dl<=3?'urgent':dl<=7?'soon':'ok');
+      const daysStr=e.done?'':(dl<0?Math.abs(dl)+'d ago':dl===0?'today':dl+'d');
+      const isDeliverable=e.type!=='reading';
+      const hlClass=hl&&isDeliverable?'syl-row-highlight '+e.type:'';
+      h+=`<tr class="${e.done?'done':''} ${hlClass}">`;
+      h+=`<td style="width:28px"><button class="syl-check ${e.done?'checked':''}" onclick="toggleSylDone(${e.id})">${e.done?'✓':''}</button></td>`;
+      if(ei===0){
+        h+=`<td class="syl-class-cell"${g.entries.length>1?' rowspan="'+g.entries.length+'"':''}><span class="syl-dot" style="background:var(--accent-${e.cat})"></span>${CAT_SHORT[e.cat]}</td>`;
+        h+=`<td class="syl-due-cell"${g.entries.length>1?' rowspan="'+g.entries.length+'"':''}>${dueStr}<span class="syl-days ${urgClass}">${daysStr}</span></td>`;
+      }
+      const detailHtml=e.detail?(e.detail.replace(/\n/g,'<br>')):'';
+      h+=`<td><span class="syl-title-text" ondblclick="inlineSylEdit(${e.id},'title',this)">${e.title}</span><span class="syl-type-tag ${e.type}">${e.type}</span>${detailHtml?`<div class="syl-detail-text" ondblclick="inlineSylEdit(${e.id},'detail',this)">${detailHtml}</div>`:''}</td>`;
+      h+=`<td class="syl-hrs-cell">${e.hours?e.hours+'h':''}</td>`;
+      h+=`<td class="syl-btns-cell"><button class="syl-btn" onclick="openSylEdit(${e.id})">✎</button><button class="syl-btn del" onclick="deleteSylEntry(${e.id})">✕</button></td>`;
+      h+=`</tr>`;
+    });
+  });
+  h+=`</tbody></table></div>`;
 });
-h+=`</tbody></table>`;
 return h}
 
 // ===== INTERACTIONS =====
@@ -645,8 +668,12 @@ function lifeCatDragLeave(e){e.currentTarget.classList.remove('drag-over')}
 function lifeCatDrop(e,targetCat){e.preventDefault();e.currentTarget.classList.remove('drag-over');if(lifeDragId!==null){const t=state.lifeTasks.find(t=>t.id===lifeDragId);if(t){t.category=targetCat;lifeDragId=null;render();scheduleSave();return}}if(dragCatName&&dragCatName!==targetCat){if(!state.catOrder)state.catOrder=[];const cats=new Set();state.lifeTasks.filter(t=>!t.done).forEach(t=>{const c=t.category||'General';cats.add(c)});let order=state.catOrder.filter(c=>cats.has(c));cats.forEach(c=>{if(!order.includes(c))order.push(c)});const fi=order.indexOf(dragCatName),ti=order.indexOf(targetCat);if(fi>=0&&ti>=0){order.splice(fi,1);order.splice(ti,0,dragCatName);state.catOrder=order}dragCatName=null;render();scheduleSave()}}
 
 // ===== SYLLABUS =====
-function toggleSylDetail(id){const el=document.getElementById('syl-det-'+id);if(el)el.classList.toggle('open')}
+function toggleSylHighlight(){state.sylHighlight=!state.sylHighlight;render();scheduleSave()}
 function toggleSylDone(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.done=!s.done;if(s.done){state.tasks.forEach(t=>{if(t.syllabusId===id)t.done=true})}render();scheduleSave()}
+function inlineSylEdit(id,field,el){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;
+if(field==='title'){const inp=document.createElement('input');inp.type='text';inp.value=s.title;inp.className='syl-title-edit';el.replaceWith(inp);inp.focus();inp.select();function save(){s.title=inp.value.trim()||s.title;render();scheduleSave()}inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();save()}else if(e.key==='Escape')render()});inp.addEventListener('blur',save)}
+else if(field==='detail'){const ta=document.createElement('textarea');ta.value=s.detail||'';ta.className='syl-detail-edit';ta.rows=Math.max(2,(s.detail||'').split('\n').length+1);el.replaceWith(ta);ta.focus();function save(){s.detail=ta.value;render();scheduleSave()}ta.addEventListener('keydown',e=>{if(e.key==='Escape')render()});ta.addEventListener('blur',save)}}
+function deleteSylEntry(id){if(!confirm('Delete syllabus entry?'))return;state.syllabus=(state.syllabus||[]).filter(s=>s.id!==id);render();scheduleSave()}
 function addSylEntry(){const title=$('#sylNewTitle')?.value.trim();if(!title)return;state.syllabus.push({id:state.nextId++,cat:$('#sylNewCat').value,type:$('#sylNewType').value,title,detail:'',due:$('#sylNewDue')?.value||isoDate(TODAY),hours:parseFloat($('#sylNewHrs')?.value)||0,done:false});$('#sylNewTitle').value='';$('#sylNewHrs').value='';$('#sylNewDue').value='';render();scheduleSave()}
 let editSylId=null;
 function openSylEdit(id){editSylId=id;const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;$('#sylModalTitle').textContent='Edit Syllabus Entry';$('#sTitle').value=s.title;$('#sDetail').value=s.detail||'';$('#sCat').value=s.cat;$('#sType').value=s.type;$('#sDue').value=s.due;$('#sHrs').value=s.hours;$('#sylModal').classList.add('open')}
