@@ -1,4 +1,4 @@
-<!-- Academic Planner v2.6 -->
+<!-- Academic Planner v2.7-wip -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -296,6 +296,33 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 .life-item.dragging{opacity:.3}
 .life-item.drag-over-item{box-shadow:0 -2px 0 0 var(--warning)}
 
+/* Syllabus */
+.syl-week{margin-bottom:20px}
+.syl-week-hdr{font-family:'Crimson Pro',serif;font-size:1rem;font-weight:600;padding-bottom:4px;border-bottom:1px solid var(--border);margin-bottom:8px;display:flex;align-items:baseline;gap:8px}
+.syl-week-dates{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--text-dim)}
+.syl-class{margin-bottom:12px;margin-left:4px}
+.syl-class-hdr{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.syl-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.syl-entry{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--surface);border-radius:7px;margin-bottom:4px;border:1px solid var(--border)}
+.syl-entry.done{opacity:.4}
+.syl-entry.paper{border-left:3px solid var(--danger)}.syl-entry.exam{border-left:3px solid var(--warning)}.syl-entry.presentation{border-left:3px solid var(--accent-ab)}
+.syl-check{width:18px;height:18px;border-radius:3px;border:2px solid var(--border);background:0;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ok);font-size:.65rem;transition:all .12s;flex-shrink:0;margin-top:2px}
+.syl-check:hover{border-color:var(--ok)}.syl-check.checked{background:var(--ok-dim);border-color:var(--ok)}
+.syl-body{flex:1;min-width:0}
+.syl-title-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.syl-title{font-size:.84rem;font-weight:600;cursor:pointer}.syl-title:hover{text-decoration:underline}
+.syl-type-tag{font-size:.56rem;font-weight:700;text-transform:uppercase;padding:1px 5px;border-radius:3px}
+.syl-type-tag.reading{background:var(--surface3);color:var(--text-dim)}.syl-type-tag.paper{background:var(--danger-dim);color:var(--danger)}.syl-type-tag.exam{background:var(--warning-dim);color:var(--warning)}.syl-type-tag.presentation{background:var(--accent-ab-dim);color:var(--accent-ab)}
+.syl-meta{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:var(--text-dim);margin-top:2px}
+.syl-detail{font-size:.76rem;color:var(--text-dim);margin-top:4px;padding:6px 8px;background:var(--surface2);border-radius:4px;line-height:1.5;display:none}
+.syl-detail.open{display:block}
+.syl-btns{display:flex;gap:3px;flex-shrink:0}
+.syl-btn{background:0;border:0;color:var(--text-muted);cursor:pointer;font-size:.72rem;padding:2px 5px;border-radius:3px;transition:all .12s}
+.syl-btn:hover{color:var(--text-dim);background:var(--surface3)}.syl-btn.del:hover{color:var(--danger);background:var(--danger-dim)}
+.syl-add-form{display:flex;gap:5px;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap}
+.syl-add-form input,.syl-add-form select{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Outfit';font-size:.78rem;padding:7px 10px;border-radius:6px}
+.syl-complete-banner{padding:10px 14px;background:var(--ok-dim);border:1px solid var(--ok);border-radius:8px;color:var(--ok);font-weight:600;font-size:.82rem;margin-bottom:12px}
+
 .hdr-row1,.hdr-row2{display:contents}
 @media(max-width:700px){.day-row{grid-template-columns:66px 1fr auto}.life-item{grid-template-columns:auto 1fr auto auto}.li-days,.li-send{display:none}.evt-item{grid-template-columns:1fr auto auto;gap:4px}.evt-item .evt-date{grid-column:1/-1}.evt-info{text-align:left}.header{gap:4px;flex-wrap:wrap}.hdr-row1{display:flex;align-items:center;gap:6px;width:100%;flex-shrink:0}.hdr-row1 .combined-status{margin-left:auto}.hdr-row2{display:flex;align-items:center;gap:6px;width:100%}.hdr-row2 .theme-toggle{margin-left:auto}.labeled-field label{display:none}.note-text{resize:both}}
 </style>
@@ -306,6 +333,9 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 <div class="modal-overlay" id="lifeModal"><div class="modal"><h3>Edit Task</h3><label>Name</label><input id="lName" type="text"/><label>Hours</label><input id="lHrs" type="number" step="0.5" min="0"/><label>Category</label><select id="lCat"><option value="General">General</option><option value="Email">Email</option><option value="Projects">Projects</option><option value="Income">Income</option><option value="Garden">Garden</option><option value="Correspondence">Correspondence</option></select><label>Priority</label><select id="lPri"><option value="high">High</option><option value="med">Medium</option><option value="low">Low</option></select><label>Due date</label><input id="lDue" type="date"/><div class="modal-btns"><button class="mbtn danger" id="lDel">Delete</button><button class="mbtn secondary" id="lCanc">Cancel</button><button class="mbtn primary" id="lSave">Save</button></div></div></div>
 <!-- Add task modal -->
 <div class="modal-overlay" id="addModal"><div class="modal"><h3>Add Task</h3><label>Name</label><input id="aName" type="text"/><label>Hours</label><div class="hrs-stepper"><button class="step-btn" onclick="stepHrs(-0.5)">−</button><input id="aHrs" type="number" step="0.5" min="0" value="1"/><button class="step-btn" onclick="stepHrs(0.5)">+</button></div><label>Category</label><select id="aCat"><option value="life">Task</option><option value="bh">Buddhist Hermeneutics</option><option value="wh">Western Hermeneutics</option><option value="cn">Chinese Classics</option><option value="ab">Abhidhamma</option><option value="events">Event</option></select><label>Priority</label><div class="pri-toggle" id="aPriToggle" onclick="toggleAddPri()"><span class="pri-option active" data-val="normal">Normal</span><span class="pri-option" data-val="high">High</span></div><input type="hidden" id="aPri" value="normal"/><div class="modal-btns"><button class="mbtn secondary" id="aCanc">Cancel</button><button class="mbtn primary" id="aSave">Add</button></div></div></div>
+
+<!-- Syllabus edit modal -->
+<div class="modal-overlay" id="sylModal"><div class="modal"><h3 id="sylModalTitle">Edit Syllabus Entry</h3><label>Title</label><input id="sTitle" type="text"/><label>Detail</label><textarea id="sDetail" style="width:100%;min-height:60px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Outfit';font-size:.78rem;padding:6px 9px;border-radius:5px;resize:vertical"></textarea><label>Class</label><select id="sCat"><option value="bh">Buddhist Hermeneutics</option><option value="wh">Western Hermeneutics</option><option value="cn">Chinese Classics</option><option value="ab">Abhidhamma</option></select><label>Type</label><select id="sType"><option value="reading">Reading</option><option value="paper">Paper</option><option value="exam">Exam</option><option value="presentation">Presentation</option></select><label>Due Date</label><input id="sDue" type="date"/><label>Hours Estimate</label><input id="sHrs" type="number" step="0.5" min="0"/><div class="modal-btns"><button class="mbtn danger" id="sDel">Delete</button><button class="mbtn secondary" id="sCanc">Cancel</button><button class="mbtn primary" id="sSave">Save</button></div></div></div>
 
 <!-- Event edit modal -->
 <div class="modal-overlay" id="evtModal"><div class="modal"><h3 id="evtModalTitle">Edit Event</h3><label>Name</label><input id="eName" type="text"/><label>Date</label><input id="eDate" type="date"/><label>End Date (for multi-day)</label><input id="eEndDate" type="date"/><label>Start Time</label><input id="eStart" type="time"/><label>End Time</label><input id="eEnd" type="time"/><label>Location</label><input id="eLoc" type="text"/><div style="margin-top:8px"><label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="eAllDay"/> All day event</label></div><div class="modal-btns"><button class="mbtn danger" id="eDel">Delete</button><button class="mbtn secondary" id="eCanc">Cancel</button><button class="mbtn primary" id="eSave">Save</button></div></div></div>
