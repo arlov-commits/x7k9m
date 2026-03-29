@@ -628,7 +628,7 @@ function renderSettings(){
   <input type="date" class="life-input" value="${semStart}" onchange="state.semesterStart=this.value;render();scheduleSave()" style="width:160px"/></div></div>
   <div class="notes-box" style="margin-top:14px"><div class="notes-box-title">Export PDF (Dashboard + Syllabus)</div>
   <div class="settings-section"><label>Start Date</label><input type="date" id="pdfStart" class="life-input" value="${isoDate(wkStart)}" style="width:160px"/></div>
-  <div class="settings-section"><label>End Date</label><input type="date" id="pdfEnd" class="life-input" value="2026-05-15" style="width:160px"/></div>
+  <div class="settings-section"><label>End Date</label><input type="date" id="pdfEnd" class="life-input" value="${state.pdfEndDate||'2026-05-15'}" style="width:160px"/></div>
   <div class="settings-section" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
   <label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;margin:0"><input type="checkbox" id="pdfExclCN"/> Exclude Chinese Classics</label>
   <label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;margin:0"><input type="checkbox" id="pdfExclPersonal" checked/> Exclude personal tasks/notes</label>
@@ -664,10 +664,15 @@ function normalizeDateInput(val){
 
 function exportPDF(){
   const startStr=$('#pdfStart')?.value||isoDate(TODAY);const endStr=$('#pdfEnd')?.value||'2026-05-15';
+  state.pdfEndDate=endStr;scheduleSave();
   const exclCN=$('#pdfExclCN')?.checked;const exclPersonal=$('#pdfExclPersonal')?.checked;
-  const catColors={bh:'#6a8818',wh:'#3a6848',cn:'#8a5058',ab:'#7a7018',custom:'#6a5c48',life:'#685040'};
-  const catBg={bh:'rgba(106,136,24,.14)',wh:'rgba(58,104,72,.14)',cn:'rgba(138,80,88,.13)',ab:'rgba(122,112,24,.14)',custom:'rgba(106,92,72,.1)',life:'rgba(104,80,64,.15)'};
-  const themeBg='#dcd2c2',themeSurface='#eae3d5',themeBorder='#ada090',themeText='#2a1e10',themeTextDim='#4e3c28',themeTextMuted='#6a5c48';
+  const cs=getComputedStyle(document.documentElement);
+  const tv=n=>cs.getPropertyValue(n).trim();
+  const catColors={bh:tv('--accent-bh'),wh:tv('--accent-wh'),cn:tv('--accent-cn'),ab:tv('--accent-ab'),custom:tv('--text-muted'),life:tv('--accent-life')};
+  const catBg={bh:tv('--accent-bh-dim'),wh:tv('--accent-wh-dim'),cn:tv('--accent-cn-dim'),ab:tv('--accent-ab-dim'),custom:tv('--surface3'),life:tv('--accent-life-dim')};
+  const themeBg=tv('--bg'),themeSurface=tv('--surface'),themeBorder=tv('--border'),themeText=tv('--text'),themeTextDim=tv('--text-dim'),themeTextMuted=tv('--text-muted');
+  const colorDanger=tv('--danger'),colorWarning=tv('--warning'),colorOk=tv('--ok');
+  function dlColor(dl){return dl<0?themeTextMuted:dl<=3?colorDanger:dl<=7?colorWarning:colorOk}
   // Dashboard section
   const hl=(state.syllabus||[]).filter(s=>s.highlighted&&!s.done&&s.due>=startStr&&s.due<=endStr&&(!exclCN||s.cat!=='cn')).sort((a,b)=>a.due.localeCompare(b.due));
   const cats=['bh','wh','ab','cn','custom'].filter(c=>!exclCN||c!=='cn');
@@ -677,7 +682,7 @@ function exportPDF(){
   if(activeCats.length){
     dashHtml=`<h2 style="margin:0 0 10px;font-size:1.1rem;color:${themeText}">Dashboard — Key Deliverables</h2><table style="width:100%;border-collapse:collapse;margin-bottom:20px"><tr>`+activeCats.map(c=>`<th style="padding:6px 8px;border-bottom:2px solid ${catColors[c]};color:${catColors[c]};font-size:.85rem;text-align:center">${CAT_NAMES[c]||c}</th>`).join('')+'</tr>';
     const mx=Math.max(...activeCats.map(c=>groups[c].length));
-    for(let r=0;r<mx;r++){dashHtml+='<tr>';activeCats.forEach(c=>{const s=groups[c][r];if(!s){dashHtml+=`<td style="padding:6px;border:1px solid ${themeBorder}"></td>`;return}const dd=parseDate(s.due),dl=daysBetween(TODAY,dd);dashHtml+=`<td style="padding:8px;border:1px solid ${themeBorder};text-align:center;vertical-align:top;background:${catBg[c]}"><strong style="font-size:.85rem;color:${themeText}">${s.title}</strong><br><span style="font-size:.72rem;color:${themeTextDim}">${fmtDate(dd)}</span><br><span style="font-size:.72rem;font-weight:600;color:${dl<=7?'#8a3030':themeTextDim}">${dl<0?Math.abs(dl)+'d ago':dl===0?'TODAY':dl+'d'}</span><br><span style="font-size:.65rem;color:${themeTextMuted};text-transform:uppercase">${s.type}</span></td>`});dashHtml+='</tr>'}
+    for(let r=0;r<mx;r++){dashHtml+='<tr>';activeCats.forEach(c=>{const s=groups[c][r];if(!s){dashHtml+=`<td style="padding:6px;border:1px solid ${themeBorder}"></td>`;return}const dd=parseDate(s.due),dl=daysBetween(TODAY,dd),dlS=dl<0?Math.abs(dl)+'d ago':dl===0?'TODAY':dl+'d';dashHtml+=`<td style="padding:8px;border:1px solid ${themeBorder};text-align:center;vertical-align:top;background:${catBg[c]}"><strong style="font-size:.85rem;color:${themeText}">${s.title}</strong><br><span style="font-size:.72rem;color:${themeTextDim}">${fmtDate(dd)}</span><br><span style="font-size:.72rem;font-weight:600;color:${dlColor(dl)}${dl<0?';text-decoration:line-through':''}">${dlS}</span><br><span style="font-size:.65rem;color:${themeTextMuted};text-transform:uppercase">${s.type}</span></td>`});dashHtml+='</tr>'}
     dashHtml+='</table>'
   }
   // Syllabus section
@@ -693,9 +698,9 @@ function exportPDF(){
       const det=e.detail?e.detail.split('\n').map(l=>l.startsWith('- ')?'&nbsp;&nbsp;• '+l.substring(2):l.startsWith('+ ')?'&nbsp;&nbsp;&nbsp;&nbsp;◦ '+l.substring(2):l).join('<br>'):'';
       const dueD=parseDate(e.due);const dueEndD=e.dueEnd?parseDate(e.dueEnd):null;
       const dueStr=dueEndD?fmtDateShort(dueD)+' → '+fmtDateShort(dueEndD):fmtDateShort(dueD);
-      const dl=daysBetween(TODAY,dueD);const dlStr=dl<0?Math.abs(dl)+'d ago':dl===0?'today':dl+'d';const dlColor=dl<=7?'#8a3030':themeTextDim;
+      const dl=daysBetween(TODAY,dueD);const dlStr=dl<0?Math.abs(dl)+'d ago':dl===0?'today':dl+'d';
       const dowStr=dayAbbr[dueD.getDay()];
-      sylHtml+=`<tr style="border-bottom:1px solid ${themeSurface}"><td style="padding:5px 6px;width:40px;font-size:.72rem;font-weight:700;color:${catColors[e.cat]||themeTextMuted};vertical-align:top">${CAT_SHORT[e.cat]||e.cat}</td><td style="padding:5px 6px;width:60px;font-size:.72rem;color:${themeTextMuted};vertical-align:top">${dueStr}</td><td style="padding:5px 6px;vertical-align:top"><strong style="font-size:.82rem;color:${themeText}">${e.title}</strong> <span style="font-size:.6rem;text-transform:uppercase;color:${themeTextMuted}">${e.type}</span>${det?`<div style="font-size:.74rem;color:${themeTextDim};margin-top:2px;line-height:1.5">${det}</div>`:''}</td><td style="padding:5px;width:60px;font-size:.72rem;text-align:right;vertical-align:top"><span style="color:${themeTextMuted}">${dowStr}</span> <span style="font-weight:600;color:${dlColor}">${dlStr}</span></td></tr>`
+      sylHtml+=`<tr style="border-bottom:1px solid ${themeSurface}"><td style="padding:5px 6px;width:40px;font-size:.72rem;font-weight:700;color:${catColors[e.cat]||themeTextMuted};vertical-align:top">${CAT_SHORT[e.cat]||e.cat}</td><td style="padding:5px 6px;width:60px;font-size:.72rem;color:${themeTextMuted};vertical-align:top">${dueStr}<br><span style="font-size:.65rem;color:${themeTextMuted}">${dowStr}</span></td><td style="padding:5px 6px;vertical-align:top"><strong style="font-size:.82rem;color:${themeText}">${e.title}</strong> <span style="font-size:.6rem;text-transform:uppercase;color:${themeTextMuted}">${e.type}</span>${det?`<div style="font-size:.74rem;color:${themeTextDim};margin-top:2px;line-height:1.5">${det}</div>`:''}</td><td style="padding:5px;width:50px;font-size:.72rem;font-weight:600;text-align:right;vertical-align:top;color:${dlColor(dl)}${dl<0?';text-decoration:line-through':''}">${dlStr}</td></tr>`
     });
     sylHtml+='</table></div>'
   });
