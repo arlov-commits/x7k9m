@@ -1,4 +1,4 @@
-<!-- Academic Planner v3.4 -->
+<!-- Academic Planner v3.5 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -428,8 +428,8 @@ function defaultSyllabus(){return[
 
 let state={theme:'dark',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],nextId:4000,printRange:'today',weekStartDay:6,semesterStart:'2026-01-17'};
 let saveTimer=null,lastSaveTime=null,saveStatus='saved';
-function scheduleSave(){saveStatus='saving';updateSI();if(saveTimer)clearTimeout(saveTimer);saveTimer=setTimeout(doSave,1500)}
-async function doSave(){try{localStorage.setItem(SKEY,JSON.stringify(state));localStorage.setItem(SKEY+'-time',new Date().toISOString());lastSaveTime=new Date();saveStatus='saved';updateSI();if(navigator.onLine){updateConn('syncing');const ok=await sbSet(state);if(ok){localStorage.removeItem(SKEY+'-dirty');updateConn('online')}else{localStorage.setItem(SKEY+'-dirty','1');updateConn('offline')}}else{localStorage.setItem(SKEY+'-dirty','1');updateConn('offline')}}catch(e){saveStatus='error';updateSI()}}
+function scheduleSave(){saveStatus='saving';updateSI();try{localStorage.setItem(SKEY,JSON.stringify(state));localStorage.setItem(SKEY+'-time',new Date().toISOString());lastSaveTime=new Date();saveStatus='saved';updateSI()}catch(e){saveStatus='error';updateSI()}if(saveTimer)clearTimeout(saveTimer);saveTimer=setTimeout(syncToCloud,1500)}
+async function syncToCloud(){try{if(navigator.onLine){updateConn('syncing');const ok=await sbSet(state);if(ok){localStorage.removeItem(SKEY+'-dirty');updateConn('online')}else{localStorage.setItem(SKEY+'-dirty','1');updateConn('offline')}}else{localStorage.setItem(SKEY+'-dirty','1');updateConn('offline')}}catch(e){updateConn('offline')}}
 async function syncIfDirty(){if(!navigator.onLine)return;if(!localStorage.getItem(SKEY+'-dirty'))return;updateConn('syncing');try{const raw=localStorage.getItem(SKEY);if(raw){const ok=await sbSet(JSON.parse(raw));if(ok){localStorage.removeItem(SKEY+'-dirty');updateConn('online')}else{updateConn('offline')}}}catch(e){updateConn('offline')}}
 let connState='online';
 function updateConn(s){connState=s;updateCombo()}
@@ -665,38 +665,42 @@ function normalizeDateInput(val){
 function exportPDF(){
   const startStr=$('#pdfStart')?.value||isoDate(TODAY);const endStr=$('#pdfEnd')?.value||'2026-05-15';
   const exclCN=$('#pdfExclCN')?.checked;const exclPersonal=$('#pdfExclPersonal')?.checked;
-  const catColors={bh:'#6a7a10',wh:'#4a7018',cn:'#904828',ab:'#3a6040',custom:'#888'};
-  const catBg={bh:'rgba(106,122,16,.12)',wh:'rgba(74,112,24,.12)',cn:'rgba(144,72,40,.12)',ab:'rgba(58,96,64,.12)',custom:'rgba(128,128,128,.1)'};
+  const catColors={bh:'#6a8818',wh:'#3a6848',cn:'#8a5058',ab:'#7a7018',custom:'#6a5c48',life:'#685040'};
+  const catBg={bh:'rgba(106,136,24,.14)',wh:'rgba(58,104,72,.14)',cn:'rgba(138,80,88,.13)',ab:'rgba(122,112,24,.14)',custom:'rgba(106,92,72,.1)',life:'rgba(104,80,64,.15)'};
+  const themeBg='#dcd2c2',themeSurface='#eae3d5',themeBorder='#ada090',themeText='#2a1e10',themeTextDim='#4e3c28',themeTextMuted='#6a5c48';
   // Dashboard section
-  const hl=(state.syllabus||[]).filter(s=>s.highlighted&&!s.done&&s.due>=startStr&&s.due<=endStr&&(!exclCN||s.cat!=='cn'));
+  const hl=(state.syllabus||[]).filter(s=>s.highlighted&&!s.done&&s.due>=startStr&&s.due<=endStr&&(!exclCN||s.cat!=='cn')).sort((a,b)=>a.due.localeCompare(b.due));
   const cats=['bh','wh','ab','cn','custom'].filter(c=>!exclCN||c!=='cn');
   const groups={};cats.forEach(c=>{groups[c]=hl.filter(s=>s.cat===c)});
   const activeCats=cats.filter(c=>groups[c].length>0);
   let dashHtml='';
   if(activeCats.length){
-    dashHtml='<h2 style="margin:0 0 10px;font-size:1.1rem">Dashboard — Key Deliverables</h2><table style="width:100%;border-collapse:collapse;margin-bottom:20px"><tr>'+activeCats.map(c=>`<th style="padding:6px 8px;border-bottom:2px solid ${catColors[c]};color:${catColors[c]};font-size:.85rem;text-align:center">${CAT_NAMES[c]||c}</th>`).join('')+'</tr>';
+    dashHtml=`<h2 style="margin:0 0 10px;font-size:1.1rem;color:${themeText}">Dashboard — Key Deliverables</h2><table style="width:100%;border-collapse:collapse;margin-bottom:20px"><tr>`+activeCats.map(c=>`<th style="padding:6px 8px;border-bottom:2px solid ${catColors[c]};color:${catColors[c]};font-size:.85rem;text-align:center">${CAT_NAMES[c]||c}</th>`).join('')+'</tr>';
     const mx=Math.max(...activeCats.map(c=>groups[c].length));
-    for(let r=0;r<mx;r++){dashHtml+='<tr>';activeCats.forEach(c=>{const s=groups[c][r];if(!s){dashHtml+='<td style="padding:6px;border:1px solid #e0e0e0"></td>';return}const dd=parseDate(s.due),dl=daysBetween(TODAY,dd);dashHtml+=`<td style="padding:8px;border:1px solid #e0e0e0;text-align:center;vertical-align:top;background:${catBg[c]}"><strong style="font-size:.85rem">${s.title}</strong><br><span style="font-size:.72rem;color:#666">${fmtDate(dd)}</span><br><span style="font-size:.72rem;font-weight:600;color:${dl<=7?'#c44':'#666'}">${dl<0?Math.abs(dl)+'d ago':dl===0?'TODAY':dl+'d'}</span><br><span style="font-size:.65rem;color:#888;text-transform:uppercase">${s.type}</span></td>`});dashHtml+='</tr>'}
+    for(let r=0;r<mx;r++){dashHtml+='<tr>';activeCats.forEach(c=>{const s=groups[c][r];if(!s){dashHtml+=`<td style="padding:6px;border:1px solid ${themeBorder}"></td>`;return}const dd=parseDate(s.due),dl=daysBetween(TODAY,dd);dashHtml+=`<td style="padding:8px;border:1px solid ${themeBorder};text-align:center;vertical-align:top;background:${catBg[c]}"><strong style="font-size:.85rem;color:${themeText}">${s.title}</strong><br><span style="font-size:.72rem;color:${themeTextDim}">${fmtDate(dd)}</span><br><span style="font-size:.72rem;font-weight:600;color:${dl<=7?'#8a3030':themeTextDim}">${dl<0?Math.abs(dl)+'d ago':dl===0?'TODAY':dl+'d'}</span><br><span style="font-size:.65rem;color:${themeTextMuted};text-transform:uppercase">${s.type}</span></td>`});dashHtml+='</tr>'}
     dashHtml+='</table>'
   }
   // Syllabus section
   const syl=(state.syllabus||[]).filter(s=>s.due>=startStr&&s.due<=endStr&&(!exclCN||s.cat!=='cn')).sort((a,b)=>a.due.localeCompare(b.due));
   const weekMap={};syl.forEach(s=>{const wk=semesterWeekNum(parseDate(s.due));if(!weekMap[wk])weekMap[wk]=[];weekMap[wk].push(s)});
-  let sylHtml='<h2 style="margin:0 0 10px;font-size:1.1rem">Syllabus</h2>';
+  let sylHtml=`<h2 style="margin:0 0 10px;font-size:1.1rem;color:${themeText}">Syllabus</h2>`;
+  const dayAbbr=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   Object.keys(weekMap).map(Number).sort((a,b)=>a-b).forEach(wkN=>{
     const wkStart=semesterWeekStart(wkN);const wkEnd=new Date(wkStart);wkEnd.setDate(wkEnd.getDate()+6);
-    sylHtml+=`<div style="margin-bottom:14px"><div style="font-weight:600;font-size:.9rem;border-bottom:1px solid #ccc;padding-bottom:3px;margin-bottom:6px">Week ${wkN} <span style="font-size:.72rem;color:#888">${fmtDateShort(wkStart)} → ${fmtDateShort(wkEnd)}</span></div>`;
+    sylHtml+=`<div style="margin-bottom:14px"><div style="font-weight:600;font-size:.9rem;color:${themeText};border-bottom:1px solid ${themeBorder};padding-bottom:3px;margin-bottom:6px">Week ${wkN} <span style="font-size:.72rem;color:${themeTextMuted}">${fmtDateShort(wkStart)} → ${fmtDateShort(wkEnd)}</span></div>`;
     sylHtml+='<table style="width:100%;border-collapse:collapse">';
     weekMap[wkN].forEach(e=>{
       const det=e.detail?e.detail.split('\n').map(l=>l.startsWith('- ')?'&nbsp;&nbsp;• '+l.substring(2):l.startsWith('+ ')?'&nbsp;&nbsp;&nbsp;&nbsp;◦ '+l.substring(2):l).join('<br>'):'';
       const dueD=parseDate(e.due);const dueEndD=e.dueEnd?parseDate(e.dueEnd):null;
       const dueStr=dueEndD?fmtDateShort(dueD)+' → '+fmtDateShort(dueEndD):fmtDateShort(dueD);
-      sylHtml+=`<tr style="border-bottom:1px solid #eee"><td style="padding:5px 6px;width:40px;font-size:.72rem;font-weight:700;color:${catColors[e.cat]||'#888'};vertical-align:top">${CAT_SHORT[e.cat]||e.cat}</td><td style="padding:5px 6px;width:60px;font-size:.72rem;color:#888;vertical-align:top">${dueStr}</td><td style="padding:5px 6px;vertical-align:top"><strong style="font-size:.82rem">${e.title}</strong> <span style="font-size:.6rem;text-transform:uppercase;color:#999">${e.type}</span>${det?`<div style="font-size:.74rem;color:#555;margin-top:2px;line-height:1.5">${det}</div>`:''}</td><td style="padding:5px;width:30px;font-size:.72rem;color:#888;text-align:right">${e.hours?e.hours+'h':''}</td></tr>`
+      const dl=daysBetween(TODAY,dueD);const dlStr=dl<0?Math.abs(dl)+'d ago':dl===0?'today':dl+'d';const dlColor=dl<=7?'#8a3030':themeTextDim;
+      const dowStr=dayAbbr[dueD.getDay()];
+      sylHtml+=`<tr style="border-bottom:1px solid ${themeSurface}"><td style="padding:5px 6px;width:40px;font-size:.72rem;font-weight:700;color:${catColors[e.cat]||themeTextMuted};vertical-align:top">${CAT_SHORT[e.cat]||e.cat}</td><td style="padding:5px 6px;width:60px;font-size:.72rem;color:${themeTextMuted};vertical-align:top">${dueStr}</td><td style="padding:5px 6px;vertical-align:top"><strong style="font-size:.82rem;color:${themeText}">${e.title}</strong> <span style="font-size:.6rem;text-transform:uppercase;color:${themeTextMuted}">${e.type}</span>${det?`<div style="font-size:.74rem;color:${themeTextDim};margin-top:2px;line-height:1.5">${det}</div>`:''}</td><td style="padding:5px;width:60px;font-size:.72rem;text-align:right;vertical-align:top"><span style="color:${themeTextMuted}">${dowStr}</span> <span style="font-weight:600;color:${dlColor}">${dlStr}</span></td></tr>`
     });
     sylHtml+='</table></div>'
   });
   // Build full page
-  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Academic Planner Export</title><style>@page{size:letter;margin:.5in}body{font-family:'Segoe UI',Arial,sans-serif;color:#222;line-height:1.4;max-width:800px;margin:0 auto;padding:20px}h1{font-size:1.3rem;margin:0 0 4px}table{page-break-inside:auto}tr{page-break-inside:avoid}</style></head><body><h1>Academic Planner</h1><p style="font-size:.78rem;color:#888;margin:0 0 18px">${fmtDate(parseDate(startStr))} through ${fmtDate(parseDate(endStr))}</p>${dashHtml}${sylHtml}</body></html>`;
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Academic Planner Export</title><style>@page{size:letter;margin:.5in}body{font-family:'Segoe UI',Arial,sans-serif;color:${themeText};background:${themeBg};line-height:1.4;max-width:800px;margin:0 auto;padding:20px}h1{font-size:1.3rem;margin:0 0 4px;color:${themeText}}table{page-break-inside:auto}tr{page-break-inside:avoid}</style></head><body><h1>Academic Planner</h1><p style="font-size:.78rem;color:${themeTextMuted};margin:0 0 18px">${fmtDate(parseDate(startStr))} through ${fmtDate(parseDate(endStr))}</p>${dashHtml}${sylHtml}</body></html>`;
   const w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(()=>w.print(),400)
 }
 
