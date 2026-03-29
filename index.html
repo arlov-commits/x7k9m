@@ -1,4 +1,4 @@
-<!-- Academic Planner v3.1 -->
+<!-- Academic Planner v3.2 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -242,8 +242,15 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 .note-label{font-size:.58rem;color:var(--text-muted);font-style:italic}
 .note-del{background:0;border:0;color:var(--text-muted);cursor:pointer;font-size:.7rem;margin-left:auto;padding:2px 6px;border-radius:3px;transition:all .12s}
 .note-del:hover{color:var(--danger);background:var(--danger-dim)}
-.note-text{width:100%;background:var(--surface3);border:1px solid var(--border);color:var(--text);font-family:'Outfit';font-size:.82rem;padding:8px 10px;border-radius:6px;resize:vertical;min-height:50px;line-height:1.6}
+.note-title-input{background:0;border:0;border-bottom:1px solid transparent;color:var(--text);font-family:'Crimson Pro',serif;font-size:.92rem;font-weight:600;padding:0 2px 1px;flex:1;min-width:60px;outline:0;transition:border-color .12s}
+.note-title-input:focus{border-bottom-color:var(--text-dim)}
+.note-title-input::placeholder{color:var(--text-muted);font-weight:400}
+.note-body{position:relative}
+.note-text{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Outfit';font-size:.82rem;padding:8px 10px;border-radius:6px;resize:vertical;min-height:50px;line-height:1.6}
 .note-text:focus{outline:0;border-color:var(--text-dim)}
+.note-resize-btns{position:absolute;bottom:6px;right:6px;display:flex;gap:2px}
+.note-resize-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);cursor:pointer;font-size:.62rem;padding:2px 5px;border-radius:3px;opacity:.5;transition:all .12s;line-height:1}
+.note-resize-btn:hover{opacity:1;color:var(--text-dim);background:var(--surface3)}
 
 /* Events */
 .evt-list{margin-bottom:16px}
@@ -356,9 +363,10 @@ function sameDay(a,b){return isoDate(a)===isoDate(b)}
 function nextMonday(){const d=new Date(TODAY);const dow=d.getDay();const diff=dow===0?1:(8-dow);d.setDate(d.getDate()+diff);return d}
 
 function getSemStart(){return parseDate(state.semesterStart||'2026-01-17')}
-function semesterWeekNum(d){const diff=Math.round((d-getSemStart())/864e5);return Math.floor(diff/7)+1}
-function semesterWeekStart(wkN){const s=getSemStart();const d=new Date(s);d.setDate(d.getDate()+(wkN-1)*7);return d}
 function weekStartOffset(d){return(d.getDay()-state.weekStartDay+7)%7}
+function alignedSemStart(){const s=getSemStart();const off=weekStartOffset(s);const d=new Date(s);d.setDate(d.getDate()-off);return d}
+function semesterWeekNum(d){const diff=Math.round((d-alignedSemStart())/864e5);return Math.floor(diff/7)+1}
+function semesterWeekStart(wkN){const s=alignedSemStart();const d=new Date(s);d.setDate(d.getDate()+(wkN-1)*7);return d}
 
 function generateWeeks(){const end=new Date(2026,4,30),weeks=[];const wsd=state.weekStartDay;let cur=new Date(TODAY);cur.setDate(cur.getDate()-weekStartOffset(cur));let wk=semesterWeekNum(cur);while(cur<=end){const days=[];for(let i=0;i<7;i++){const d=new Date(cur);d.setDate(d.getDate()+i);if(d>end)break;days.push({date:isoDate(d),dateObj:new Date(d)})}weeks.push({num:wk,start:new Date(cur),end:new Date(cur.getTime()+6*864e5),days});cur.setDate(cur.getDate()+7);wk++}return weeks}
 function getAvailHours(ds){const d=parseDate(ds),dow=d.getDay();if(d>=new Date(2026,3,5)&&d<=new Date(2026,3,11))return 5;if(ds==='2026-03-23')return 0;if(dow===1){return Math.round((d-new Date(2026,2,30))/(7*864e5))%2===0?4:0}return[7,0,0,4,3.5,0,10][dow]}
@@ -448,7 +456,7 @@ function render(){
   const allTabs=[...tabs,'settings'];
   const tn={dashboard:'Dashboard',sprints:'Week',syllabus:'Syllabus',life:'Tasks',events:'Events',notes:'Notes',print:'Print',settings:'Settings'};
   const renderers={dashboard:renderDash,sprints:renderSprints,syllabus:renderSyllabus,life:renderLife,events:renderEvents,notes:renderNotes,print:renderPrint,settings:renderSettings};
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',pistachio2:'🥜 Pistachio v2',midnight:'🌲 Midnight',temple:'⛪ Temple'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v3.1</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}${state.activeTab==='settings'?`<button class="tab active">Settings</button>`:''}</div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;updateSI()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',pistachio2:'🥜 Pistachio v2',midnight:'🌲 Midnight',temple:'⛪ Temple'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v3.2</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}${state.activeTab==='settings'?`<button class="tab active">Settings</button>`:''}</div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;updateSI()}
 
 function renderDash(){
   const hl=(state.syllabus||[]).filter(s=>s.highlighted&&!s.done).sort((a,b)=>a.due.localeCompare(b.due));
@@ -502,7 +510,7 @@ notes.forEach((n,idx)=>{
 const ts=new Date(n.timestamp);const tStr=ts.toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'})+' '+ts.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
 const rows=Math.max(2,(n.text||'').split('\n').length+1);
 const isFirst=idx===0,isLast=idx===notes.length-1;
-h+=`<div class="note-entry" data-note-id="${n.id}"><div class="note-hdr"><button class="note-move" onclick="moveNote(${n.id},-1)" title="Move up"${isFirst?' disabled':''}>▲</button><button class="note-move" onclick="moveNote(${n.id},1)" title="Move down"${isLast?' disabled':''}>▼</button><span class="note-ts">${tStr}</span><span class="note-label">last updated</span><button class="note-del" onclick="deleteNote(${n.id})">✕</button></div><textarea class="note-text" id="nt-${n.id}" rows="${rows}" oninput="updateNote(${n.id},this.value)" onfocus="notesCursor.id=${n.id}" onblur="notesCursor.sel=[this.selectionStart,this.selectionEnd];notesCursor.scroll=this.scrollTop">${n.text||''}</textarea></div>`});
+h+=`<div class="note-entry" data-note-id="${n.id}"><div class="note-hdr"><button class="note-move" onclick="moveNote(${n.id},-1)" title="Move up"${isFirst?' disabled':''}>▲</button><button class="note-move" onclick="moveNote(${n.id},1)" title="Move down"${isLast?' disabled':''}>▼</button><input class="note-title-input" value="${(n.title||'').replace(/"/g,'&quot;')}" placeholder="Untitled" oninput="updateNoteTitle(${n.id},this.value)"/><span class="note-ts">${tStr}</span><button class="note-del" onclick="deleteNote(${n.id})">✕</button></div><div class="note-body"><textarea class="note-text" id="nt-${n.id}" rows="${rows}" inputmode="text" oninput="updateNote(${n.id},this.value)" onfocus="notesCursor.id=${n.id}" onblur="notesCursor.sel=[this.selectionStart,this.selectionEnd];notesCursor.scroll=this.scrollTop">${n.text||''}</textarea><div class="note-resize-btns"><button class="note-resize-btn" onclick="resizeNote('nt-${n.id}','expand')" title="Expand">⤓</button><button class="note-resize-btn" onclick="resizeNote('nt-${n.id}','collapse')" title="Collapse">⤒</button></div></div></div>`});
 return h}
 
 function renderEvents(){
@@ -720,6 +728,8 @@ function updateNote(id,text){const n=(state.notes||[]).find(n=>n.id===id);if(n){
 function deleteNote(id){const n=(state.notes||[]).find(n=>n.id===id);if(n&&n.text&&n.text.trim()){if(!confirm('Delete note?'))return}state.notes=(state.notes||[]).filter(n=>n.id!==id);render();scheduleSave()}
 function copyNoteUrl(){const url=location.origin+location.pathname+'?action=newnote';navigator.clipboard.writeText(url).then(()=>{const btn=document.getElementById('copyNoteUrlBtn');if(btn){btn.textContent='✓ Copied!';setTimeout(()=>{btn.textContent='🔗 Copy Quick Note URL'},1500)}}).catch(()=>{prompt('Copy this URL:',url)})}
 function handleUrlAction(){const params=new URLSearchParams(location.search);const action=params.get('action');if(action==='newnote'){history.replaceState(null,'',location.pathname);state.activeTab='notes';if(!state.notes)state.notes=[];const minOrder=state.notes.length?Math.min(...state.notes.map(n=>n.order??0))-1:0;state.notes.push({id:state.nextId++,timestamp:new Date().toISOString(),text:'',order:minOrder});render();scheduleSave();setTimeout(()=>{const areas=document.querySelectorAll('.note-text');if(areas.length)areas[0].focus()},100)}}
+function updateNoteTitle(id,title){const n=(state.notes||[]).find(n=>n.id===id);if(n){n.title=title;scheduleSave()}}
+function resizeNote(taId,mode){const ta=document.getElementById(taId);if(!ta)return;if(mode==='expand'){ta.style.height=Math.max(ta.scrollHeight,300)+'px'}else{ta.style.height='80px'}}
 function moveNote(id,dir){const arr=state.notes;arr.forEach((n,i)=>{if(n.order===undefined)n.order=i});const sorted=arr.slice().sort((a,b)=>a.order-b.order);const si=sorted.findIndex(n=>n.id===id);const ti=si+dir;if(ti<0||ti>=sorted.length)return;const tmp=sorted[si].order;sorted[si].order=sorted[ti].order;sorted[ti].order=tmp;render();scheduleSave()}
 function restoreNotesCursor(){if(notesCursor.id&&state.activeTab==='notes'){const ta=document.getElementById('nt-'+notesCursor.id);if(ta&&notesCursor.sel){ta.focus();ta.setSelectionRange(notesCursor.sel[0],notesCursor.sel[1]);ta.scrollTop=notesCursor.scroll}}}
 
