@@ -1,4 +1,4 @@
-<!-- Academic Planner v3.3 -->
+<!-- Academic Planner v3.4 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -327,7 +327,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 .cal-pick-btn:hover{background:var(--surface3);color:var(--text)}
 
 .hdr-row1,.hdr-row2{display:contents}
-@media(max-width:700px){.day-row{grid-template-columns:66px 1fr auto}.life-item{grid-template-columns:auto 1fr auto auto}.li-days,.li-send{display:none}.evt-item{grid-template-columns:1fr auto auto;gap:4px}.evt-item .evt-date{grid-column:1/-1}.evt-info{text-align:left}.header{gap:4px;flex-wrap:wrap}.hdr-row1{display:flex;align-items:center;gap:6px;width:100%;flex-shrink:0}.hdr-row1 .combined-status{margin-left:auto}.hdr-row2{display:flex;align-items:center;gap:6px;width:100%}.hdr-row2 .theme-toggle{margin-left:auto}.labeled-field label{display:none}.note-text{resize:both}}
+@media(max-width:700px){.day-row{grid-template-columns:66px 1fr auto}.life-item{grid-template-columns:auto 1fr auto auto}.li-days{display:none}.li-send{width:24px;height:24px;font-size:.6rem}.evt-item{grid-template-columns:1fr auto auto;gap:4px}.evt-item .evt-date{grid-column:1/-1}.evt-info{text-align:left}.header{gap:4px;flex-wrap:wrap}.hdr-row1{display:flex;align-items:center;gap:6px;width:100%;flex-shrink:0}.hdr-row1 .combined-status{margin-left:auto}.hdr-row2{display:flex;align-items:center;gap:6px;width:100%}.hdr-row2 .theme-toggle{margin-left:auto}.labeled-field label{display:none}.note-text{resize:both}}
 </style>
 </head>
 <body>
@@ -456,7 +456,7 @@ function render(){
   const allTabs=[...tabs,'settings'];
   const tn={dashboard:'Dashboard',sprints:'Week',syllabus:'Syllabus',life:'Tasks',events:'Events',notes:'Notes',print:'Print',settings:'Settings'};
   const renderers={dashboard:renderDash,sprints:renderSprints,syllabus:renderSyllabus,life:renderLife,events:renderEvents,notes:renderNotes,print:renderPrint,settings:renderSettings};
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',pistachio2:'🥜 Pistachio v2',midnight:'🌲 Midnight',temple:'⛪ Temple'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v3.3</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}${state.activeTab==='settings'?`<button class="tab active">Settings</button>`:''}</div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;updateSI()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',pistachio2:'🥜 Pistachio v2',midnight:'🌲 Midnight',temple:'⛪ Temple'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v3.4</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}${state.activeTab==='settings'?`<button class="tab active">Settings</button>`:''}</div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;updateSI()}
 
 function renderDash(){
   const hl=(state.syllabus||[]).filter(s=>s.highlighted&&!s.done).sort((a,b)=>a.due.localeCompare(b.due));
@@ -554,7 +554,7 @@ function renderPrint(){
   return`<div class="pv-controls"><button class="pv-range-btn ${pr==='today'?'active':''}" onclick="setPrintRange('today')">Today</button><button class="pv-range-btn ${pr==='tomorrow'?'active':''}" onclick="setPrintRange('tomorrow')">Tomorrow</button><button class="pv-range-btn ${pr==='nextweek'?'active':''}" onclick="setPrintRange('nextweek')">Next Mon–Sun</button><input type="date" class="pv-date-pick" value="${customVal}" onchange="setPrintRange(this.value)" placeholder="Date" title="Custom start date"/></div>
   <div class="print-view"><div class="pv-title">Academic Plan · 7 Days</div><div class="pv-sub">${fmtDate(days[0].dateObj)} through ${fmtDate(days[6].dateObj)}</div>${days.map(day=>{const av=getAvailHours(day.date),tasks=state.tasks.filter(t=>t.date===day.date),al=tasks.filter(t=>!t.done).reduce((s,t)=>s+t.hours,0),note=state.dayNotes[day.date]||'';
   const dayEvts=getEventsForDate(day.date);const evtHtml=dayEvts.map(ev=>`<span class="pv-chip" style="border-style:dashed"><span class="pv-cat">EVT</span> ${ev.label}</span>`).join('');
-  const SYL_E={reading:'📖',paper:'📝',exam:'📋',presentation:'🎤',custom:'📌'};const sylCs=getSylForDate(day.date);const sylHtml=sylCs.map(sc=>`<span class="pv-chip" style="border-style:dashed;opacity:.8"><span class="pv-cat">${CAT_SHORT[sc.cat]||sc.cat}</span> ${SYL_E[sc.type]||'📌'} ${sc.title}${sc.label}</span>`).join('');
+  const SYL_E={reading:'📖',paper:'📝',exam:'📋',presentation:'🎤',custom:'📌'};const sylCs=getSylForDate(day.date);const sylHtml=sylCs.map(sc=>{const det=sc.entry.detail?'<div style="font-size:.68rem;color:#777;margin-top:2px;line-height:1.4">'+sc.entry.detail.split('\n').map(l=>l.startsWith('- ')?'• '+l.substring(2):l.startsWith('+ ')?'  ◦ '+l.substring(2):l).join('<br>')+'</div>':'';return`<div class="pv-chip" style="border-style:dashed;opacity:.85;flex-direction:column;align-items:flex-start"><div><span class="pv-cat">${CAT_SHORT[sc.cat]||sc.cat}</span> ${SYL_E[sc.type]||'📌'} ${sc.title}${sc.label}</div>${det}</div>`}).join('');
   return`<div class="pv-day"><div class="pv-day-hdr"><span class="pv-day-name">${fmtDate(day.dateObj)}</span><span class="pv-day-hrs">${al}/${av}h</span></div><div class="pv-tasks">${evtHtml}${sylHtml}${tasks.map(t=>`<span class="pv-chip ${t.priority==='high'?'high':''} ${t.done?'done':''}"><span class="pv-cat">${CAT_SHORT[t.cat]||t.cat.toUpperCase()}</span> ${t.name}${t.hours>0?' ('+t.hours+'h)':''}</span>`).join('')}</div>${note?`<div class="pv-note">${note}</div>`:''}</div>`}).join('')}</div>`}
 
 function renderSyllabus(){
@@ -618,12 +618,23 @@ return h}
 
 function renderSettings(){
   const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const semStart=state.semesterStart||'2026-01-17';
+  const wkNow=semesterWeekNum(TODAY);const wkStart=semesterWeekStart(wkNow);const wkEnd=new Date(wkStart);wkEnd.setDate(wkEnd.getDate()+6);
   return `<div class="life-header"><span class="life-title">Settings</span></div>
   <div class="notes-box"><div class="notes-box-title">Semester Configuration</div>
   <div class="settings-section"><label>Week Start Day</label>
   <select class="life-select" onchange="state.weekStartDay=parseInt(this.value);render();scheduleSave()" style="width:160px">${days.map((d,i)=>`<option value="${i}"${state.weekStartDay===i?' selected':''}>${d}</option>`).join('')}</select></div>
   <div class="settings-section"><label>Semester Start Date</label>
-  <input type="date" class="life-input" value="${state.semesterStart||'2026-01-17'}" onchange="state.semesterStart=this.value;render();scheduleSave()" style="width:160px"/></div></div>`}
+  <input type="date" class="life-input" value="${semStart}" onchange="state.semesterStart=this.value;render();scheduleSave()" style="width:160px"/></div></div>
+  <div class="notes-box" style="margin-top:14px"><div class="notes-box-title">Export PDF (Dashboard + Syllabus)</div>
+  <div class="settings-section"><label>Start Date</label><input type="date" id="pdfStart" class="life-input" value="${isoDate(wkStart)}" style="width:160px"/></div>
+  <div class="settings-section"><label>End Date</label><input type="date" id="pdfEnd" class="life-input" value="2026-05-15" style="width:160px"/></div>
+  <div class="settings-section" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+  <label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;margin:0"><input type="checkbox" id="pdfExclCN"/> Exclude Chinese Classics</label>
+  <label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;margin:0"><input type="checkbox" id="pdfExclPersonal" checked/> Exclude personal tasks/notes</label>
+  </div>
+  <button class="life-btn" onclick="exportPDF()" style="margin-top:8px">📄 Generate & Download PDF</button>
+  </div>`}
 
 function getSylForDate(dateStr){
   const chips=[];
@@ -649,6 +660,44 @@ function normalizeDateInput(val){
   const m2=val.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
   if(m2){let y=parseInt(m2[3]);if(y<100)y+=2000;return y+'-'+m2[1].padStart(2,'0')+'-'+m2[2].padStart(2,'0')}
   return val;
+}
+
+function exportPDF(){
+  const startStr=$('#pdfStart')?.value||isoDate(TODAY);const endStr=$('#pdfEnd')?.value||'2026-05-15';
+  const exclCN=$('#pdfExclCN')?.checked;const exclPersonal=$('#pdfExclPersonal')?.checked;
+  const catColors={bh:'#6a7a10',wh:'#4a7018',cn:'#904828',ab:'#3a6040',custom:'#888'};
+  const catBg={bh:'rgba(106,122,16,.12)',wh:'rgba(74,112,24,.12)',cn:'rgba(144,72,40,.12)',ab:'rgba(58,96,64,.12)',custom:'rgba(128,128,128,.1)'};
+  // Dashboard section
+  const hl=(state.syllabus||[]).filter(s=>s.highlighted&&!s.done&&s.due>=startStr&&s.due<=endStr&&(!exclCN||s.cat!=='cn'));
+  const cats=['bh','wh','ab','cn','custom'].filter(c=>!exclCN||c!=='cn');
+  const groups={};cats.forEach(c=>{groups[c]=hl.filter(s=>s.cat===c)});
+  const activeCats=cats.filter(c=>groups[c].length>0);
+  let dashHtml='';
+  if(activeCats.length){
+    dashHtml='<h2 style="margin:0 0 10px;font-size:1.1rem">Dashboard — Key Deliverables</h2><table style="width:100%;border-collapse:collapse;margin-bottom:20px"><tr>'+activeCats.map(c=>`<th style="padding:6px 8px;border-bottom:2px solid ${catColors[c]};color:${catColors[c]};font-size:.85rem;text-align:center">${CAT_NAMES[c]||c}</th>`).join('')+'</tr>';
+    const mx=Math.max(...activeCats.map(c=>groups[c].length));
+    for(let r=0;r<mx;r++){dashHtml+='<tr>';activeCats.forEach(c=>{const s=groups[c][r];if(!s){dashHtml+='<td style="padding:6px;border:1px solid #e0e0e0"></td>';return}const dd=parseDate(s.due),dl=daysBetween(TODAY,dd);dashHtml+=`<td style="padding:8px;border:1px solid #e0e0e0;text-align:center;vertical-align:top;background:${catBg[c]}"><strong style="font-size:.85rem">${s.title}</strong><br><span style="font-size:.72rem;color:#666">${fmtDate(dd)}</span><br><span style="font-size:.72rem;font-weight:600;color:${dl<=7?'#c44':'#666'}">${dl<0?Math.abs(dl)+'d ago':dl===0?'TODAY':dl+'d'}</span><br><span style="font-size:.65rem;color:#888;text-transform:uppercase">${s.type}</span></td>`});dashHtml+='</tr>'}
+    dashHtml+='</table>'
+  }
+  // Syllabus section
+  const syl=(state.syllabus||[]).filter(s=>s.due>=startStr&&s.due<=endStr&&(!exclCN||s.cat!=='cn')).sort((a,b)=>a.due.localeCompare(b.due));
+  const weekMap={};syl.forEach(s=>{const wk=semesterWeekNum(parseDate(s.due));if(!weekMap[wk])weekMap[wk]=[];weekMap[wk].push(s)});
+  let sylHtml='<h2 style="margin:0 0 10px;font-size:1.1rem">Syllabus</h2>';
+  Object.keys(weekMap).map(Number).sort((a,b)=>a-b).forEach(wkN=>{
+    const wkStart=semesterWeekStart(wkN);const wkEnd=new Date(wkStart);wkEnd.setDate(wkEnd.getDate()+6);
+    sylHtml+=`<div style="margin-bottom:14px"><div style="font-weight:600;font-size:.9rem;border-bottom:1px solid #ccc;padding-bottom:3px;margin-bottom:6px">Week ${wkN} <span style="font-size:.72rem;color:#888">${fmtDateShort(wkStart)} → ${fmtDateShort(wkEnd)}</span></div>`;
+    sylHtml+='<table style="width:100%;border-collapse:collapse">';
+    weekMap[wkN].forEach(e=>{
+      const det=e.detail?e.detail.split('\n').map(l=>l.startsWith('- ')?'&nbsp;&nbsp;• '+l.substring(2):l.startsWith('+ ')?'&nbsp;&nbsp;&nbsp;&nbsp;◦ '+l.substring(2):l).join('<br>'):'';
+      const dueD=parseDate(e.due);const dueEndD=e.dueEnd?parseDate(e.dueEnd):null;
+      const dueStr=dueEndD?fmtDateShort(dueD)+' → '+fmtDateShort(dueEndD):fmtDateShort(dueD);
+      sylHtml+=`<tr style="border-bottom:1px solid #eee"><td style="padding:5px 6px;width:40px;font-size:.72rem;font-weight:700;color:${catColors[e.cat]||'#888'};vertical-align:top">${CAT_SHORT[e.cat]||e.cat}</td><td style="padding:5px 6px;width:60px;font-size:.72rem;color:#888;vertical-align:top">${dueStr}</td><td style="padding:5px 6px;vertical-align:top"><strong style="font-size:.82rem">${e.title}</strong> <span style="font-size:.6rem;text-transform:uppercase;color:#999">${e.type}</span>${det?`<div style="font-size:.74rem;color:#555;margin-top:2px;line-height:1.5">${det}</div>`:''}</td><td style="padding:5px;width:30px;font-size:.72rem;color:#888;text-align:right">${e.hours?e.hours+'h':''}</td></tr>`
+    });
+    sylHtml+='</table></div>'
+  });
+  // Build full page
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Academic Planner Export</title><style>@page{size:letter;margin:.5in}body{font-family:'Segoe UI',Arial,sans-serif;color:#222;line-height:1.4;max-width:800px;margin:0 auto;padding:20px}h1{font-size:1.3rem;margin:0 0 4px}table{page-break-inside:auto}tr{page-break-inside:avoid}</style></head><body><h1>Academic Planner</h1><p style="font-size:.78rem;color:#888;margin:0 0 18px">${fmtDate(parseDate(startStr))} through ${fmtDate(parseDate(endStr))}</p>${dashHtml}${sylHtml}</body></html>`;
+  const w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(()=>w.print(),400)
 }
 
 function openCalPick(targetId){
@@ -810,7 +859,8 @@ function importState(){
   };
   input.click();
 }
-async function init(){await loadState();render();handleUrlAction();updateConn(navigator.onLine?'online':'offline');window.addEventListener('online',()=>{updateConn('online');syncIfDirty()});window.addEventListener('offline',()=>{updateConn('offline')});if(localStorage.getItem(SKEY+'-dirty'))syncIfDirty();if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW reg failed:',e))}}
+function bumpOverdueTasks(){const todayStr=isoDate(TODAY);let bumped=false;state.tasks.forEach(t=>{if(!t.done&&t.date<todayStr){t.date=todayStr;bumped=true}});if(bumped)scheduleSave()}
+async function init(){await loadState();bumpOverdueTasks();render();handleUrlAction();updateConn(navigator.onLine?'online':'offline');window.addEventListener('online',()=>{updateConn('online');syncIfDirty()});window.addEventListener('offline',()=>{updateConn('offline')});if(localStorage.getItem(SKEY+'-dirty'))syncIfDirty();if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW reg failed:',e))}}
 init();
 </script>
 </body>
