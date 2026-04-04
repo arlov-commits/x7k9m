@@ -274,6 +274,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 
 /* Event chips in sprint */
 .evt-chip{font-size:.72rem;padding:6px 10px;border-radius:10px;font-weight:500;line-height:1.3;display:inline-flex;align-items:center;gap:4px;background:var(--warning-dim);color:var(--warning);border:1px dashed var(--warning);cursor:default;position:relative}
+.evt-chip.evt-past{opacity:.35;text-decoration:line-through}
 .evt-chip[data-tip]::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);padding:3px 8px;background:var(--text);color:var(--bg);font-size:.62rem;font-weight:600;border-radius:4px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;z-index:20}
 .evt-chip[data-tip]:hover::after{opacity:1}
 
@@ -482,7 +483,8 @@ wk.days.forEach(day=>{if((state.hiddenDays||[]).includes(day.date))return;const 
 const dayEvts=getEventsForDate(day.date);const sylChips=getSylForDate(day.date);const SYL_EMOJI={reading:'📖',paper:'📝',exam:'📋',presentation:'🎤',custom:'📌'};
 // Build unified sorted pill list
 const pills=[];
-dayEvts.forEach(ev=>pills.push({type:'evt',time:ev.startTime||'',html:`<span class="evt-chip" data-tip="${ev.tip}">📅 ${ev.label}</span>`}));
+const _now=new Date();
+dayEvts.forEach(ev=>{const et=ev.endTime||ev.startTime||'';let evPast=false;if(isT&&et){const[eh,em]=et.split(':').map(Number);evPast=_now.getHours()>eh||(_now.getHours()===eh&&_now.getMinutes()>=em)}else if(day.dateObj<TODAY)evPast=true;pills.push({type:'evt',time:ev.startTime||'',html:`<span class="evt-chip${evPast?' evt-past':''}" data-tip="${ev.tip}">📅 ${ev.label}</span>`})});
 sylChips.forEach(sc=>pills.push({type:'syl',time:'',html:`<span class="chip ${sc.cat} syl-mirror" data-tip="${CAT_NAMES[sc.cat]||sc.cat} · ${sc.type}">${SYL_EMOJI[sc.type]||'📌'} ${sc.title}${sc.label}</span>`}));
 tasks.forEach(t=>pills.push({type:'task',time:t.time||'',html:renderChip(t)}));
 pills.sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
@@ -553,7 +555,7 @@ const fmtT=t=>{if(!t)return'';const[h,m]=t.split(':');const hr=parseInt(h);retur
 let label=e.name;
 if(end!==start){const s=parseDate(start),en=parseDate(end),c=parseDate(dateStr);const total=Math.round((en-s)/864e5)+1;const day=Math.round((c-s)/864e5)+1;label+=` (${day}/${total})`}
 const tip=[e.allDay?'All day':(e.startTime?fmtT(e.startTime)+(e.endTime?'–'+fmtT(e.endTime):''):''),e.location].filter(Boolean).join(' · ');
-chips.push({label,tip:tip||e.name,startTime:e.startTime||''})}});
+chips.push({label,tip:tip||e.name,startTime:e.startTime||'',endTime:e.endTime||'',endDate:end})}});
 return chips}
 
 function renderPrint(){
@@ -585,7 +587,8 @@ const weekNums=Object.keys(weekMap).map(Number).sort((a,b)=>a-b);
 let h=`<div class="life-header"><span class="life-title">Syllabus</span><span class="legend-hint">${rem} remaining · ${done} complete</span></div>`;
 h+=`<div style="margin-bottom:14px"><button class="life-btn" onclick="toggleEl('sylAddForm')">+ Add Entry</button></div><div id="sylAddForm" style="display:none"><div class="syl-add-form"><input id="sylNewTitle" placeholder="Title" style="flex:2;min-width:120px"/><select id="sylNewCat"><option value="bh">BH</option><option value="wh">WH</option><option value="ab">ABI</option><option value="cn">CH</option><option value="custom">✎ Custom</option></select><select id="sylNewType"><option value="reading">Reading</option><option value="paper">Paper</option><option value="exam">Exam</option><option value="presentation">Presentation</option><option value="custom">Custom</option></select><div class="labeled-field"><label>Due</label><div style="display:flex;gap:0"><input id="sylNewDue" type="text" placeholder="M/D" style="width:80px;border-radius:6px 0 0 6px"/><button class="cal-pick-btn" onclick="openCalPick('sylNewDue')" type="button">📅</button></div></div><button class="life-btn" onclick="addSylEntry()">Add</button></div><div style="margin-bottom:18px;margin-top:-4px"><textarea id="sylNewDetail" placeholder="Description (optional, '- ' for bullets, '+ ' for sub-bullets)" style="width:100%;min-height:36px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Outfit';font-size:.76rem;padding:6px 9px;border-radius:6px;resize:vertical"></textarea></div></div>`;
 const curWkN=semesterWeekNum(TODAY);
-const hiddenSylWks=state.hiddenSylWeeks||[];
+const todayStr=isoDate(TODAY);
+const hiddenSylDays=state.hiddenSylDays||[];
 const pastWkNums=weekNums.filter(wkN=>wkN<curWkN);
 if(pastWkNums.length){h+=`<div style="margin-bottom:14px"><button class="life-btn" onclick="toggleEl('sylPastWeeks')" style="opacity:.6;font-size:.68rem">${pastWkNums.length} past week${pastWkNums.length>1?'s':''} (show)</button></div><div id="sylPastWeeks" style="display:none">`}
 weekNums.forEach(wkN=>{
@@ -594,18 +597,25 @@ weekNums.forEach(wkN=>{
   const wkEnd=new Date(wkStart);wkEnd.setDate(wkEnd.getDate()+6);
   const isCur=TODAY>=wkStart&&TODAY<=wkEnd;
   const isPast=wkN<curWkN;
-  if(isPast&&pastWkNums.indexOf(wkN)===pastWkNums.length-1){/* last past week ends the hidden div after rendering */}
-  if(hiddenSylWks.includes(wkN)){h+=`<div style="margin-bottom:10px"><button class="life-btn" onclick="expandSylWeek(${wkN})" style="opacity:.5;font-size:.68rem">Week ${wkN} (hidden, ${entries.length} entries) ▼</button></div>`;if(isPast&&wkN===pastWkNums[pastWkNums.length-1])h+='</div>';return}
-  h+=`<div class="syl-week-section"><div class="syl-week-hdr">Week ${wkN}${isCur?' <span class="week-badge current">This Week</span>':''} <span class="syl-week-dates">${fmtDateShort(wkStart)} → ${fmtDateShort(wkEnd)}</span>${isCur?`<button class="hide-day-btn" onclick="hideSylWeek(${wkN})" title="Hide this week" style="margin-left:8px">hide</button>`:''}</div>`;
+  // Filter entries: auto-hide past days in current week, respect hiddenSylDays
+  const visibleEntries=isCur?entries.filter(e=>{
+    const effDue=e.dueEnd||e.due;
+    if(effDue<todayStr)return false;
+    if(hiddenSylDays.includes(e.due))return false;
+    return true;
+  }):entries;
+  const hiddenCount=entries.length-visibleEntries.length;
+  h+=`<div class="syl-week-section"><div class="syl-week-hdr">Week ${wkN}${isCur?' <span class="week-badge current">This Week</span>':''} <span class="syl-week-dates">${fmtDateShort(wkStart)} → ${fmtDateShort(wkEnd)}</span>${isCur&&hiddenCount?`<button class="expand-week-btn" onclick="expandSylDays(${wkN})" title="Show ${hiddenCount} hidden" style="margin-left:8px;font-size:.66rem;opacity:.6;cursor:pointer;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 6px;color:var(--text-dim)">▼ ${hiddenCount} hidden</button>`:''}</div>`;
   // Sub-group by due+cat for rowspan
   const groups=[];
-  entries.forEach(e=>{
+  visibleEntries.forEach(e=>{
     const key=e.due+'|'+e.cat;
     if(!groups.length||groups[groups.length-1].key!==key)groups.push({key,cat:e.cat,due:e.due,entries:[e]});
     else groups[groups.length-1].entries.push(e);
   });
   h+=`<table class="syl-table"><tbody>`;
   groups.forEach(g=>{
+    const isToday=g.due===todayStr;
     g.entries.forEach((e,ei)=>{
       const dueD=parseDate(e.due),dl=daysBetween(TODAY,dueD);
       const dueEndD=e.dueEnd?parseDate(e.dueEnd):null;
@@ -623,7 +633,7 @@ weekNums.forEach(wkN=>{
         const dotStyle=e.cat==='custom'?'background:var(--text-muted)':'background:var(--accent-'+e.cat+')';
         h+=`<td class="syl-class-cell"${g.entries.length>1?' rowspan="'+g.entries.length+'"':''}><span class="syl-dot" style="${dotStyle}"></span>${CAT_SHORT[e.cat]||e.cat}</td>`;
         const dowLabel=dueEndD?dowStr+' → '+dowEndStr:dowStr;
-        h+=`<td class="syl-due-cell"${g.entries.length>1?' rowspan="'+g.entries.length+'"':''}>${dueStr}<span class="syl-due-dow">${dowLabel}</span><span class="syl-days ${urgClass}">${daysStr}</span></td>`;
+        h+=`<td class="syl-due-cell"${g.entries.length>1?' rowspan="'+g.entries.length+'"':''}>${dueStr}<span class="syl-due-dow">${dowLabel}</span><span class="syl-days ${urgClass}">${daysStr}</span>${isToday&&isCur?`<button class="hide-day-btn" onclick="hideSylDay('${e.due}')" style="margin-top:2px">hide</button>`:''}</td>`;
       }
       const detailHtml=e.detail?e.detail.split('\n').map(line=>line.startsWith('- ')?`<div class="syl-bullet">${line.substring(2)}</div>`:line.startsWith('+ ')?`<div class="syl-sub-bullet">${line.substring(2)}</div>`:`<div>${line}</div>`).join(''):'';
       h+=`<td><span class="syl-title-text" ondblclick="inlineSylEdit(${e.id},'title',this)">${e.title}</span><span class="syl-type-tag ${e.type}">${e.type==='custom'?'custom':e.type}</span>${detailHtml?`<div class="syl-detail-text" ondblclick="inlineSylEdit(${e.id},'detail',this)">${detailHtml}</div>`:''}</td>`;
@@ -840,6 +850,8 @@ function lifeCatDrop(e,targetCat){e.preventDefault();e.currentTarget.classList.r
 // ===== SYLLABUS =====
 function hideSylWeek(wkN){if(!state.hiddenSylWeeks)state.hiddenSylWeeks=[];if(!state.hiddenSylWeeks.includes(wkN))state.hiddenSylWeeks.push(wkN);render();scheduleSave()}
 function expandSylWeek(wkN){state.hiddenSylWeeks=(state.hiddenSylWeeks||[]).filter(w=>w!==wkN);render();scheduleSave()}
+function hideSylDay(date){if(!state.hiddenSylDays)state.hiddenSylDays=[];if(!state.hiddenSylDays.includes(date))state.hiddenSylDays.push(date);render();scheduleSave()}
+function expandSylDays(wkN){const weeks=generateWeeks();const wk=weeks.find(w=>w.num===wkN);if(!wk){state.hiddenSylDays=[];render();scheduleSave();return}const dates=wk.days.map(d=>d.date);state.hiddenSylDays=(state.hiddenSylDays||[]).filter(d=>!dates.includes(d));render();scheduleSave()}
 function toggleSylHL(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=!s.highlighted;render();scheduleSave()}
 function toggleSylDone(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.done=!s.done;if(s.done){state.tasks.forEach(t=>{if(t.syllabusId===id)t.done=true})}render();scheduleSave()}
 function inlineSylEdit(id,field,el){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;
@@ -894,10 +906,50 @@ function importState(){
 function bumpOverdueTasks(){const todayStr=isoDate(TODAY);let bumped=false;state.tasks.forEach(t=>{if(!t.done&&t.date<todayStr){t.date=todayStr;bumped=true}});if(bumped)scheduleSave()}
 async function init(){await loadState();bumpOverdueTasks();render();handleUrlAction();updateConn(navigator.onLine?'online':'offline');window.addEventListener('online',()=>{updateConn('online');syncIfDirty()});window.addEventListener('offline',()=>{updateConn('offline')});if(localStorage.getItem(SKEY+'-dirty'))syncIfDirty();if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW reg failed:',e))}}
 init();
-// Swipe navigation
-let _swX=0,_swY=0;
-document.addEventListener('touchstart',e=>{_swX=e.touches[0].clientX;_swY=e.touches[0].clientY},{passive:true});
-document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-_swX,dy=e.changedTouches[0].clientY-_swY;if(Math.abs(dx)<120||Math.abs(dy)>Math.abs(dx)*0.5)return;const tabs=['sprints','syllabus','life','events','print','notes','dashboard'];const ci=tabs.indexOf(state.activeTab);if(ci<0)return;if(dx<0){switchTab(tabs[(ci+1)%tabs.length])}else{switchTab(tabs[(ci-1+tabs.length)%tabs.length])}},{passive:true});
+// Swipe navigation — dynamic, app-like
+(function(){
+const TABS=['sprints','syllabus','life','events','print','notes','dashboard'];
+let sx=0,sy=0,st=0,tracking=false,decided=false,isSwipe=false;
+function getView(){return document.querySelector('.view.active')}
+document.addEventListener('touchstart',e=>{
+  sx=e.touches[0].clientX;sy=e.touches[0].clientY;st=Date.now();
+  tracking=true;decided=false;isSwipe=false;
+},{passive:true});
+document.addEventListener('touchmove',e=>{
+  if(!tracking)return;
+  const dx=e.touches[0].clientX-sx,dy=e.touches[0].clientY-sy;
+  if(!decided){
+    if(Math.abs(dx)>10||Math.abs(dy)>10){
+      decided=true;
+      isSwipe=Math.abs(dx)>Math.abs(dy)*1.8&&Math.abs(dx)>15;
+    }
+    if(!isSwipe)return;
+  }
+  if(!isSwipe)return;
+  const v=getView();
+  if(v){v.style.transition='none';v.style.transform='translateX('+dx+'px)';v.style.opacity=Math.max(0.3,1-Math.abs(dx)/window.innerWidth*0.7)}
+},{passive:true});
+document.addEventListener('touchend',e=>{
+  if(!tracking){return}tracking=false;
+  const v=getView();
+  if(!isSwipe||!decided){if(v){v.style.transition='';v.style.transform='';v.style.opacity=''}return}
+  const dx=e.changedTouches[0].clientX-sx;
+  const dt=Date.now()-st;
+  const vel=Math.abs(dx)/(dt||1)*1000;
+  const threshold=window.innerWidth*0.25;
+  const commit=Math.abs(dx)>threshold||vel>600;
+  if(commit){
+    const ci=TABS.indexOf(state.activeTab);
+    if(ci<0){if(v){v.style.transition='';v.style.transform='';v.style.opacity=''}return}
+    const dir=dx<0?1:-1;
+    const ni=(ci+dir+TABS.length)%TABS.length;
+    if(v){v.style.transition='transform .18s ease-out, opacity .18s ease-out';v.style.transform='translateX('+(dir*-window.innerWidth)+'px)';v.style.opacity='0'}
+    setTimeout(()=>{switchTab(TABS[ni]);const nv=getView();if(nv){nv.style.transition='none';nv.style.transform='translateX('+(dir*window.innerWidth)+'px)';nv.style.opacity='0';requestAnimationFrame(()=>{nv.style.transition='transform .18s ease-out, opacity .18s ease-out';nv.style.transform='';nv.style.opacity=''})}},180);
+  } else {
+    if(v){v.style.transition='transform .22s ease-out, opacity .22s ease-out';v.style.transform='';v.style.opacity=''}
+  }
+},{passive:true});
+})();
 </script>
 </body>
 </html>
