@@ -527,12 +527,13 @@ return h}
 function renderEvents(){
 const evts=(state.events||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
 const now=new Date();
-function evtIsPast(e){const ed=e.endDate||e.date;const endDate=parseDate(ed);if(endDate>TODAY)return false;if(endDate<TODAY)return true;const endTime=e.endTime||e.startTime||'';if(!endTime)return now.getHours()>=23;const[h,m]=endTime.split(':').map(Number);return now.getHours()>h||(now.getHours()===h&&now.getMinutes()>=m)}
-const upcoming=evts.filter(e=>!evtIsPast(e));
-const past=evts.filter(e=>evtIsPast(e));
+function evtDatePast(e){const ed=e.endDate||e.date;return parseDate(ed)<TODAY}
+function evtTimePast(e){const ed=e.endDate||e.date;const endDate=parseDate(ed);if(endDate>TODAY)return false;if(endDate<TODAY)return true;const endTime=e.endTime||e.startTime||'';if(!endTime)return now.getHours()>=23;const[h,m]=endTime.split(':').map(Number);return now.getHours()>h||(now.getHours()===h&&now.getMinutes()>=m)}
+const upcoming=evts.filter(e=>!evtDatePast(e));
+const past=evts.filter(e=>evtDatePast(e));
 let h=`<div class="life-header"><span class="life-title">Events</span><span class="legend-hint">${evts.length} total</span></div>`;
 const _rh=roundedHour();h+=`<div class="evt-add-form"><input id="evtNewName" placeholder="Event name" style="flex:2;min-width:120px"/><div class="labeled-field"><label>Date</label><input id="evtNewDate" type="date" placeholder="Date"/></div><div class="labeled-field"><label>Start</label><input id="evtNewStart" type="time" value="${_rh}" placeholder="Start" style="width:100px"/></div><div class="labeled-field"><label>End</label><input id="evtNewEnd" type="time" placeholder="End" style="width:100px"/></div><input id="evtNewLoc" placeholder="Location" style="width:120px"/><button class="life-btn" onclick="addEvent()">+ Add</button></div>`;
-if(upcoming.length){h+=`<div class="evt-list">`;upcoming.forEach(e=>h+=renderEvtItem(e,false));h+=`</div>`}
+if(upcoming.length){h+=`<div class="evt-list">`;upcoming.forEach(e=>h+=renderEvtItem(e,evtTimePast(e)));h+=`</div>`}
 if(past.length){h+=`<div class="evt-list"><div class="life-cat-hdr" style="opacity:.5">Past Events (${past.length})</div>`;past.forEach(e=>h+=renderEvtItem(e,true));h+=`</div>`}
 return h}
 
@@ -583,12 +584,19 @@ syl.forEach(s=>{
 const weekNums=Object.keys(weekMap).map(Number).sort((a,b)=>a-b);
 let h=`<div class="life-header"><span class="life-title">Syllabus</span><span class="legend-hint">${rem} remaining · ${done} complete</span></div>`;
 h+=`<div style="margin-bottom:14px"><button class="life-btn" onclick="toggleEl('sylAddForm')">+ Add Entry</button></div><div id="sylAddForm" style="display:none"><div class="syl-add-form"><input id="sylNewTitle" placeholder="Title" style="flex:2;min-width:120px"/><select id="sylNewCat"><option value="bh">BH</option><option value="wh">WH</option><option value="ab">ABI</option><option value="cn">CH</option><option value="custom">✎ Custom</option></select><select id="sylNewType"><option value="reading">Reading</option><option value="paper">Paper</option><option value="exam">Exam</option><option value="presentation">Presentation</option><option value="custom">Custom</option></select><div class="labeled-field"><label>Due</label><div style="display:flex;gap:0"><input id="sylNewDue" type="text" placeholder="M/D" style="width:80px;border-radius:6px 0 0 6px"/><button class="cal-pick-btn" onclick="openCalPick('sylNewDue')" type="button">📅</button></div></div><button class="life-btn" onclick="addSylEntry()">Add</button></div><div style="margin-bottom:18px;margin-top:-4px"><textarea id="sylNewDetail" placeholder="Description (optional, '- ' for bullets, '+ ' for sub-bullets)" style="width:100%;min-height:36px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Outfit';font-size:.76rem;padding:6px 9px;border-radius:6px;resize:vertical"></textarea></div></div>`;
+const curWkN=semesterWeekNum(TODAY);
+const hiddenSylWks=state.hiddenSylWeeks||[];
+const pastWkNums=weekNums.filter(wkN=>wkN<curWkN);
+if(pastWkNums.length){h+=`<div style="margin-bottom:14px"><button class="life-btn" onclick="toggleEl('sylPastWeeks')" style="opacity:.6;font-size:.68rem">${pastWkNums.length} past week${pastWkNums.length>1?'s':''} (show)</button></div><div id="sylPastWeeks" style="display:none">`}
 weekNums.forEach(wkN=>{
   const entries=weekMap[wkN];
   const wkStart=semesterWeekStart(wkN);
   const wkEnd=new Date(wkStart);wkEnd.setDate(wkEnd.getDate()+6);
   const isCur=TODAY>=wkStart&&TODAY<=wkEnd;
-  h+=`<div class="syl-week-section"><div class="syl-week-hdr">Week ${wkN}${isCur?' <span class="week-badge current">This Week</span>':''} <span class="syl-week-dates">${fmtDateShort(wkStart)} → ${fmtDateShort(wkEnd)}</span></div>`;
+  const isPast=wkN<curWkN;
+  if(isPast&&pastWkNums.indexOf(wkN)===pastWkNums.length-1){/* last past week ends the hidden div after rendering */}
+  if(hiddenSylWks.includes(wkN)){h+=`<div style="margin-bottom:10px"><button class="life-btn" onclick="expandSylWeek(${wkN})" style="opacity:.5;font-size:.68rem">Week ${wkN} (hidden, ${entries.length} entries) ▼</button></div>`;if(isPast&&wkN===pastWkNums[pastWkNums.length-1])h+='</div>';return}
+  h+=`<div class="syl-week-section"><div class="syl-week-hdr">Week ${wkN}${isCur?' <span class="week-badge current">This Week</span>':''} <span class="syl-week-dates">${fmtDateShort(wkStart)} → ${fmtDateShort(wkEnd)}</span>${isCur?`<button class="hide-day-btn" onclick="hideSylWeek(${wkN})" title="Hide this week" style="margin-left:8px">hide</button>`:''}</div>`;
   // Sub-group by due+cat for rowspan
   const groups=[];
   entries.forEach(e=>{
@@ -624,6 +632,7 @@ weekNums.forEach(wkN=>{
     });
   });
   h+=`</tbody></table></div>`;
+  if(isPast&&wkN===pastWkNums[pastWkNums.length-1])h+='</div>';
 });
 return h}
 
@@ -829,6 +838,8 @@ function lifeCatDragLeave(e){e.currentTarget.classList.remove('drag-over')}
 function lifeCatDrop(e,targetCat){e.preventDefault();e.currentTarget.classList.remove('drag-over');if(lifeDragId!==null){const t=state.lifeTasks.find(t=>t.id===lifeDragId);if(t){t.category=targetCat;lifeDragId=null;render();scheduleSave();return}}if(dragCatName&&dragCatName!==targetCat){if(!state.catOrder)state.catOrder=[];const cats=new Set();state.lifeTasks.filter(t=>!t.done).forEach(t=>{const c=t.category||'General';cats.add(c)});let order=state.catOrder.filter(c=>cats.has(c));cats.forEach(c=>{if(!order.includes(c))order.push(c)});const fi=order.indexOf(dragCatName),ti=order.indexOf(targetCat);if(fi>=0&&ti>=0){order.splice(fi,1);order.splice(ti,0,dragCatName);state.catOrder=order}dragCatName=null;render();scheduleSave()}}
 
 // ===== SYLLABUS =====
+function hideSylWeek(wkN){if(!state.hiddenSylWeeks)state.hiddenSylWeeks=[];if(!state.hiddenSylWeeks.includes(wkN))state.hiddenSylWeeks.push(wkN);render();scheduleSave()}
+function expandSylWeek(wkN){state.hiddenSylWeeks=(state.hiddenSylWeeks||[]).filter(w=>w!==wkN);render();scheduleSave()}
 function toggleSylHL(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=!s.highlighted;render();scheduleSave()}
 function toggleSylDone(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.done=!s.done;if(s.done){state.tasks.forEach(t=>{if(t.syllabusId===id)t.done=true})}render();scheduleSave()}
 function inlineSylEdit(id,field,el){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;
@@ -886,7 +897,7 @@ init();
 // Swipe navigation
 let _swX=0,_swY=0;
 document.addEventListener('touchstart',e=>{_swX=e.touches[0].clientX;_swY=e.touches[0].clientY},{passive:true});
-document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-_swX,dy=e.changedTouches[0].clientY-_swY;if(Math.abs(dx)<60||Math.abs(dy)>Math.abs(dx)*0.7)return;const tabs=['sprints','syllabus','life','events','print','notes','dashboard'];const ci=tabs.indexOf(state.activeTab);if(ci<0)return;if(dx<0){switchTab(tabs[(ci+1)%tabs.length])}else{switchTab(tabs[(ci-1+tabs.length)%tabs.length])}},{passive:true});
+document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-_swX,dy=e.changedTouches[0].clientY-_swY;if(Math.abs(dx)<120||Math.abs(dy)>Math.abs(dx)*0.5)return;const tabs=['sprints','syllabus','life','events','print','notes','dashboard'];const ci=tabs.indexOf(state.activeTab);if(ci<0)return;if(dx<0){switchTab(tabs[(ci+1)%tabs.length])}else{switchTab(tabs[(ci-1+tabs.length)%tabs.length])}},{passive:true});
 </script>
 </body>
 </html>
