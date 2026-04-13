@@ -80,6 +80,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 .dc-days{font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:600;margin-top:2px}
 .dc-days.urgent{color:var(--danger)}.dc-days.soon{color:var(--warning)}.dc-days.ok{color:var(--ok)}.dc-days.past{color:var(--text-muted);text-decoration:line-through}
 .dash-past{opacity:.4}
+.dash-cell{position:relative}.dash-cell .dc-close{display:none;position:absolute;top:4px;right:4px;background:var(--surface3);border:1px solid var(--border);color:var(--text-muted);width:20px;height:20px;border-radius:50%;font-size:.65rem;cursor:pointer;align-items:center;justify-content:center;line-height:1;z-index:5;transition:all .12s}.dash-cell .dc-close:hover{background:var(--danger-dim);color:var(--danger);border-color:var(--danger)}.dash-cell.dc-active .dc-close{display:flex}
 .dc-tag{display:inline-block;font-size:.58rem;font-weight:700;text-transform:uppercase;padding:1px 5px;border-radius:3px;margin-top:4px}
 .notes-box{background:var(--surface);border-radius:9px;padding:14px 18px;margin-bottom:20px;border:1px solid var(--border)}
 .notes-box-title{font-weight:700;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim);margin-bottom:6px}
@@ -444,18 +445,14 @@ function updateCombo(){const el=document.getElementById('comboStatus');const tx=
 async function loadState(){
 let localData=null,localTime=null;
 try{const raw=localStorage.getItem(SKEY);if(raw){localData=JSON.parse(raw);localTime=localStorage.getItem(SKEY+'-time')}}catch(e){}
-// If local data is recent (< 2 hours), skip remote fetch and apply immediately
-const localAge=localTime?(Date.now()-new Date(localTime)):Infinity;
-let chosen=null;
-if(localData&&localAge<2*60*60*1000){chosen=localData}
+if(localData){applyChosenState(localData);lastSaveTime=new Date();saveStatus='saved'}
 else{
-  let remoteData=null,remoteTime=null;
-  try{const remote=await sbGet();if(remote){remoteData=remote.data;remoteTime=remote.updated}}catch(e){}
-  if(localData&&remoteData){const lt=localTime?new Date(localTime):new Date(0);const rt=remoteTime?new Date(remoteTime):new Date(0);chosen=rt>lt?remoteData:localData}
-  else if(remoteData){chosen=remoteData}
-  else if(localData){chosen=localData}
-}
-if(chosen){if(chosen.lifeTasks)chosen.lifeTasks=chosen.lifeTasks.map(t=>({category:'General',priority:'med',inBank:false,...t}));if(chosen.tasks)chosen.tasks=chosen.tasks.map(t=>({lifeSourceId:null,syllabusId:null,...t}));if(!chosen.hiddenDays)chosen.hiddenDays=[];if(!chosen.events)chosen.events=defaultEvents();if(!chosen.syllabus)chosen.syllabus=defaultSyllabus();if(!chosen.notes)chosen.notes=[];if(!chosen.catOrder)chosen.catOrder=[];state={...state,...chosen};lastSaveTime=new Date();saveStatus='saved'}}
+  let remoteData=null;
+  try{const remote=await sbGet();if(remote)remoteData=remote.data}catch(e){}
+  if(remoteData){applyChosenState(remoteData);lastSaveTime=new Date();saveStatus='saved'}
+}}
+function applyChosenState(chosen){if(chosen.lifeTasks)chosen.lifeTasks=chosen.lifeTasks.map(t=>({category:'General',priority:'med',inBank:false,...t}));if(chosen.tasks)chosen.tasks=chosen.tasks.map(t=>({lifeSourceId:null,syllabusId:null,...t}));if(!chosen.hiddenDays)chosen.hiddenDays=[];if(!chosen.events)chosen.events=defaultEvents();if(!chosen.syllabus)chosen.syllabus=defaultSyllabus();if(!chosen.notes)chosen.notes=[];if(!chosen.catOrder)chosen.catOrder=[];state={...state,...chosen}}
+async function checkRemoteSync(){try{const remote=await sbGet();if(!remote)return;const localTime=localStorage.getItem(SKEY+'-time');const lt=localTime?new Date(localTime):new Date(0);const rt=remote.updated?new Date(remote.updated):new Date(0);if(rt>lt){applyChosenState(remote.data);localStorage.setItem(SKEY,JSON.stringify(state));localStorage.setItem(SKEY+'-time',remote.updated);lastSaveTime=new Date();saveStatus='saved';render()}}catch(e){}}
 
 const $=s=>document.querySelector(s);
 let allocatingId=null,addingDate=null;
@@ -484,7 +481,7 @@ function renderDash(){
   const mx=Math.max(...activeCats.map(c=>groups[c].length));
   h+=`<div class="life-header"><span class="life-title">Dashboard</span><span class="legend-hint">${hl.length} highlighted</span></div>`;
   h+=`<div class="dash-table"><div class="dash-col-hdrs" style="display:grid;grid-template-columns:${gc};gap:8px">${activeCats.map(c=>`<div class="dash-col-hdr ${c}">${CAT_NAMES[c]||c}</div>`).join('')}</div>`;
-  for(let r=0;r<mx;r++){h+=`<div class="dash-grid-row" style="display:grid;grid-template-columns:${gc};gap:8px;margin-top:6px">`;activeCats.forEach(c=>{const s=groups[c][r];if(!s){h+=`<div class="dash-cell dash-cell-empty"></div>`;return}const dd=parseDate(s.due),dl=daysBetween(TODAY,dd),uc=dl<0?'past':dl<=7?'urgent':dl<=21?'soon':'ok',ds=dl<0?Math.abs(dl)+'d ago':dl===0?'TODAY':dl+'d';h+=`<div class="dash-cell${uc==='past'?' dash-past':''}"><button onclick="dashUnstar(${s.id})" style="background:0;border:0;cursor:pointer;font-size:.8rem;float:right;opacity:.7;color:var(--warning)" title="Un-highlight">★</button><div class="dc-title">${s.title}</div><div class="dc-due">${fmtDate(dd)}</div><div class="dc-days ${uc}">${ds}</div><span class="dc-tag" style="background:var(--accent-${c}-dim,var(--surface3));color:var(--accent-${c},var(--text-dim))">${s.type}</span></div>`});h+='</div>'}
+  for(let r=0;r<mx;r++){h+=`<div class="dash-grid-row" style="display:grid;grid-template-columns:${gc};gap:8px;margin-top:6px">`;activeCats.forEach(c=>{const s=groups[c][r];if(!s){h+=`<div class="dash-cell dash-cell-empty"></div>`;return}const dd=parseDate(s.due),dl=daysBetween(TODAY,dd),uc=dl<0?'past':dl<=7?'urgent':dl<=21?'soon':'ok',ds=dl<0?Math.abs(dl)+'d ago':dl===0?'TODAY':dl+'d';h+=`<div class="dash-cell${uc==='past'?' dash-past':''}" onclick="this.classList.toggle('dc-active')"><button class="dc-close" onclick="event.stopPropagation();dashUnstar(${s.id})" title="Un-highlight">✕</button><div class="dc-title">${s.title}</div><div class="dc-due">${fmtDate(dd)}</div><div class="dc-days ${uc}">${ds}</div><span class="dc-tag" style="background:var(--accent-${c}-dim,var(--surface3));color:var(--accent-${c},var(--text-dim))">${s.type}</span></div>`});h+='</div>'}
   h+='</div>';return h}
 
 function renderSprints(){const weeks=generateWeeks();const bankTasks=state.lifeTasks.filter(t=>t.inBank&&!t.done&&!state.tasks.some(s=>s.lifeSourceId===t.id));
@@ -522,7 +519,7 @@ const fmtChipTime=t.time?((h,m)=>{const hr=parseInt(h);return(hr>12?hr-12:hr||12
 return`<span class="chip ${t.cat} ${t.priority==='high'?'high':''} ${t.done?'done':''}" draggable="true" data-id="${t.id}" data-tip="${_tip}" onclick="event.stopPropagation();toggleChipMenu(${t.id},this)" ondblclick="event.stopPropagation();inlineEditChip(${t.id},this)" ondragstart="dragId=${t.id};event.dataTransfer.setData('text/plain','${t.id}');event.dataTransfer.effectAllowed='move';this.classList.add('dragging')" ondragend="this.classList.remove('dragging')">${t.priority==='high'?'<span style="font-size:.58rem">★</span>':''}${fmtChipTime?'<span style="font-size:.64rem;opacity:.7">'+fmtChipTime+'</span> ':''}${t.name}${t.hours>0?' ('+t.hours+'h)':''}${acts}</span>`}
 
 function toggleChipMenu(id,el){const wasOpen=el.classList.contains('menu-open');document.querySelectorAll('.chip.menu-open').forEach(c=>{if(c!==el)c.classList.remove('menu-open')});el.classList.toggle('menu-open');if(!wasOpen){el.classList.add('menu-activating');setTimeout(()=>el.classList.remove('menu-activating'),250)}}
-document.addEventListener('click',e=>{if(!e.target.closest('.chip'))document.querySelectorAll('.chip.menu-open').forEach(c=>c.classList.remove('menu-open'))});
+document.addEventListener('click',e=>{if(!e.target.closest('.chip'))document.querySelectorAll('.chip.menu-open').forEach(c=>c.classList.remove('menu-open'));if(!e.target.closest('.dash-cell'))document.querySelectorAll('.dash-cell.dc-active').forEach(c=>c.classList.remove('dc-active'))});
 
 function renderLife(){const op=state.lifeTasks.filter(t=>!t.done),dn=state.lifeTasks.filter(t=>t.done);const cats={};op.forEach(t=>{const c=t.category||'General';if(!cats[c])cats[c]=[];cats[c].push(t)});Object.values(cats).forEach(a=>a.sort((a,b)=>(PRI_ORDER[a.priority]||3)-(PRI_ORDER[b.priority]||3)));
 const catKeys=Object.keys(cats);const order=state.catOrder||[];const sortedCats=order.filter(c=>catKeys.includes(c)).concat(catKeys.filter(c=>!order.includes(c)));
@@ -932,7 +929,7 @@ function importState(){
   input.click();
 }
 function bumpOverdueTasks(){const todayStr=isoDate(TODAY);let changed=false;const toReturn=state.tasks.filter(t=>!t.done&&t.date<todayStr);toReturn.forEach(t=>{if(t.lifeSourceId){const lt=state.lifeTasks.find(l=>l.id===t.lifeSourceId);if(lt){lt.inBank=true}}else{state.lifeTasks.push({id:state.nextId++,name:t.name,hours:t.hours||0,category:'General',priority:t.priority==='high'?'high':'med',due:'',done:false,inBank:true})}changed=true});state.tasks=state.tasks.filter(t=>t.done||t.date>=todayStr);if(changed)scheduleSave()}
-async function init(){await loadState();bumpOverdueTasks();render();handleUrlAction();updateConn(navigator.onLine?'online':'offline');window.addEventListener('online',()=>{updateConn('online');syncIfDirty()});window.addEventListener('offline',()=>{updateConn('offline')});if(localStorage.getItem(SKEY+'-dirty'))syncIfDirty();if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW reg failed:',e))}}
+async function init(){await loadState();bumpOverdueTasks();render();handleUrlAction();updateConn(navigator.onLine?'online':'offline');checkRemoteSync();window.addEventListener('online',()=>{updateConn('online');syncIfDirty();checkRemoteSync()});window.addEventListener('offline',()=>{updateConn('offline')});if(localStorage.getItem(SKEY+'-dirty'))syncIfDirty();if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW reg failed:',e))}}
 init();
 
 </script>
