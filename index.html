@@ -91,7 +91,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 .week-hdr{display:flex;align-items:baseline;gap:9px;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid var(--border);flex-wrap:wrap}
 .week-hdr-title{font-family:'Crimson Pro',serif;font-size:1.15rem;font-weight:600}
 .week-hdr-dates{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--text-dim)}
-.week-hdr-hours{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--text-muted);margin-left:auto}
+.week-hdr-hours{display:none}
 .week-badge{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 7px;border-radius:4px}
 .week-badge.current{color:var(--warning);background:var(--warning-dim)}.week-badge.break{color:var(--ok);background:var(--ok-dim)}
 
@@ -115,9 +115,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 .day-left{display:flex;flex-direction:column;gap:1px}
 .day-name{font-weight:600;font-size:.8rem}
 .day-meta{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:var(--text-dim)}
-.day-right{display:flex;align-items:center;gap:6px;min-width:70px;justify-content:flex-end}
-.day-budget{font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:600;white-space:nowrap}
-.day-budget.over{color:var(--danger)}.day-budget.under{color:var(--ok)}.day-budget.exact{color:var(--text-dim)}
+.day-right{display:flex;align-items:center;gap:6px;min-width:40px;justify-content:flex-end}
 
 /* Round + add button */
 .add-day-btn{width:26px;height:26px;border-radius:50%;border:1px dashed var(--border);background:0;color:var(--text-muted);font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
@@ -303,7 +301,6 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 .syl-title-text{font-weight:500}
 .syl-type-tag{font-size:.56rem;font-weight:700;text-transform:uppercase;padding:1px 5px;border-radius:3px;margin-left:6px;vertical-align:middle;display:inline-block}
 .syl-type-tag.reading{background:var(--surface3);color:var(--text-dim)}.syl-type-tag.paper{background:var(--danger-dim);color:var(--danger)}.syl-type-tag.exam{background:var(--warning-dim);color:var(--warning)}.syl-type-tag.presentation{background:var(--accent-ab-dim);color:var(--accent-ab)}.syl-type-tag.custom{background:var(--surface3);color:var(--text-muted)}
-.syl-hrs-cell{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--text-muted);width:36px;text-align:right}
 .syl-detail-text{font-size:.76rem;color:var(--text-dim);margin-top:4px;line-height:1.6}
 .syl-detail-edit{width:100%;margin-top:4px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Outfit';font-size:.76rem;padding:5px 8px;border-radius:4px;resize:vertical;min-height:28px;line-height:1.5}
 .syl-detail-edit:focus{outline:0;border-color:var(--text-dim)}
@@ -371,7 +368,6 @@ function semesterWeekNum(d){const diff=Math.round((d-alignedSemStart())/864e5);r
 function semesterWeekStart(wkN){const s=alignedSemStart();const d=new Date(s);d.setDate(d.getDate()+(wkN-1)*7);return d}
 
 function generateWeeks(){const end=new Date(2026,4,30),weeks=[];const wsd=state.weekStartDay;let cur=new Date(TODAY);cur.setDate(cur.getDate()-weekStartOffset(cur));let wk=semesterWeekNum(cur);while(cur<=end){const days=[];for(let i=0;i<7;i++){const d=new Date(cur);d.setDate(d.getDate()+i);if(d>end)break;days.push({date:isoDate(d),dateObj:new Date(d)})}weeks.push({num:wk,start:new Date(cur),end:new Date(cur.getTime()+6*864e5),days});cur.setDate(cur.getDate()+7);wk++}return weeks}
-function getAvailHours(ds){const d=parseDate(ds),dow=d.getDay();if(d>=new Date(2026,3,5)&&d<=new Date(2026,3,11))return 5;if(ds==='2026-03-23')return 0;if(dow===1){return Math.round((d-new Date(2026,2,30))/(7*864e5))%2===0?4:0}return[7,0,0,4,3.5,0,10][dow]}
 
 function defaultTasks(){return[]}
 
@@ -496,7 +492,7 @@ if(isLife){acts=`<span class="chip-acts"><button class="chip-btn life-return" on
 else{acts=`<span class="chip-acts"><button class="chip-btn" onclick="event.stopPropagation();toggleTaskDone(${t.id})" title="${t.done?'Undo':'Done'}">${t.done?'↩':'✓'}</button><button class="chip-btn" onclick="event.stopPropagation();openTaskEdit(${t.id})" title="Edit">✎</button><button class="chip-btn" onclick="event.stopPropagation();duplicateTask(${t.id})" title="Duplicate">⧉</button><button class="chip-btn life-remove" onclick="event.stopPropagation();deleteTask(${t.id})" title="Delete">✕</button></span>`}
 const _sylT=t.syllabusId?(state.syllabus||[]).find(s=>s.id===t.syllabusId):null;const _tip=(CAT_NAMES[t.cat]||t.cat)+(_sylT?' · '+_sylT.title:'');
 const fmtChipTime=t.time?((h,m)=>{const hr=parseInt(h);return(hr>12?hr-12:hr||12)+':'+m+(hr>=12?'p':'a')})(t.time.split(':')[0],t.time.split(':')[1]):'';
-return`<span class="chip ${t.cat} ${t.priority==='high'?'high':''} ${t.done?'done':''}" draggable="true" data-id="${t.id}" data-tip="${_tip}" onclick="event.stopPropagation();toggleChipMenu(${t.id},this)" ondblclick="event.stopPropagation();inlineEditChip(${t.id},this)" ondragstart="dragId=${t.id};event.dataTransfer.setData('text/plain','${t.id}');event.dataTransfer.effectAllowed='move';this.classList.add('dragging')" ondragend="this.classList.remove('dragging')">${t.priority==='high'?'<span style="font-size:.58rem">★</span>':''}${fmtChipTime?'<span style="font-size:.64rem;opacity:.7">'+fmtChipTime+'</span> ':''}${t.name}${t.hours>0?' ('+t.hours+'h)':''}${acts}</span>`}
+return`<span class="chip ${t.cat} ${t.priority==='high'?'high':''} ${t.done?'done':''}" draggable="true" data-id="${t.id}" data-tip="${_tip}" onclick="event.stopPropagation();toggleChipMenu(${t.id},this)" ondblclick="event.stopPropagation();inlineEditChip(${t.id},this)" ondragstart="dragId=${t.id};event.dataTransfer.setData('text/plain','${t.id}');event.dataTransfer.effectAllowed='move';this.classList.add('dragging')" ondragend="this.classList.remove('dragging')">${t.priority==='high'?'<span style="font-size:.58rem">★</span>':''}${fmtChipTime?'<span style="font-size:.64rem;opacity:.7">'+fmtChipTime+'</span> ':''}${t.name}${acts}</span>`}
 
 function toggleChipMenu(id,el){document.querySelectorAll('.chip.menu-open').forEach(c=>{if(c!==el)c.classList.remove('menu-open')});el.classList.toggle('menu-open')}
 document.addEventListener('click',e=>{if(!e.target.closest('.chip'))document.querySelectorAll('.chip.menu-open').forEach(c=>c.classList.remove('menu-open'))});
@@ -570,7 +566,7 @@ function renderPrint(){
   <div class="print-view"><div class="pv-title">Academic Plan · 7 Days</div><div class="pv-sub">${fmtDate(days[0].dateObj)} through ${fmtDate(days[6].dateObj)}</div>${days.map(day=>{const tasks=state.tasks.filter(t=>t.date===day.date),note=state.dayNotes[day.date]||'';
   const dayEvts=getEventsForDate(day.date);const evtHtml=dayEvts.map(ev=>`<span class="pv-chip" style="border-style:dashed"><span class="pv-cat">EVT</span> ${ev.label}</span>`).join('');
   const SYL_E={reading:'📖',paper:'📝',exam:'📋',presentation:'🎤',custom:'📌'};const sylCs=getSylForDate(day.date);const sylHtml=sylCs.map(sc=>{const det=sc.entry.detail?'<div style="font-size:.68rem;color:#777;margin-top:2px;line-height:1.4">'+sc.entry.detail.split('\n').map(l=>l.startsWith('- ')?'• '+l.substring(2):l.startsWith('+ ')?'  ◦ '+l.substring(2):l).join('<br>')+'</div>':'';return`<div class="pv-chip" style="border-style:dashed;opacity:.85;flex-direction:column;align-items:flex-start"><div><span class="pv-cat">${CAT_SHORT[sc.cat]||sc.cat}</span> ${SYL_E[sc.type]||'📌'} ${sc.title}${sc.label}</div>${det}</div>`}).join('');
-  return`<div class="pv-day"><div class="pv-day-hdr"><span class="pv-day-name">${fmtDate(day.dateObj)}</span></div><div class="pv-tasks">${evtHtml}${sylHtml}${tasks.map(t=>`<span class="pv-chip ${t.priority==='high'?'high':''} ${t.done?'done':''}"><span class="pv-cat">${CAT_SHORT[t.cat]||t.cat.toUpperCase()}</span> ${t.name}${t.hours>0?' ('+t.hours+'h)':''}</span>`).join('')}</div>${note?`<div class="pv-note">${note}</div>`:''}</div>`}).join('')}</div>`}
+  return`<div class="pv-day"><div class="pv-day-hdr"><span class="pv-day-name">${fmtDate(day.dateObj)}</span></div><div class="pv-tasks">${evtHtml}${sylHtml}${tasks.map(t=>`<span class="pv-chip ${t.priority==='high'?'high':''} ${t.done?'done':''}"><span class="pv-cat">${CAT_SHORT[t.cat]||t.cat.toUpperCase()}</span> ${t.name}</span>`).join('')}</div>${note?`<div class="pv-note">${note}</div>`:''}</div>`}).join('')}</div>`}
 
 function renderSyllabus(){
 const catPri={bh:0,wh:1,ab:2,cn:3,custom:4};
@@ -906,6 +902,13 @@ function importState(){
 function bumpOverdueTasks(){const todayStr=isoDate(TODAY);let bumped=false;state.tasks.forEach(t=>{if(!t.done&&t.date<todayStr){t.date=todayStr;bumped=true}});if(bumped)scheduleSave()}
 async function init(){await loadState();bumpOverdueTasks();render();handleUrlAction();updateConn(navigator.onLine?'online':'offline');window.addEventListener('online',()=>{updateConn('online');syncIfDirty()});window.addEventListener('offline',()=>{updateConn('offline')});if(localStorage.getItem(SKEY+'-dirty'))syncIfDirty();if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW reg failed:',e))}}
 init();
+// Swipe navigation
+(function(){
+const TABS=['sprints','syllabus','life','events','print','notes','dashboard'];
+let sx=0,sy=0;
+document.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
+document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)<100||Math.abs(dy)>Math.abs(dx)*0.5)return;const ci=TABS.indexOf(state.activeTab);if(ci<0)return;const ni=dx<0?(ci+1)%TABS.length:(ci-1+TABS.length)%TABS.length;switchTab(TABS[ni])},{passive:true});
+})();
 
 </script>
 </body>
