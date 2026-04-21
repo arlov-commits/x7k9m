@@ -375,7 +375,7 @@ function alignedSemStart(){const s=getSemStart();const off=weekStartOffset(s);co
 function semesterWeekNum(d){const diff=Math.round((d-alignedSemStart())/864e5);return Math.floor(diff/7)+1}
 function semesterWeekStart(wkN){const s=alignedSemStart();const d=new Date(s);d.setDate(d.getDate()+(wkN-1)*7);return d}
 
-function generateWeeks(){const end=new Date(2026,4,30),weeks=[];const wsd=state.weekStartDay;let cur=new Date(TODAY);cur.setDate(cur.getDate()-weekStartOffset(cur));let wk=semesterWeekNum(cur);while(cur<=end){const days=[];for(let i=0;i<7;i++){const d=new Date(cur);d.setDate(d.getDate()+i);if(d>end)break;days.push({date:isoDate(d),dateObj:new Date(d)})}weeks.push({num:wk,start:new Date(cur),end:new Date(cur.getTime()+6*864e5),days});cur.setDate(cur.getDate()+7);wk++}return weeks}
+function generateWeeks(){const end=parseDate(state.maxFutureDate||'2026-05-30'),weeks=[];const wsd=state.weekStartDay;let cur=new Date(TODAY);cur.setDate(cur.getDate()-weekStartOffset(cur));let wk=semesterWeekNum(cur);while(cur<=end){const days=[];for(let i=0;i<7;i++){const d=new Date(cur);d.setDate(d.getDate()+i);if(d>end)break;days.push({date:isoDate(d),dateObj:new Date(d)})}weeks.push({num:wk,start:new Date(cur),end:new Date(cur.getTime()+6*864e5),days});cur.setDate(cur.getDate()+7);wk++}return weeks}
 function getAvailHours(ds){const d=parseDate(ds),dow=d.getDay();if(d>=new Date(2026,3,5)&&d<=new Date(2026,3,11))return 5;if(ds==='2026-03-23')return 0;if(dow===1){return Math.round((d-new Date(2026,2,30))/(7*864e5))%2===0?4:0}return[7,0,0,4,3.5,0,10][dow]}
 
 function defaultTasks(){return[]}
@@ -433,7 +433,7 @@ function defaultSyllabus(){return[
 {id:5030,cat:'cn',type:'exam',title:'Chinese Classics Midterm Exam',detail:'',due:'2026-04-03',hours:0,done:true}
 ]}
 
-let state={theme:'dark',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],nextId:4000,printRange:'today',weekStartDay:6,semesterStart:'2026-01-17'};
+let state={theme:'dark',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],nextId:4000,printRange:'today',weekStartDay:6,semesterStart:'2026-01-17',maxFutureDate:'2026-05-30'};
 let saveTimer=null,lastSaveTime=null,saveStatus='saved';
 function scheduleSave(){saveStatus='saving';updateSI();try{localStorage.setItem(SKEY,JSON.stringify(state));localStorage.setItem(SKEY+'-time',new Date().toISOString());localStorage.setItem(SKEY+'-dirty','1');lastSaveTime=new Date();saveStatus='saved';updateSI()}catch(e){saveStatus='error';updateSI()}if(saveTimer)clearTimeout(saveTimer);saveTimer=setTimeout(syncToCloud,1500)}
 async function syncToCloud(){try{if(navigator.onLine){updateConn('syncing');const ok=await sbSet(state);if(ok){localStorage.removeItem(SKEY+'-dirty');updateConn('online')}else{localStorage.setItem(SKEY+'-dirty','1');updateConn('offline')}}else{localStorage.setItem(SKEY+'-dirty','1');updateConn('offline')}}catch(e){updateConn('offline')}}
@@ -675,7 +675,9 @@ function renderSettings(){
   <div class="settings-section"><label>Week Start Day</label>
   <select class="life-select" onchange="state.weekStartDay=parseInt(this.value);render();scheduleSave()" style="width:160px">${days.map((d,i)=>`<option value="${i}"${state.weekStartDay===i?' selected':''}>${d}</option>`).join('')}</select></div>
   <div class="settings-section"><label>Semester Start Date</label>
-  <input type="date" class="life-input" value="${semStart}" onchange="state.semesterStart=this.value;render();scheduleSave()" style="width:160px"/></div></div>
+  <input type="date" class="life-input" value="${semStart}" onchange="state.semesterStart=this.value;render();scheduleSave()" style="width:160px"/></div>
+  <div class="settings-section"><label>Max Future Date (Week tab)</label>
+  <input type="date" class="life-input" value="${state.maxFutureDate||'2026-05-30'}" onchange="state.maxFutureDate=this.value;render();scheduleSave()" style="width:160px"/></div></div>
   <div class="notes-box" style="margin-top:14px"><div class="notes-box-title">Export PDF (Dashboard + Syllabus)</div>
   <div class="settings-section"><label>Start Date</label><input type="date" id="pdfStart" class="life-input" value="${isoDate(wkStart)}" style="width:160px"/></div>
   <div class="settings-section"><label>End Date</label><input type="date" id="pdfEnd" class="life-input" value="${state.pdfEndDate||'2026-05-15'}" style="width:160px"/></div>
