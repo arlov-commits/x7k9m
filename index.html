@@ -1,4 +1,4 @@
-<!-- Academic Planner v5.9 -->
+<!-- Academic Planner v6.0 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -203,39 +203,6 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 .pri-toggle.high .pri-option:last-child{background:var(--danger-dim);color:var(--danger);border-radius:20px}
 .pri-toggle.high .pri-option:first-child{color:var(--text-muted)}
 
-/* Print view */
-.pv-controls{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
-.pv-range-btn{padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-dim);font-family:'Outfit';font-size:.76rem;font-weight:600;cursor:pointer;transition:all .12s}
-.pv-range-btn:hover{color:var(--text);border-color:var(--text-dim)}
-.pv-range-btn.active{background:var(--surface3);color:var(--text);border-color:var(--text-dim)}
-.pv-date-pick{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Outfit';font-size:.76rem;padding:5px 8px;border-radius:5px}
-
-.print-view{background:#fff;color:#111;padding:28px 32px;border-radius:8px;border:1px solid var(--border)}
-@media print{
-  body{background:#fff!important;color:#111!important}
-  .app>*:not(.view.active){display:none!important}
-  .header,.subtitle,.tabs,.theme-toggle,.save-status,.today-badge,.pv-controls{display:none!important}
-  .print-view{border:none;padding:0;border-radius:0}
-  .print-view *{color:#111!important;background:transparent!important;border-color:#ccc!important}
-  .pv-chip{border:1px solid #999!important;background:#f5f5f5!important}
-  .pv-chip.high{border:2px solid #333!important;font-weight:700!important}
-  .pv-chip.done{text-decoration:line-through!important;opacity:.5!important}
-  @page{size:letter portrait;margin:.4in}
-}
-.pv-title{font-family:'Crimson Pro',serif;font-size:1.4rem;font-weight:600;margin-bottom:3px;color:#111}
-.pv-sub{font-size:.76rem;color:#666;margin-bottom:18px;border-bottom:1px solid #ccc;padding-bottom:8px}
-.pv-day{margin-bottom:0;page-break-inside:avoid;border-bottom:1px solid #e0e0e0;padding:14px 0}
-.pv-day:last-child{border-bottom:none}
-.pv-day-hdr{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}
-.pv-day-name{font-weight:700;font-size:.9rem}
-.pv-day-date{font-size:.74rem;color:#666}
-.pv-day-hrs{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:#888;margin-left:auto}
-.pv-tasks{display:flex;flex-wrap:wrap;gap:5px;min-height:32px}
-.pv-chip{font-size:.76rem;padding:7px 10px;border-radius:8px;border:1px solid #ccc;background:#f9f9f9;line-height:1.3;display:inline-flex;align-items:center;gap:4px}
-.pv-chip.high{border:2px solid #555;font-weight:700}.pv-chip.done{text-decoration:line-through;opacity:.5}
-.pv-cat{font-size:.6rem;font-weight:700;text-transform:uppercase;color:#888}
-.pv-note{font-size:.72rem;color:#555;margin-top:4px;font-style:italic;border-left:2px solid #ddd;padding-left:6px}
-
 /* Notes */
 .note-entry{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:8px;position:relative}
 .note-preview{font-size:.82rem;color:var(--text);line-height:1.7;padding:6px 2px;white-space:pre-wrap;word-break:break-word;cursor:text}
@@ -386,7 +353,6 @@ function fmtDateShort(d){return(d.getMonth()+1)+'/'+d.getDate()}
 function isoDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function parseDate(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)}
 function sameDay(a,b){return isoDate(a)===isoDate(b)}
-function nextMonday(){const d=new Date(TODAY);const dow=d.getDay();const diff=dow===0?1:(8-dow);d.setDate(d.getDate()+diff);return d}
 
 function getSemStart(){return parseDate(state.semesterStart||'2026-01-17')}
 function weekStartOffset(d){return(d.getDay()-state.weekStartDay+7)%7}
@@ -452,7 +418,7 @@ function defaultSyllabus(){return[
 {id:5030,cat:'cn',type:'exam',title:'Chinese Classics Midterm Exam',detail:'',due:'2026-04-03',hours:0,done:true}
 ]}
 
-let state={theme:'dark',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],nextId:4000,printRange:'today',weekStartDay:6,semesterStart:'2026-01-17',maxFutureDate:'2026-05-30'};
+let state={theme:'dark',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],nextId:4000,weekStartDay:6,semesterStart:'2026-01-17',maxFutureDate:'2026-05-30'};
 let saveTimer=null,lastSaveTime=null,saveStatus='saved';
 function scheduleSave(){saveStatus='saving';updateSI();try{localStorage.setItem(SKEY,JSON.stringify(state));localStorage.setItem(SKEY+'-time',new Date().toISOString());localStorage.setItem(SKEY+'-dirty','1');lastSaveTime=new Date();saveStatus='saved';updateSI()}catch(e){saveStatus='error';updateSI()}if(saveTimer)clearTimeout(saveTimer);saveTimer=setTimeout(syncToCloud,1500)}
 async function syncToCloud(){try{if(navigator.onLine){updateConn('syncing');const ok=await sbSet(state);if(ok){localStorage.removeItem(SKEY+'-dirty');localStorage.setItem(SKEY+'-time',new Date().toISOString());updateConn('online')}else{localStorage.setItem(SKEY+'-dirty','1');updateConn('offline')}}else{localStorage.setItem(SKEY+'-dirty','1');updateConn('offline')}}catch(e){updateConn('offline')}}
@@ -470,7 +436,7 @@ else{
   try{const remote=await sbGet();if(remote)remoteData=remote.data}catch(e){}
   if(remoteData){applyChosenState(remoteData);lastSaveTime=new Date();saveStatus='saved'}
 }}
-function applyChosenState(chosen){if(chosen.lifeTasks)chosen.lifeTasks=chosen.lifeTasks.map(t=>({category:'General',priority:'med',inBank:false,...t}));if(chosen.tasks)chosen.tasks=chosen.tasks.map(t=>({lifeSourceId:null,syllabusId:null,...t}));if(!chosen.hiddenDays)chosen.hiddenDays=[];if(!chosen.events)chosen.events=defaultEvents();if(!chosen.syllabus)chosen.syllabus=defaultSyllabus();if(!chosen.notes)chosen.notes=[];if(!chosen.catOrder)chosen.catOrder=[];state={...state,...chosen}}
+function applyChosenState(chosen){if(chosen.lifeTasks)chosen.lifeTasks=chosen.lifeTasks.map(t=>({category:'General',priority:'med',inBank:false,...t}));if(chosen.tasks)chosen.tasks=chosen.tasks.map(t=>({lifeSourceId:null,syllabusId:null,...t}));if(!chosen.hiddenDays)chosen.hiddenDays=[];if(!chosen.events)chosen.events=defaultEvents();if(!chosen.syllabus)chosen.syllabus=defaultSyllabus();if(!chosen.notes)chosen.notes=[];if(!chosen.catOrder)chosen.catOrder=[];if(chosen.activeTab==='print')chosen.activeTab='sprints';state={...state,...chosen}}
 function mergeArrayById(localArr,remoteArr){const map=new Map();(remoteArr||[]).forEach(item=>{if(item.id!==undefined)map.set(item.id,item)});(localArr||[]).forEach(item=>{if(item.id!==undefined)map.set(item.id,item)});return Array.from(map.values())}
 function mergeStates(local,remote){const merged={...remote};const idFields=['tasks','lifeTasks','events','syllabus','notes','deliverables'];idFields.forEach(f=>{merged[f]=mergeArrayById(local[f],remote[f])});merged.dayNotes={...(remote.dayNotes||{}),...(local.dayNotes||{})};merged.hiddenDays=[...new Set([...(remote.hiddenDays||[]),...(local.hiddenDays||[])])];merged.catOrder=local.catOrder&&local.catOrder.length?local.catOrder:(remote.catOrder||[]);merged.nextId=Math.max(local.nextId||0,remote.nextId||0);merged.expandedPastWeeks=[...new Set([...(remote.expandedPastWeeks||[]),...(local.expandedPastWeeks||[])])];merged.expandedPastDays=[...new Set([...(remote.expandedPastDays||[]),...(local.expandedPastDays||[])])];merged.hiddenSylDays=[...new Set([...(remote.hiddenSylDays||[]),...(local.hiddenSylDays||[])])];return merged}
 function isUserEditing(){const ae=document.activeElement;if(!ae)return false;const tag=ae.tagName;if(tag==='TEXTAREA')return true;if(tag==='INPUT'&&['text','number','date','time'].includes(ae.type))return true;if(document.querySelector('.modal-overlay.open'))return true;if(document.querySelector('.chip.menu-open,.evt-chip.menu-open'))return true;return false}
@@ -483,11 +449,11 @@ function isInSprint(lifeId){return state.tasks.some(t=>t.lifeSourceId===lifeId)|
 function render(){
   computeEvtColors();
   document.documentElement.setAttribute('data-theme',state.theme);
-  const tabs=['sprints','syllabus','life','events','print','notes','dashboard'];
+  const tabs=['sprints','syllabus','life','events','notes','dashboard'];
   const allTabs=[...tabs,'settings'];
-  const tn={dashboard:'Dashboard',sprints:'Week',syllabus:'Syllabus',life:'Tasks',events:'Events',notes:'Notes',print:'Print',settings:'Settings'};
-  const renderers={dashboard:renderDash,sprints:renderSprints,syllabus:renderSyllabus,life:renderLife,events:renderEvents,notes:renderNotes,print:renderPrint,settings:renderSettings};
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',pistachio2:'🥜 Pistachio v2',spring:'🌸 Spring',midnight:'🌲 Midnight',peacock:'🦚 Peacock',temple:'⛪ Temple'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v5.9</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}${state.activeTab==='settings'?`<button class="tab active">Settings</button>`:''}</div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;updateSI()}
+  const tn={dashboard:'Dashboard',sprints:'Week',syllabus:'Syllabus',life:'Tasks',events:'Events',notes:'Notes',settings:'Settings'};
+  const renderers={dashboard:renderDash,sprints:renderSprints,syllabus:renderSyllabus,life:renderLife,events:renderEvents,notes:renderNotes,settings:renderSettings};
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',pistachio2:'🥜 Pistachio v2',spring:'🌸 Spring',midnight:'🌲 Midnight',peacock:'🦚 Peacock',temple:'⛪ Temple'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v6.0</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}${state.activeTab==='settings'?`<button class="tab active">Settings</button>`:''}</div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;updateSI()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;render()},6000);render();scheduleSave()}
@@ -613,20 +579,6 @@ const isStart=dateStr===start,isEnd=dateStr===end;
 chips.push({evtId:e.id,label,tip:tip||e.name,startTime:e.startTime||'',endTime:e.endTime||'',endDate:end,isMulti,isStart,isEnd,draggable:isStart||isEnd,hue:evtHue(e.id)})}});
 return chips}
 
-function renderPrint(){
-  const pr=state.printRange==='today7'?'today':(state.printRange||'today');let startDate;
-  if(pr==='today')startDate=new Date(TODAY);
-  else if(pr==='tomorrow'){startDate=new Date(TODAY);startDate.setDate(startDate.getDate()+1)}
-  else if(pr==='nextweek')startDate=nextMonday();
-  else startDate=parseDate(pr);
-  const days=[];for(let i=0;i<7;i++){const d=new Date(startDate);d.setDate(d.getDate()+i);days.push({date:isoDate(d),dateObj:new Date(d)})}
-  const customVal=pr!=='today'&&pr!=='tomorrow'&&pr!=='nextweek'?pr:'';
-  return`<div class="pv-controls"><button class="pv-range-btn ${pr==='today'?'active':''}" onclick="setPrintRange('today')">Today</button><button class="pv-range-btn ${pr==='tomorrow'?'active':''}" onclick="setPrintRange('tomorrow')">Tomorrow</button><button class="pv-range-btn ${pr==='nextweek'?'active':''}" onclick="setPrintRange('nextweek')">Next Mon–Sun</button><input type="date" class="pv-date-pick" value="${customVal}" onchange="setPrintRange(this.value)" placeholder="Date" title="Custom start date"/></div>
-  <div class="print-view"><div class="pv-title">Academic Plan · 7 Days</div><div class="pv-sub">${fmtDate(days[0].dateObj)} through ${fmtDate(days[6].dateObj)}</div>${days.map(day=>{const tasks=state.tasks.filter(t=>t.date===day.date),note=state.dayNotes[day.date]||'';
-  const dayEvts=getEventsForDate(day.date);const evtHtml=dayEvts.map(ev=>`<span class="pv-chip" style="border-style:dashed"><span class="pv-cat">EVT</span> ${ev.label}</span>`).join('');
-  const SYL_E={reading:'📖',paper:'📝',exam:'📋',presentation:'🎤',custom:'📌'};const sylCs=getSylForDate(day.date);const sylHtml=sylCs.map(sc=>{const det=sc.entry.detail?'<div style="font-size:.68rem;color:#777;margin-top:2px;line-height:1.4">'+sc.entry.detail.split('\n').map(l=>l.startsWith('- ')?'• '+l.substring(2):l.startsWith('+ ')?'  ◦ '+l.substring(2):l).join('<br>')+'</div>':'';return`<div class="pv-chip" style="border-style:dashed;opacity:.85;flex-direction:column;align-items:flex-start"><div><span class="pv-cat">${CAT_SHORT[sc.cat]||sc.cat}</span> ${SYL_E[sc.type]||'📌'} ${sc.title}${sc.label}</div>${det}</div>`}).join('');
-  return`<div class="pv-day"><div class="pv-day-hdr"><span class="pv-day-name">${fmtDate(day.dateObj)}</span></div><div class="pv-tasks">${evtHtml}${sylHtml}${tasks.map(t=>`<span class="pv-chip ${t.priority==='high'?'high':''} ${t.done?'done':''}"><span class="pv-cat">${CAT_SHORT[t.cat]||t.cat.toUpperCase()}</span> ${t.name}${t.hours>0?' ('+t.hours+'h)':''}</span>`).join('')}</div>${note?`<div class="pv-note">${note}</div>`:''}</div>`}).join('')}</div>`}
-
 function renderSyllabus(){
 const catPri={bh:0,wh:1,ab:2,cn:3,custom:4};
 const syl=(state.syllabus||[]).slice().sort((a,b)=>a.due.localeCompare(b.due)||(catPri[a.cat]??9)-(catPri[b.cat]??9));
@@ -712,16 +664,7 @@ function renderSettings(){
   <div class="settings-section"><label>Semester Start Date</label>
   <input type="date" class="life-input" value="${semStart}" onchange="state.semesterStart=this.value;render();scheduleSave()" style="width:160px"/></div>
   <div class="settings-section"><label>Max Future Date (Week tab)</label>
-  <input type="date" class="life-input" value="${state.maxFutureDate||'2026-05-30'}" onchange="state.maxFutureDate=this.value;render();scheduleSave()" style="width:160px"/></div></div>
-  <div class="notes-box" style="margin-top:14px"><div class="notes-box-title">Export PDF (Dashboard + Syllabus)</div>
-  <div class="settings-section"><label>Start Date</label><input type="date" id="pdfStart" class="life-input" value="${isoDate(wkStart)}" style="width:160px"/></div>
-  <div class="settings-section"><label>End Date</label><input type="date" id="pdfEnd" class="life-input" value="${state.pdfEndDate||'2026-05-15'}" style="width:160px"/></div>
-  <div class="settings-section" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
-  <label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;margin:0"><input type="checkbox" id="pdfExclCN"/> Exclude Chinese Classics</label>
-  <label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;margin:0"><input type="checkbox" id="pdfExclPersonal" checked/> Exclude personal tasks/notes</label>
-  </div>
-  <button class="life-btn" onclick="exportPDF()" style="margin-top:8px">📄 Generate & Download PDF</button>
-  </div>`}
+  <input type="date" class="life-input" value="${state.maxFutureDate||'2026-05-30'}" onchange="state.maxFutureDate=this.value;render();scheduleSave()" style="width:160px"/></div></div>`}
 
 function getSylForDate(dateStr){
   const chips=[];
@@ -749,53 +692,6 @@ function normalizeDateInput(val){
   return val;
 }
 
-function exportPDF(){
-  const startStr=$('#pdfStart')?.value||isoDate(TODAY);const endStr=$('#pdfEnd')?.value||'2026-05-15';
-  state.pdfEndDate=endStr;scheduleSave();
-  const exclCN=$('#pdfExclCN')?.checked;const exclPersonal=$('#pdfExclPersonal')?.checked;
-  const cs=getComputedStyle(document.documentElement);
-  const tv=n=>cs.getPropertyValue(n).trim();
-  const catColors={bh:tv('--accent-bh'),wh:tv('--accent-wh'),cn:tv('--accent-cn'),ab:tv('--accent-ab'),custom:tv('--text-muted'),life:tv('--accent-life')};
-  const catBg={bh:tv('--accent-bh-dim'),wh:tv('--accent-wh-dim'),cn:tv('--accent-cn-dim'),ab:tv('--accent-ab-dim'),custom:tv('--surface3'),life:tv('--accent-life-dim')};
-  const themeBg=tv('--bg'),themeSurface=tv('--surface'),themeBorder=tv('--border'),themeText=tv('--text'),themeTextDim=tv('--text-dim'),themeTextMuted=tv('--text-muted');
-  const colorDanger=tv('--danger'),colorWarning=tv('--warning'),colorOk=tv('--ok');
-  function dlColor(dl){return dl<0?themeTextMuted:dl<=3?colorDanger:dl<=7?colorWarning:colorOk}
-  // Dashboard section
-  const hl=(state.syllabus||[]).filter(s=>s.highlighted&&!s.done&&s.due>=startStr&&s.due<=endStr&&(!exclCN||s.cat!=='cn')).sort((a,b)=>a.due.localeCompare(b.due));
-  const cats=['bh','wh','ab','cn','custom'].filter(c=>!exclCN||c!=='cn');
-  const groups={};cats.forEach(c=>{groups[c]=hl.filter(s=>s.cat===c)});
-  const activeCats=cats.filter(c=>groups[c].length>0);
-  let dashHtml='';
-  if(activeCats.length){
-    dashHtml=`<h2 style="margin:0 0 10px;font-size:1.1rem;color:${themeText}">Dashboard — Key Deliverables</h2><table style="width:100%;border-collapse:collapse;margin-bottom:20px"><tr>`+activeCats.map(c=>`<th style="padding:6px 8px;border-bottom:2px solid ${catColors[c]};color:${catColors[c]};font-size:.85rem;text-align:center">${CAT_NAMES[c]||c}</th>`).join('')+'</tr>';
-    const mx=Math.max(...activeCats.map(c=>groups[c].length));
-    for(let r=0;r<mx;r++){dashHtml+='<tr>';activeCats.forEach(c=>{const s=groups[c][r];if(!s){dashHtml+=`<td style="padding:6px;border:1px solid ${themeBorder}"></td>`;return}const dd=parseDate(s.due),dl=daysBetween(TODAY,dd),dlS=dl<0?Math.abs(dl)+'d ago':dl===0?'TODAY':dl+'d';dashHtml+=`<td style="padding:8px;border:1px solid ${themeBorder};text-align:center;vertical-align:top;background:${catBg[c]}"><strong style="font-size:.85rem;color:${themeText}">${s.title}</strong><br><span style="font-size:.72rem;color:${themeTextDim}">${fmtDate(dd)}</span><br><span style="font-size:.72rem;font-weight:600;color:${dlColor(dl)}${dl<0?';text-decoration:line-through':''}">${dlS}</span><br><span style="font-size:.65rem;color:${themeTextMuted};text-transform:uppercase">${s.type}</span></td>`});dashHtml+='</tr>'}
-    dashHtml+='</table>'
-  }
-  // Syllabus section
-  const syl=(state.syllabus||[]).filter(s=>s.due>=startStr&&s.due<=endStr&&(!exclCN||s.cat!=='cn')).sort((a,b)=>a.due.localeCompare(b.due));
-  const weekMap={};syl.forEach(s=>{const wk=semesterWeekNum(parseDate(s.due));if(!weekMap[wk])weekMap[wk]=[];weekMap[wk].push(s)});
-  let sylHtml=`<h2 style="margin:0 0 10px;font-size:1.1rem;color:${themeText}">Syllabus</h2>`;
-  const dayAbbr=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  Object.keys(weekMap).map(Number).sort((a,b)=>a-b).forEach(wkN=>{
-    const wkStart=semesterWeekStart(wkN);const wkEnd=new Date(wkStart);wkEnd.setDate(wkEnd.getDate()+6);
-    sylHtml+=`<div style="margin-bottom:14px"><div style="font-weight:600;font-size:.9rem;color:${themeText};border-bottom:1px solid ${themeBorder};padding-bottom:3px;margin-bottom:6px">Week ${wkN} <span style="font-size:.72rem;color:${themeTextMuted}">${fmtDateShort(wkStart)} → ${fmtDateShort(wkEnd)}</span></div>`;
-    sylHtml+='<table style="width:100%;border-collapse:collapse">';
-    weekMap[wkN].forEach(e=>{
-      const det=e.detail?e.detail.split('\n').map(l=>l.startsWith('- ')?'&nbsp;&nbsp;• '+l.substring(2):l.startsWith('+ ')?'&nbsp;&nbsp;&nbsp;&nbsp;◦ '+l.substring(2):l).join('<br>'):'';
-      const dueD=parseDate(e.due);const dueEndD=e.dueEnd?parseDate(e.dueEnd):null;
-      const dueStr=dueEndD?fmtDateShort(dueD)+' → '+fmtDateShort(dueEndD):fmtDateShort(dueD);
-      const dl=daysBetween(TODAY,dueD);const dlStr=dl<0?Math.abs(dl)+'d ago':dl===0?'today':dl+'d';
-      const dowStr=dayAbbr[dueD.getDay()];
-      sylHtml+=`<tr style="border-bottom:1px solid ${themeSurface}"><td style="padding:5px 6px;width:40px;font-size:.72rem;font-weight:700;color:${catColors[e.cat]||themeTextMuted};vertical-align:top">${CAT_SHORT[e.cat]||e.cat}</td><td style="padding:5px 6px;width:60px;font-size:.72rem;color:${themeTextMuted};vertical-align:top">${dueStr}<br><span style="font-size:.65rem;color:${themeTextMuted}">${dowStr}</span></td><td style="padding:5px 6px;vertical-align:top"><strong style="font-size:.82rem;color:${themeText}">${e.title}</strong> <span style="font-size:.6rem;text-transform:uppercase;color:${themeTextMuted}">${e.type}</span>${det?`<div style="font-size:.74rem;color:${themeTextDim};margin-top:2px;line-height:1.5">${det}</div>`:''}</td><td style="padding:5px;width:50px;font-size:.72rem;font-weight:600;text-align:right;vertical-align:top;color:${dlColor(dl)}${dl<0?';text-decoration:line-through':''}">${dlStr}</td></tr>`
-    });
-    sylHtml+='</table></div>'
-  });
-  // Build full page
-  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Academic Planner Export</title><style>@page{size:letter;margin:.5in}body{font-family:'Segoe UI',Arial,sans-serif;color:${themeText};background:${themeBg};line-height:1.4;max-width:800px;margin:0 auto;padding:20px}h1{font-size:1.3rem;margin:0 0 4px;color:${themeText}}table{page-break-inside:auto}tr{page-break-inside:avoid}</style></head><body><h1>Academic Planner</h1><p style="font-size:.78rem;color:${themeTextMuted};margin:0 0 18px">${fmtDate(parseDate(startStr))} through ${fmtDate(parseDate(endStr))}</p>${dashHtml}${sylHtml}</body></html>`;
-  const w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(()=>w.print(),400)
-}
-
 function openCalPick(targetId){
   let picker=document.getElementById('_calPicker');
   if(!picker){picker=document.createElement('input');picker.type='date';picker.id='_calPicker';picker.style.cssText='position:fixed;opacity:0;pointer-events:none;width:0;height:0;top:0;left:0';document.body.appendChild(picker)}
@@ -815,7 +711,6 @@ function toggleSettings(e){e.stopPropagation();const m=document.getElementById('
 function closeSettings(){document.getElementById('settingsMenu')?.classList.remove('open')}
 document.addEventListener('click',()=>closeSettings())
 function toggleEl(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none'}
-function setPrintRange(v){state.printRange=v;render();scheduleSave()}
 
 function hideDay(date){if(!state.hiddenDays)state.hiddenDays=[];if(!state.hiddenDays.includes(date))state.hiddenDays.push(date);render();scheduleSave()}
 function expandWeek(wkNum){const weeks=generateWeeks();const wk=weeks.find(w=>w.num===wkNum);if(!wk)return;const dates=wk.days.map(d=>d.date);state.hiddenDays=(state.hiddenDays||[]).filter(d=>!dates.includes(d));if(!state.expandedPastDays)state.expandedPastDays=[];dates.forEach(d=>{if(!state.expandedPastDays.includes(d))state.expandedPastDays.push(d)});render();scheduleSave()}
