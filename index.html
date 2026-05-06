@@ -1,4 +1,4 @@
-<!-- Academic Planner v4.7 -->
+<!-- Academic Planner v4.8 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -484,7 +484,7 @@ function render(){
   const allTabs=[...tabs,'settings'];
   const tn={dashboard:'Dashboard',sprints:'Week',syllabus:'Syllabus',life:'Tasks',events:'Events',notes:'Notes',print:'Print',settings:'Settings'};
   const renderers={dashboard:renderDash,sprints:renderSprints,syllabus:renderSyllabus,life:renderLife,events:renderEvents,notes:renderNotes,print:renderPrint,settings:renderSettings};
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',pistachio2:'🥜 Pistachio v2',spring:'🌸 Spring',midnight:'🌲 Midnight',peacock:'🦚 Peacock',temple:'⛪ Temple'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v4.7</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}${state.activeTab==='settings'?`<button class="tab active">Settings</button>`:''}</div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;updateSI()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',pistachio2:'🥜 Pistachio v2',spring:'🌸 Spring',midnight:'🌲 Midnight',peacock:'🦚 Peacock',temple:'⛪ Temple'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v4.8</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}${state.activeTab==='settings'?`<button class="tab active">Settings</button>`:''}</div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;updateSI()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;render()},6000);render();scheduleSave()}
@@ -891,7 +891,70 @@ function addEvent(){const name=$('#evtNewName')?.value.trim();if(!name)return;if
 function addEventAdv(){const name=$('#evtNewName')?.value.trim();if(!name)return;if(!state.events)state.events=[];state.events.push({id:state.nextId++,name,date:normalizeDateInput($('#evtNewDate')?.value)||isoDate(TODAY),endDate:normalizeDateInput($('#evtNewEndDate')?.value)||'',startTime:$('#evtNewStart')?.value||'',endTime:$('#evtNewEnd')?.value||'',location:$('#evtNewLoc')?.value||'',allDay:$('#evtNewAllDay')?.checked||false});$('#evtNewName').value='';$('#evtNewDate').value='';$('#evtNewStart').value='';$('#evtNewEnd').value='';$('#evtNewEndDate').value='';$('#evtNewLoc').value='';$('#evtNewAllDay').checked=false;render();scheduleSave()}
 let _parsedEvents=[];
 function parseEvents(){const raw=$('#evtPasteArea')?.value||'';if(!raw.trim())return;const blocks=raw.split(/\n\s*\n/).map(b=>b.trim()).filter(Boolean);_parsedEvents=blocks.map(b=>parseEventBlock(b));renderParsedPreview()}
-function parseEventBlock(text){return{name:text.trim(),date:'',startTime:'',endTime:'',location:'',raw:text}}
+function parseEventBlock(text){
+const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+let combined=lines.join(' ');
+let date='',startTime='',endTime='',location='';
+const dateResult=extractDate(combined);
+if(dateResult.date){date=dateResult.date;combined=dateResult.remaining}
+const timeResult=extractTime(combined);
+if(timeResult.startTime){startTime=timeResult.startTime;if(timeResult.endTime)endTime=timeResult.endTime;combined=timeResult.remaining}
+const locResult=extractLocation(combined,lines);
+if(locResult.location){location=locResult.location;combined=locResult.remaining}
+let name=combined.replace(/^[\s,\-–—:·]+/,'').replace(/[\s,\-–—:·]+$/,'').replace(/\s{2,}/g,' ').trim();
+if(!name&&lines.length)name=lines[0].replace(/^[\s,\-–—:·]+/,'').replace(/[\s,\-–—:·]+$/,'').trim();
+return{name,date,startTime,endTime,location,raw:text}
+}
+function extractDate(text){
+const MONTHS={january:0,february:1,march:2,april:3,may:4,june:5,july:6,august:7,september:8,october:9,november:10,december:11,jan:0,feb:1,mar:2,apr:3,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+const DAYS={sunday:0,monday:1,tuesday:2,wednesday:3,thursday:4,friday:5,saturday:6,sun:0,mon:1,tue:2,wed:3,thu:4,fri:5,sat:6};
+const yr=TODAY.getFullYear();
+let remaining=text,date='';
+const tmrRe=/\b(tomorrow|tmr)\b/i;
+const tonightRe=/\btonight\b/i;
+if(tmrRe.test(remaining)){const d=new Date(TODAY);d.setDate(d.getDate()+1);date=isoDate(d);remaining=remaining.replace(tmrRe,'').trim();return{date,remaining}}
+if(tonightRe.test(remaining)){date=isoDate(TODAY);remaining=remaining.replace(tonightRe,'').trim();return{date,remaining}}
+const monthNames=Object.keys(MONTHS).filter(m=>m.length>3).join('|')+'|'+Object.keys(MONTHS).filter(m=>m.length===3).join('|');
+const dayNames=Object.keys(DAYS).join('|');
+const r1=new RegExp('(?:(?:'+dayNames+')\\s*[,]?\\s*)?('+monthNames+')\\s+(\\d{1,2})(?:st|nd|rd|th)?(?:\\s*[,]\\s*(\\d{4}))?','i');
+const m1=remaining.match(r1);
+if(m1){const mo=MONTHS[m1[1].toLowerCase()];const da=parseInt(m1[2]);const y=m1[3]?parseInt(m1[3]):yr;date=y+'-'+String(mo+1).padStart(2,'0')+'-'+String(da).padStart(2,'0');remaining=remaining.replace(m1[0],'').trim();return{date,remaining}}
+const r2=new RegExp('(?:(?:'+dayNames+')\\s*[,]?\\s*)?(\\d{1,2})/(\\d{1,2})(?:/(\\d{2,4}))?','i');
+const m2=remaining.match(r2);
+if(m2){const mo=parseInt(m2[1]);const da=parseInt(m2[2]);let y=m2[3]?parseInt(m2[3]):yr;if(y<100)y+=2000;date=y+'-'+String(mo).padStart(2,'0')+'-'+String(da).padStart(2,'0');remaining=remaining.replace(m2[0],'').trim();return{date,remaining}}
+const dayRe=new RegExp('\\b('+dayNames+')\\b','i');
+const dm=remaining.match(dayRe);
+if(dm){const target=DAYS[dm[1].toLowerCase()];const d=new Date(TODAY);const cur=d.getDay();let diff=target-cur;if(diff<=0)diff+=7;d.setDate(d.getDate()+diff);date=isoDate(d);remaining=remaining.replace(dm[0],'').trim();return{date,remaining}}
+return{date:'',remaining:text}
+}
+function extractTime(text){
+let remaining=text,startTime='',endTime='';
+function toHHMM(h,m,ampm){h=parseInt(h);m=parseInt(m||'0');if(ampm){const a=ampm.toLowerCase();if(a.startsWith('p')&&h<12)h+=12;if(a.startsWith('a')&&h===12)h=0}return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')}
+const rangeRe=/(\d{1,2})(?::(\d{2}))?\s*([ap]\.?m\.?)?\s*[-–—to]+\s*(\d{1,2})(?::(\d{2}))?\s*([ap]\.?m\.?)?/i;
+const rm=remaining.match(rangeRe);
+if(rm){let ap1=rm[3]||'',ap2=rm[6]||'';if(!ap1&&ap2)ap1=ap2;if(ap1)ap1=ap1.replace(/\./g,'')+'m';if(ap2)ap2=ap2.replace(/\./g,'')+'m';if(!ap1&&!ap2){const h=parseInt(rm[1]);ap1=h>=8&&h<=11?'am':'pm';ap2=ap1}startTime=toHHMM(rm[1],rm[2],ap1);endTime=toHHMM(rm[4],rm[5],ap2);remaining=remaining.replace(rm[0],'').trim();return{startTime,endTime,remaining}}
+const singleRe=/(?:[@at]*\s*)(\d{1,2})(?::(\d{2}))?\s*([ap]\.?m\.?)/i;
+const sm=remaining.match(singleRe);
+if(sm){let ap=sm[3].replace(/\./g,'')+'m';startTime=toHHMM(sm[1],sm[2],ap);remaining=remaining.replace(sm[0],'').trim();return{startTime,endTime:'',remaining}}
+const atTimeRe=/(?:@|at)\s+(\d{1,2})(?::(\d{2}))?\b/i;
+const atm=remaining.match(atTimeRe);
+if(atm){const h=parseInt(atm[1]);const ampm=h>=8&&h<=11?'am':'pm';startTime=toHHMM(atm[1],atm[2],ampm);remaining=remaining.replace(atm[0],'').trim();return{startTime,endTime:'',remaining}}
+const wordTimeRe=/\b(afternoon|evening)\b/i;
+const wm=remaining.match(wordTimeRe);
+if(wm){startTime=wm[1].toLowerCase()==='afternoon'?'13:00':'19:00';remaining=remaining.replace(wm[0],'').trim();return{startTime,endTime:'',remaining}}
+return{startTime:'',endTime:'',remaining}
+}
+function extractLocation(text,lines){
+let remaining=text,location='';
+const atLocRe=/(?:@|(?:^|[,;])\s*at|(?:^|[,;])\s*in)\s+([A-Z][A-Za-z0-9 .''&\-]+?)(?=[,;]|$)/;
+const alm=remaining.match(atLocRe);
+if(alm){location=alm[1].trim();remaining=remaining.replace(alm[0],'').trim();return{location,remaining}}
+const onlineRe=/\b(online|zoom|virtual|teams|webex)\b/i;
+const om=remaining.match(onlineRe);
+if(om){location=om[1];remaining=remaining.replace(om[0],'').trim();return{location,remaining}}
+if(lines.length>1){const last=lines[lines.length-1];if(/^[A-Z][A-Za-z0-9 .''&\-]+$/.test(last)&&last.length<60&&!extractDate(last).date&&!extractTime(last).startTime){location=last;remaining=remaining.replace(last,'').trim();return{location,remaining}}}
+return{location:'',remaining}
+}
 function renderParsedPreview(){const el=$('#evtParsePreview');if(!el)return;if(!_parsedEvents.length){el.innerHTML='';return}let h='';_parsedEvents.forEach((e,i)=>{const nd=!e.date;h+=`<div class="parsed-evt${nd?' needs-date':''}"><div class="parsed-evt-grid"><div><span class="parsed-evt-label">Name</span><input value="${(e.name||'').replace(/"/g,'&quot;')}" oninput="_parsedEvents[${i}].name=this.value"/></div><div><span class="parsed-evt-label">Date${nd?' <span class="needs-date-flag">needs date</span>':''}</span><input type="date" value="${e.date}" oninput="_parsedEvents[${i}].date=this.value"/></div><div><span class="parsed-evt-label">Start</span><input type="time" value="${e.startTime}" oninput="_parsedEvents[${i}].startTime=this.value"/></div><div><span class="parsed-evt-label">End</span><input type="time" value="${e.endTime}" oninput="_parsedEvents[${i}].endTime=this.value"/></div><div><span class="parsed-evt-label">Location</span><input value="${(e.location||'').replace(/"/g,'&quot;')}" oninput="_parsedEvents[${i}].location=this.value"/></div></div></div>`});h+=`<div style="margin-top:10px"><button class="life-btn" onclick="saveAllParsed()">Save all (${_parsedEvents.length})</button></div>`;el.innerHTML=h}
 function clearParsedEvents(){_parsedEvents=[];const el=$('#evtParsePreview');if(el)el.innerHTML='';const ta=$('#evtPasteArea');if(ta)ta.value=''}
 function saveAllParsed(){if(!_parsedEvents.length)return;if(!state.events)state.events=[];_parsedEvents.forEach(e=>{if(e.name)state.events.push({id:state.nextId++,name:e.name,date:e.date||isoDate(TODAY),endDate:'',startTime:e.startTime||'',endTime:e.endTime||'',location:e.location||'',allDay:false})});_parsedEvents=[];render();scheduleSave()}
