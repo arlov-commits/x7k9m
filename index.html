@@ -1,4 +1,4 @@
-<!-- Academic Planner v6.1 -->
+<!-- Academic Planner v6.2 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -453,7 +453,7 @@ function render(){
   const allTabs=[...tabs,'settings'];
   const tn={dashboard:'Dashboard',sprints:'Week',syllabus:'Syllabus',life:'Tasks',events:'Events',notes:'Notes',settings:'Settings'};
   const renderers={dashboard:renderDash,sprints:renderSprints,syllabus:renderSyllabus,life:renderLife,events:renderEvents,notes:renderNotes,settings:renderSettings};
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',pistachio2:'🥜 Pistachio v2',spring:'🌸 Spring',midnight:'🌲 Midnight',peacock:'🦚 Peacock',temple:'⛪ Temple'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v6.1</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}${state.activeTab==='settings'?`<button class="tab active">Settings</button>`:''}</div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;updateSI()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',pistachio2:'🥜 Pistachio v2',spring:'🌸 Spring',midnight:'🌲 Midnight',peacock:'🦚 Peacock',temple:'⛪ Temple'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v6.2</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}${state.activeTab==='settings'?`<button class="tab active">Settings</button>`:''}</div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;updateSI()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;render()},6000);render();scheduleSave()}
@@ -799,7 +799,8 @@ const timeResult=extractTime(combined);
 if(timeResult.startTime){startTime=timeResult.startTime;if(timeResult.endTime)endTime=timeResult.endTime;combined=timeResult.remaining}
 const locResult=extractLocation(combined,lines);
 if(locResult.location){location=locResult.location;combined=locResult.remaining}
-let name=combined.replace(/^[\s,\-–—:·]+/,'').replace(/[\s,\-–—:·]+$/,'').replace(/\s{2,}/g,' ').trim();
+combined=combined.replace(/\bwill be held\b/gi,'').replace(/\bwill take place\b/gi,'').replace(/\bis scheduled\b/gi,'').replace(/\b[Tt]ime\s*:/g,'').replace(/\bon\s*,/g,',').replace(/\s{2,}/g,' ');
+let name=combined.replace(/^[\s,\-–—:·.]+/,'').replace(/[\s,\-–—:·.]+$/,'').replace(/\s+(?:on|at|in|from|for)\s*$/i,'').replace(/\s{2,}/g,' ').trim();
 if(!name&&lines.length)name=lines[0].replace(/^[\s,\-–—:·]+/,'').replace(/[\s,\-–—:·]+$/,'').trim();
 return{name,date,startTime,endTime,location,raw:text}
 }
@@ -814,7 +815,7 @@ if(tmrRe.test(remaining)){const d=new Date(TODAY);d.setDate(d.getDate()+1);date=
 if(tonightRe.test(remaining)){date=isoDate(TODAY);remaining=remaining.replace(tonightRe,'').trim();return{date,remaining}}
 const monthNames=Object.keys(MONTHS).filter(m=>m.length>3).join('|')+'|'+Object.keys(MONTHS).filter(m=>m.length===3).join('|');
 const dayNames=Object.keys(DAYS).join('|');
-const r1=new RegExp('(?:(?:'+dayNames+')\\s*[,]?\\s*)?('+monthNames+')\\s+(\\d{1,2})(?:st|nd|rd|th)?(?:\\s*[,]\\s*(\\d{4}))?','i');
+const r1=new RegExp('(?:(?:'+dayNames+')\\s*[,]?\\s*)?('+monthNames+')\\s+(\\d{1,2})(?:st|nd|rd|th)?(?:\\s*[,]\\s*(\\d{4}))?(?:\\s*[,]?\\s*(?:'+dayNames+'))?','i');
 const m1=remaining.match(r1);
 if(m1){const mo=MONTHS[m1[1].toLowerCase()];const da=parseInt(m1[2]);const y=m1[3]?parseInt(m1[3]):yr;date=y+'-'+String(mo+1).padStart(2,'0')+'-'+String(da).padStart(2,'0');remaining=remaining.replace(m1[0],'').trim();return{date,remaining}}
 const r2=new RegExp('(?:(?:'+dayNames+')\\s*[,]?\\s*)?(\\d{1,2})/(\\d{1,2})(?:/(\\d{2,4}))?','i');
@@ -844,9 +845,9 @@ return{startTime:'',endTime:'',remaining}
 }
 function extractLocation(text,lines){
 let remaining=text,location='';
-const atLocRe=/(?:@|(?:^|[,;])\s*at|(?:^|[,;])\s*in)\s+([A-Z][A-Za-z0-9 .''&\-]+?)(?=[,;]|$)/;
+const atLocRe=/(?:@|(?:^|[,;.]\s*|\s+)at|(?:^|[,;.]\s*|\s+)in)\s+((?:the\s+)?[A-Za-z][A-Za-z0-9 .,''&\-#]*?(?:\d{5})?)\s*(?=[.;]?\s*$|[.;]\s+|$)/i;
 const alm=remaining.match(atLocRe);
-if(alm){location=alm[1].trim();remaining=remaining.replace(alm[0],'').trim();return{location,remaining}}
+if(alm){location=alm[1].replace(/[.,\s]+$/,'').trim();remaining=remaining.replace(alm[0],'').trim();return{location,remaining}}
 const onlineRe=/\b(online|zoom|virtual|teams|webex)\b/i;
 const om=remaining.match(onlineRe);
 if(om){location=om[1];remaining=remaining.replace(om[0],'').trim();return{location,remaining}}
