@@ -1,4 +1,4 @@
-<!-- Academic Planner v6.2 -->
+<!-- Academic Planner v6.3 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -453,7 +453,7 @@ function render(){
   const allTabs=[...tabs,'settings'];
   const tn={dashboard:'Dashboard',sprints:'Week',syllabus:'Syllabus',life:'Tasks',events:'Events',notes:'Notes',settings:'Settings'};
   const renderers={dashboard:renderDash,sprints:renderSprints,syllabus:renderSyllabus,life:renderLife,events:renderEvents,notes:renderNotes,settings:renderSettings};
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',pistachio2:'🥜 Pistachio v2',spring:'🌸 Spring',midnight:'🌲 Midnight',peacock:'🦚 Peacock',temple:'⛪ Temple'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v6.2</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}${state.activeTab==='settings'?`<button class="tab active">Settings</button>`:''}</div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;updateSI()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',pistachio2:'🥜 Pistachio v2',spring:'🌸 Spring',midnight:'🌲 Midnight',peacock:'🦚 Peacock',temple:'⛪ Temple'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v6.3</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}${state.activeTab==='settings'?`<button class="tab active">Settings</button>`:''}</div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;updateSI()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;render()},6000);render();scheduleSave()}
@@ -802,6 +802,8 @@ if(locResult.location){location=locResult.location;combined=locResult.remaining}
 combined=combined.replace(/\bwill be held\b/gi,'').replace(/\bwill take place\b/gi,'').replace(/\bis scheduled\b/gi,'').replace(/\b[Tt]ime\s*:/g,'').replace(/\bon\s*,/g,',').replace(/\s{2,}/g,' ');
 let name=combined.replace(/^[\s,\-–—:·.]+/,'').replace(/[\s,\-–—:·.]+$/,'').replace(/\s+(?:on|at|in|from|for)\s*$/i,'').replace(/\s{2,}/g,' ').trim();
 if(!name&&lines.length)name=lines[0].replace(/^[\s,\-–—:·]+/,'').replace(/[\s,\-–—:·]+$/,'').trim();
+name=name.replace(/[.,;:!?\s]+$/,'').trim();
+location=location.replace(/[.,;:!?\s]+$/,'').trim();
 return{name,date,startTime,endTime,location,raw:text}
 }
 function extractDate(text){
@@ -848,12 +850,42 @@ let remaining=text,location='';
 const atLocRe=/(?:@|(?:^|[,;.]\s*|\s+)at|(?:^|[,;.]\s*|\s+)in)\s+((?:the\s+)?[A-Za-z][A-Za-z0-9 .,''&\-#]*?(?:\d{5})?)\s*(?=[.;]?\s*$|[.;]\s+|$)/i;
 const alm=remaining.match(atLocRe);
 if(alm){location=alm[1].replace(/[.,\s]+$/,'').trim();remaining=remaining.replace(alm[0],'').trim();return{location,remaining}}
-const onlineRe=/\b(online|zoom|virtual|teams|webex)\b/i;
+const onlineRe=/\b(online|zoom|virtual|teams|webex)\b(?!\s+(?:call|meeting|session|chat|with))/i;
 const om=remaining.match(onlineRe);
 if(om){location=om[1];remaining=remaining.replace(om[0],'').trim();return{location,remaining}}
 if(lines.length>1){const last=lines[lines.length-1];if(/^[A-Z][A-Za-z0-9 .''&\-]+$/.test(last)&&last.length<60&&!extractDate(last).date&&!extractTime(last).startTime){location=last;remaining=remaining.replace(last,'').trim();return{location,remaining}}}
 return{location:'',remaining}
 }
+function testParser(){
+const yr=TODAY.getFullYear();const pad=(n)=>String(n).padStart(2,'0');const tmr=new Date(TODAY);tmr.setDate(tmr.getDate()+1);const tmrStr=isoDate(tmr);
+const cases=[
+{input:"Dinner tomorrow at 7pm at Mario's Italian Kitchen",expect:{name:"Dinner",date:tmrStr,startTime:"19:00",location:"Mario's Italian Kitchen"}},
+{input:"Study group Wednesday 6pm - 8pm at Library Room 302",expect:{name:"Study group",startTime:"18:00",endTime:"20:00",location:"Library Room 302"}},
+{input:"Office hours with Prof. Chen, Friday 4/18, 1:00-2:30 PM, Humanities Building 210",expect:{name:"Office hours with Prof. Chen",startTime:"13:00",endTime:"14:30"}},
+{input:"Graduation rehearsal on May 8th at 9AM in the Main Auditorium",expect:{name:"Graduation rehearsal",date:yr+"-05-08",startTime:"09:00",location:"the Main Auditorium"}},
+{input:"Team meeting tmr afternoon, Room 4B",expect:{name:"Team meeting",date:tmrStr,startTime:"13:00"}},
+{input:"Concert at the Ukiah Civic Center on Saturday, April 25, 2026, 7:00 to 9:30 PM",expect:{name:"Concert",date:"2026-04-25",startTime:"19:00",endTime:"21:30"}},
+{input:"Birthday party for Sarah\nApril 26 evening\n742 Evergreen Terrace",expect:{name:"Birthday party for Sarah",date:yr+"-04-26",startTime:"19:00",location:"742 Evergreen Terrace"}},
+{input:"Zoom call with admissions @ 3pm on 4/22",expect:{name:"Zoom call with admissions",startTime:"15:00",date:yr+"-04-22"}},
+{input:"Thesis defense — Mon Apr 27, 2026, 10:00 AM–12:00 PM. Elihu Hall, Room 118.",expect:{name:"Thesis defense",date:"2026-04-27",startTime:"10:00",endTime:"12:00"}},
+{input:"Potluck dinner tonight at 6pm at the Sudhana Center, 225 South Hope Street, Ukiah, CA 95482.",expect:{name:"Potluck dinner",date:isoDate(TODAY),startTime:"18:00"}},
+{input:"Club meeting 4/20 3:00-4:00pm",expect:{name:"Club meeting",date:yr+"-04-20",startTime:"15:00",endTime:"16:00"}},
+{input:"Dr. Williams lecture on consciousness will be held on Tuesday, April 21, at 4 in Science Hall.",expect:{name:"Dr. Williams lecture on consciousness",date:yr+"-04-21",startTime:"16:00"}},
+{input:"Spring dance is scheduled for May 2nd, 8pm - 11pm, Student Union Ballroom.",expect:{name:"Spring dance",date:yr+"-05-02",startTime:"20:00",endTime:"23:00"}},
+{input:"Yoga class every Thursday at 7:00am. Online",expect:{name:"Yoga class every",startTime:"07:00",location:"Online"}},
+{input:"Board game night Friday evening at Jake's place",expect:{name:"Board game night",startTime:"19:00",location:"Jake's place"}},
+{input:"Guest speaker: Dr. Patel on Buddhist Ethics. May 1, 2026 12:30–1:50 PM. Chapel.",expect:{name:"Guest speaker: Dr. Patel on Buddhist Ethics",date:"2026-05-01",startTime:"12:30",endTime:"13:50"}},
+{input:"Movie screening @ Founders Hall, 4/19, 6:30pm",expect:{name:"Movie screening",date:yr+"-04-19",startTime:"18:30"}},
+{input:"Community service day Saturday 4/26 9AM - 1PM. Meet at parking lot B.",expect:{name:"Community service day",date:yr+"-04-26",startTime:"09:00",endTime:"13:00"}},
+{input:"Piano recital, May 10, 2026, 3:00 p.m., Performing Arts Center",expect:{name:"Piano recital",date:"2026-05-10",startTime:"15:00"}},
+{input:"Finals study session — tomorrow 1:00-4:00pm at the Library, 2nd floor reading room.",expect:{name:"Finals study session",date:tmrStr,startTime:"13:00",endTime:"16:00"}},
+{input:"DRBU commencement will be held on May 23, Saturday, at the Sudhana Center, 225 South Hope Street, Ukiah, CA 95482.\nTime: 2:00-4:00 p.m.",expect:{name:"DRBU commencement",date:yr+"-05-23",startTime:"14:00",endTime:"16:00"}}
+];
+let pass=0,fail=0;
+cases.forEach((c,i)=>{const r=parseEventBlock(c.input);let ok=true;const errs=[];
+for(const[k,v]of Object.entries(c.expect)){if(r[k]!==v){ok=false;errs.push(k+': got "'+r[k]+'" expected "'+v+'"')}}
+if(ok)pass++;else{fail++;console.warn('FAIL #'+(i+1)+': '+c.input.substring(0,50)+'...',errs.join(', '))}});
+console.log('Parser tests: '+pass+'/'+cases.length+' passed'+(fail?' — '+fail+' FAILED':''));return{pass,fail,total:cases.length}}
 function renderParsedPreview(){const el=$('#evtParsePreview');if(!el)return;if(!_parsedEvents.length){el.innerHTML='';return}let h='';_parsedEvents.forEach((e,i)=>{const nd=!e.date;h+=`<div class="parsed-evt${nd?' needs-date':''}"><button class="parsed-evt-del" onclick="removeParsedEvent(${i})" title="Remove">✕</button><div class="parsed-evt-grid"><div><span class="parsed-evt-label">Name</span><input value="${(e.name||'').replace(/"/g,'&quot;')}" oninput="_parsedEvents[${i}].name=this.value"/></div><div><span class="parsed-evt-label">Date${nd?' <span class="needs-date-flag">needs date</span>':''}</span><input type="date" value="${e.date}" oninput="_parsedEvents[${i}].date=this.value"/></div><div><span class="parsed-evt-label">Start</span><input type="time" value="${e.startTime}" oninput="_parsedEvents[${i}].startTime=this.value"/></div><div><span class="parsed-evt-label">End</span><input type="time" value="${e.endTime}" oninput="_parsedEvents[${i}].endTime=this.value"/></div><div><span class="parsed-evt-label">Location</span><input value="${(e.location||'').replace(/"/g,'&quot;')}" oninput="_parsedEvents[${i}].location=this.value"/></div></div></div>`});h+=`<div style="margin-top:10px"><button class="life-btn" onclick="saveAllParsed()">Save all (${_parsedEvents.length})</button></div>`;el.innerHTML=h}
 function openPasteEvents(){const wrap=document.getElementById('evtPasteWrap');if(wrap)wrap.style.display=wrap.style.display==='none'?'block':'none';if(wrap&&wrap.style.display!=='none'){navigator.clipboard.readText().then(t=>{const ta=$('#evtPasteArea');if(ta&&t)ta.value=t}).catch(()=>{})}}
 function removeParsedEvent(i){_parsedEvents.splice(i,1);renderParsedPreview()}
