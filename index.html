@@ -1,4 +1,4 @@
-<!-- Academic Planner v6.3 -->
+<!-- Academic Planner v6.4 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -453,7 +453,7 @@ function render(){
   const allTabs=[...tabs,'settings'];
   const tn={dashboard:'Dashboard',sprints:'Week',syllabus:'Syllabus',life:'Tasks',events:'Events',notes:'Notes',settings:'Settings'};
   const renderers={dashboard:renderDash,sprints:renderSprints,syllabus:renderSyllabus,life:renderLife,events:renderEvents,notes:renderNotes,settings:renderSettings};
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',pistachio2:'🥜 Pistachio v2',spring:'🌸 Spring',midnight:'🌲 Midnight',peacock:'🦚 Peacock',temple:'⛪ Temple'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v6.3</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}${state.activeTab==='settings'?`<button class="tab active">Settings</button>`:''}</div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;updateSI()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',pistachio2:'🥜 Pistachio v2',spring:'🌸 Spring',midnight:'🌲 Midnight',peacock:'🦚 Peacock',temple:'⛪ Temple'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v6.4</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}${state.activeTab==='settings'?`<button class="tab active">Settings</button>`:''}</div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;updateSI()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;render()},6000);render();scheduleSave()}
@@ -799,11 +799,11 @@ const timeResult=extractTime(combined);
 if(timeResult.startTime){startTime=timeResult.startTime;if(timeResult.endTime)endTime=timeResult.endTime;combined=timeResult.remaining}
 const locResult=extractLocation(combined,lines);
 if(locResult.location){location=locResult.location;combined=locResult.remaining}
-combined=combined.replace(/\bwill be held\b/gi,'').replace(/\bwill take place\b/gi,'').replace(/\bis scheduled\b/gi,'').replace(/\b[Tt]ime\s*:/g,'').replace(/\bon\s*,/g,',').replace(/\s{2,}/g,' ');
+combined=combined.replace(/\bwill be held\b/gi,'').replace(/\bwill take place\b/gi,'').replace(/\bis scheduled\b/gi,'').replace(/\b[Tt]ime\s*:/g,'').replace(/\b[Mm]eet\b/g,'').replace(/\bon\s*,/g,',').replace(/[.,;]{2,}/g,'.').replace(/\s{2,}/g,' ');
 let name=combined.replace(/^[\s,\-–—:·.]+/,'').replace(/[\s,\-–—:·.]+$/,'').replace(/\s+(?:on|at|in|from|for)\s*$/i,'').replace(/\s{2,}/g,' ').trim();
 if(!name&&lines.length)name=lines[0].replace(/^[\s,\-–—:·]+/,'').replace(/[\s,\-–—:·]+$/,'').trim();
 name=name.replace(/[.,;:!?\s]+$/,'').trim();
-location=location.replace(/[.,;:!?\s]+$/,'').trim();
+location=location.replace(/[.,;:!?\s]+$/,'').replace(/\s+(?:on|from|for)\s*$/i,'').replace(/[.,;:!?\s]+$/,'').trim();
 return{name,date,startTime,endTime,location,raw:text}
 }
 function extractDate(text){
@@ -864,22 +864,22 @@ const cases=[
 {input:"Office hours with Prof. Chen, Friday 4/18, 1:00-2:30 PM, Humanities Building 210",expect:{name:"Office hours with Prof. Chen",startTime:"13:00",endTime:"14:30"}},
 {input:"Graduation rehearsal on May 8th at 9AM in the Main Auditorium",expect:{name:"Graduation rehearsal",date:yr+"-05-08",startTime:"09:00",location:"the Main Auditorium"}},
 {input:"Team meeting tmr afternoon, Room 4B",expect:{name:"Team meeting",date:tmrStr,startTime:"13:00"}},
-{input:"Concert at the Ukiah Civic Center on Saturday, April 25, 2026, 7:00 to 9:30 PM",expect:{name:"Concert",date:"2026-04-25",startTime:"19:00",endTime:"21:30"}},
+{input:"Concert at the Ukiah Civic Center on Saturday, April 25, 2026, 7:00 to 9:30 PM",expect:{name:"Concert",date:"2026-04-25",startTime:"19:00",endTime:"21:30",location:"the Ukiah Civic Center"}},
 {input:"Birthday party for Sarah\nApril 26 evening\n742 Evergreen Terrace",expect:{name:"Birthday party for Sarah",date:yr+"-04-26",startTime:"19:00",location:"742 Evergreen Terrace"}},
 {input:"Zoom call with admissions @ 3pm on 4/22",expect:{name:"Zoom call with admissions",startTime:"15:00",date:yr+"-04-22"}},
-{input:"Thesis defense — Mon Apr 27, 2026, 10:00 AM–12:00 PM. Elihu Hall, Room 118.",expect:{name:"Thesis defense",date:"2026-04-27",startTime:"10:00",endTime:"12:00"}},
-{input:"Potluck dinner tonight at 6pm at the Sudhana Center, 225 South Hope Street, Ukiah, CA 95482.",expect:{name:"Potluck dinner",date:isoDate(TODAY),startTime:"18:00"}},
+{input:"Thesis defense — Mon Apr 27, 2026, 10:00 AM–12:00 PM.\nElihu Hall, Room 118.",expect:{name:"Thesis defense",date:"2026-04-27",startTime:"10:00",endTime:"12:00",location:"Elihu Hall, Room 118"}},
+{input:"Potluck dinner tonight at 6pm at the Sudhana Center, 225 South Hope Street, Ukiah, CA 95482.",expect:{name:"Potluck dinner",date:isoDate(TODAY),startTime:"18:00",location:"the Sudhana Center, 225 South Hope Street, Ukiah, CA 95482"}},
 {input:"Club meeting 4/20 3:00-4:00pm",expect:{name:"Club meeting",date:yr+"-04-20",startTime:"15:00",endTime:"16:00"}},
-{input:"Dr. Williams lecture on consciousness will be held on Tuesday, April 21, at 4 in Science Hall.",expect:{name:"Dr. Williams lecture on consciousness",date:yr+"-04-21",startTime:"16:00"}},
+{input:"Dr. Williams lecture on consciousness will be held on Tuesday, April 21, at 4 in Science Hall.",expect:{name:"Dr. Williams lecture on consciousness",date:yr+"-04-21",startTime:"16:00",location:"Science Hall"}},
 {input:"Spring dance is scheduled for May 2nd, 8pm - 11pm, Student Union Ballroom.",expect:{name:"Spring dance",date:yr+"-05-02",startTime:"20:00",endTime:"23:00"}},
 {input:"Yoga class every Thursday at 7:00am. Online",expect:{name:"Yoga class every",startTime:"07:00",location:"Online"}},
 {input:"Board game night Friday evening at Jake's place",expect:{name:"Board game night",startTime:"19:00",location:"Jake's place"}},
-{input:"Guest speaker: Dr. Patel on Buddhist Ethics. May 1, 2026 12:30–1:50 PM. Chapel.",expect:{name:"Guest speaker: Dr. Patel on Buddhist Ethics",date:"2026-05-01",startTime:"12:30",endTime:"13:50"}},
-{input:"Movie screening @ Founders Hall, 4/19, 6:30pm",expect:{name:"Movie screening",date:yr+"-04-19",startTime:"18:30"}},
-{input:"Community service day Saturday 4/26 9AM - 1PM. Meet at parking lot B.",expect:{name:"Community service day",date:yr+"-04-26",startTime:"09:00",endTime:"13:00"}},
+{input:"Guest speaker: Dr. Patel on Buddhist Ethics\nMay 1, 2026 12:30–1:50 PM\nChapel",expect:{name:"Guest speaker: Dr. Patel on Buddhist Ethics",date:"2026-05-01",startTime:"12:30",endTime:"13:50",location:"Chapel"}},
+{input:"Movie screening @ Founders Hall, 4/19, 6:30pm",expect:{name:"Movie screening",date:yr+"-04-19",startTime:"18:30",location:"Founders Hall"}},
+{input:"Community service day Saturday 4/26 9AM - 1PM. Meet at parking lot B.",expect:{name:"Community service day",date:yr+"-04-26",startTime:"09:00",endTime:"13:00",location:"parking lot B"}},
 {input:"Piano recital, May 10, 2026, 3:00 p.m., Performing Arts Center",expect:{name:"Piano recital",date:"2026-05-10",startTime:"15:00"}},
-{input:"Finals study session — tomorrow 1:00-4:00pm at the Library, 2nd floor reading room.",expect:{name:"Finals study session",date:tmrStr,startTime:"13:00",endTime:"16:00"}},
-{input:"DRBU commencement will be held on May 23, Saturday, at the Sudhana Center, 225 South Hope Street, Ukiah, CA 95482.\nTime: 2:00-4:00 p.m.",expect:{name:"DRBU commencement",date:yr+"-05-23",startTime:"14:00",endTime:"16:00"}}
+{input:"Finals study session — tomorrow 1:00-4:00pm at the Library, 2nd floor reading room.",expect:{name:"Finals study session",date:tmrStr,startTime:"13:00",endTime:"16:00",location:"the Library, 2nd floor reading room"}},
+{input:"DRBU commencement will be held on May 23, Saturday, at the Sudhana Center, 225 South Hope Street, Ukiah, CA 95482.\nTime: 2:00-4:00 p.m.",expect:{name:"DRBU commencement",date:yr+"-05-23",startTime:"14:00",endTime:"16:00",location:"the Sudhana Center, 225 South Hope Street, Ukiah, CA 95482"}}
 ];
 let pass=0,fail=0;
 cases.forEach((c,i)=>{const r=parseEventBlock(c.input);let ok=true;const errs=[];
