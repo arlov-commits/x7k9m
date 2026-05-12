@@ -1,4 +1,4 @@
-<!-- Academic Planner v6.9 -->
+<!-- Academic Planner v7.0 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -245,7 +245,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 .parsed-evt-del:hover{color:var(--danger);background:var(--danger-dim)}
 .parsed-evt input{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Outfit';font-size:.76rem;padding:5px 8px;border-radius:5px;width:100%}
 .parsed-evt input:focus{outline:0;border-color:var(--text-dim)}
-.parsed-evt-grid{display:grid;grid-template-columns:1fr 110px 90px 90px 1fr;gap:6px;align-items:end}
+.parsed-evt-grid{display:grid;grid-template-columns:1fr 110px 110px 90px 90px 1fr;gap:6px;align-items:end}
 .parsed-evt-label{font-size:.6rem;color:var(--text-muted);text-transform:uppercase;font-weight:600}
 @media(max-width:700px){.parsed-evt-grid{grid-template-columns:1fr 1fr;gap:4px}}
 .evt-add-form{display:flex;gap:5px;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap}
@@ -452,7 +452,7 @@ function render(){
   const allTabs=[...tabs,'settings'];
   const tn={dashboard:'Dashboard',sprints:'Week',syllabus:'Syllabus',life:'Tasks',events:'Events',notes:'Notes',settings:'Settings'};
   const renderers={dashboard:renderDash,sprints:renderSprints,syllabus:renderSyllabus,life:renderLife,events:renderEvents,notes:renderNotes,settings:renderSettings};
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',pistachio2:'🥜 Pistachio v2',spring:'🌸 Spring',midnight:'🌲 Midnight',peacock:'🦚 Peacock',bodhi:'☸ Bodhi'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v6.9</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}${state.activeTab==='settings'?`<button class="tab active">Settings</button>`:''}</div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;updateSI()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',pistachio2:'🥜 Pistachio v2',spring:'🌸 Spring',midnight:'🌲 Midnight',peacock:'🦚 Peacock',bodhi:'☸ Bodhi'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v7.0</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}${state.activeTab==='settings'?`<button class="tab active">Settings</button>`:''}</div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;updateSI()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;render()},6000);render();scheduleSave()}
@@ -795,76 +795,95 @@ function restoreNotesCursor(){if(notesCursor.id&&state.activeTab==='notes'){show
 function addEvent(){const name=$('#evtNewName')?.value.trim();if(!name)return;if(!state.events)state.events=[];state.events.push({id:state.nextId++,name,date:normalizeDateInput($('#evtNewDate')?.value)||isoDate(TODAY),endDate:'',startTime:$('#evtNewStart')?.value||'',endTime:'',location:$('#evtNewLoc')?.value||'',allDay:false});$('#evtNewName').value='';$('#evtNewDate').value='';$('#evtNewStart').value='';$('#evtNewLoc').value='';render();scheduleSave()}
 function addEventAdv(){const name=$('#evtNewName')?.value.trim();if(!name)return;if(!state.events)state.events=[];state.events.push({id:state.nextId++,name,date:normalizeDateInput($('#evtNewDate')?.value)||isoDate(TODAY),endDate:normalizeDateInput($('#evtNewEndDate')?.value)||'',startTime:$('#evtNewStart')?.value||'',endTime:$('#evtNewEnd')?.value||'',location:$('#evtNewLoc')?.value||'',allDay:$('#evtNewAllDay')?.checked||false});$('#evtNewName').value='';$('#evtNewDate').value='';$('#evtNewStart').value='';$('#evtNewEnd').value='';$('#evtNewEndDate').value='';$('#evtNewLoc').value='';$('#evtNewAllDay').checked=false;render();scheduleSave()}
 let _parsedEvents=[];
+const MONTHS={january:0,february:1,march:2,april:3,may:4,june:5,july:6,august:7,september:8,october:9,november:10,december:11,jan:0,feb:1,mar:2,apr:3,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+const DAYS={sunday:0,monday:1,tuesday:2,wednesday:3,thursday:4,friday:5,saturday:6,sun:0,mon:1,tue:2,tues:2,wed:3,weds:3,thu:4,thur:4,thurs:4,fri:5,sat:6};
+const MONTH_PAT=Object.keys(MONTHS).sort((a,b)=>b.length-a.length).join('|');
+const DAY_PAT=Object.keys(DAYS).sort((a,b)=>b.length-a.length).join('|');
+function stripCJK(t){return t.replace(/[　-鿿豈-﫿＀-￯]+/g,' ').replace(/\s{2,}/g,' ').trim()}
+function stripParens(t){return t.replace(/\([^)]*\)/g,'').replace(/\s{2,}/g,' ').trim()}
+function cleanForParsing(t){return stripParens(stripCJK(t))}
+function flexRemove(orig,matchStr){if(orig.includes(matchStr))return orig.replace(matchStr,'').replace(/\s{2,}/g,' ').trim();const tokens=matchStr.split(/\s+/).filter(t=>t.length>0);if(!tokens.length)return orig;const escaped=tokens.map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));try{return orig.replace(new RegExp(escaped.join('[\\s\\S]{0,40}?'),'i'),'').replace(/\s{2,}/g,' ').trim()}catch(e){return orig}}
+function extractLabeledFields(text){const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);const fields={date:'',time:'',location:'',extra:{}};const unlabeled=[];const DATE_LBL=/^(?:date|when)(?:\s*[　-鿿豈-﫿＀-￯]*)*\s*[:：]\s*/i;const TIME_LBL=/^(?:time)(?:\s*[　-鿿豈-﫿＀-￯]*)*\s*[:：]\s*/i;const LOC_LBL=/^(?:location|place|venue|where)(?:\s*[　-鿿豈-﫿＀-￯]*)*\s*[:：]\s*/i;const SPK_LBL=/^(?:speaker|presenter|host)(?:\s*[　-鿿豈-﫿＀-￯]*)*\s*[:：]\s*/i;const PREP_LBL=/^(?:preparation|prep|notes?)(?:\s*[　-鿿豈-﫿＀-￯]*)*\s*[:：]\s*/i;for(const line of lines){if(DATE_LBL.test(line))fields.date=line.replace(DATE_LBL,'').trim();else if(TIME_LBL.test(line))fields.time=line.replace(TIME_LBL,'').trim();else if(LOC_LBL.test(line))fields.location=line.replace(LOC_LBL,'').trim();else if(SPK_LBL.test(line))fields.extra.speaker=line.replace(SPK_LBL,'').trim();else if(PREP_LBL.test(line))fields.extra.preparation=line.replace(PREP_LBL,'').trim();else unlabeled.push(line)}return{fields,unlabeled}}
 function parseEvents(){const raw=$('#evtPasteArea')?.value||'';if(!raw.trim())return;const blocks=raw.split(/\n\s*\n/).map(b=>b.trim()).filter(Boolean);_parsedEvents=blocks.map(b=>parseEventBlock(b));renderParsedPreview()}
 function parseEventBlock(text){
-const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
-let combined=lines.join(' ');
-let date='',startTime='',endTime='',location='';
-const dateResult=extractDate(combined);
-if(dateResult.date){date=dateResult.date;combined=dateResult.remaining}
-const timeResult=extractTime(combined);
-if(timeResult.startTime){startTime=timeResult.startTime;if(timeResult.endTime)endTime=timeResult.endTime;combined=timeResult.remaining}
-const locResult=extractLocation(combined,lines);
-if(locResult.location){location=locResult.location;combined=locResult.remaining}
-combined=combined.replace(/\bwill be held\b/gi,'').replace(/\bwill take place\b/gi,'').replace(/\bis scheduled\b/gi,'').replace(/\b[Tt]ime\s*:/g,'').replace(/\b[Mm]eet\b/g,'').replace(/\bon\s*,/g,',').replace(/[.,;]{2,}/g,'.').replace(/\s{2,}/g,' ');
-let name=combined.replace(/^[\s,\-–—:·.]+/,'').replace(/[\s,\-–—:·.]+$/,'').replace(/\s+(?:on|at|in|from|for)\s*$/i,'').replace(/\s{2,}/g,' ').trim();
-if(!name&&lines.length)name=lines[0].replace(/^[\s,\-–—:·]+/,'').replace(/[\s,\-–—:·]+$/,'').trim();
+const{fields,unlabeled}=extractLabeledFields(text);const lines=unlabeled;let combined=lines.join(' ');
+let date='',endDate='',startTime='',endTime='',location='';
+if(fields.date){const cd=cleanForParsing(fields.date);const dr=extractDate(cd);if(dr.date){date=dr.date;endDate=dr.endDate||'';const tr=extractTime(dr.remaining);if(tr.startTime){startTime=tr.startTime;endTime=tr.endTime||''}}}
+if(fields.time){const ct=cleanForParsing(fields.time);const tr=extractTime(ct);if(tr.startTime){startTime=tr.startTime;endTime=tr.endTime||''}}
+if(fields.location)location=stripCJK(fields.location).replace(/[.,;\s]+$/,'').trim();
+if(!date){const dr=extractDate(combined);if(dr.date){date=dr.date;endDate=dr.endDate||'';combined=dr.remaining}}
+if(!startTime){const tr=extractTime(combined);if(tr.startTime){startTime=tr.startTime;endTime=tr.endTime||'';combined=tr.remaining}}
+if(!location){const lr=extractLocation(combined,lines);if(lr.location){location=lr.location;combined=lr.remaining}}
+combined=combined.replace(/\bIt will be held\b/gi,'').replace(/\bwill be held\b/gi,'').replace(/\bwill take place\b/gi,'').replace(/\bis scheduled\b/gi,'').replace(/\bhopes to attend\b/gi,'').replace(/\bWe are hosting\b/gi,'').replace(/\b[Mm]eet\b/g,'').replace(/\bthis\s+$/i,'').replace(/\bnext\s+$/i,'').replace(/\bfrom\s+$/i,'').replace(/\bfrom\b/gi,'').replace(/\bon\s*$/i,'').replace(/\bfor\s*$/i,'').replace(/\bon\s*,/g,',').replace(/[.,;]{2,}/g,'.').replace(/\s{2,}/g,' ');
+let name=combined.replace(/^[\s,\-–—:·.]+/,'').replace(/[\s,\-–—:·.]+$/,'').replace(/,\s*[^,]*$/g,function(m){return m.length<40?'':m}).replace(/\s+(?:on|at|in|from|for)\s*$/i,'').replace(/,\s*,/g,',').replace(/^,\s*/,'').replace(/,\s*$/,'').replace(/\s+(?:on|at|in|from|for)\s*$/i,'').replace(/\s{2,}/g,' ').trim();
+if((!name||name.length<2)&&lines.length)name=lines[0].replace(/^[\s,\-–—:·]+/,'').replace(/[\s,\-–—:·]+$/,'').replace(/[.,;:!?\s]+$/,'').trim();
 name=name.replace(/[.,;:!?\s]+$/,'').trim();
 location=location.replace(/[.,;:!?\s]+$/,'').replace(/\s+(?:on|from|for)\s*$/i,'').replace(/[.,;:!?\s]+$/,'').trim();
-return{name,date,startTime,endTime,location,raw:text}
+return{name,date,endDate,startTime,endTime,location,raw:text}
 }
 function extractDate(text){
-const MONTHS={january:0,february:1,march:2,april:3,may:4,june:5,july:6,august:7,september:8,october:9,november:10,december:11,jan:0,feb:1,mar:2,apr:3,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
-const DAYS={sunday:0,monday:1,tuesday:2,wednesday:3,thursday:4,friday:5,saturday:6,sun:0,mon:1,tue:2,wed:3,thu:4,fri:5,sat:6};
-const yr=TODAY.getFullYear();
-let remaining=text,date='';
-const tmrRe=/\b(tomorrow|tmr)\b/i;
-const tonightRe=/\btonight\b/i;
-if(tmrRe.test(remaining)){const d=new Date(TODAY);d.setDate(d.getDate()+1);date=isoDate(d);remaining=remaining.replace(tmrRe,'').trim();return{date,remaining}}
-if(tonightRe.test(remaining)){date=isoDate(TODAY);remaining=remaining.replace(tonightRe,'').trim();return{date,remaining}}
-const monthNames=Object.keys(MONTHS).filter(m=>m.length>3).join('|')+'|'+Object.keys(MONTHS).filter(m=>m.length===3).join('|');
-const dayNames=Object.keys(DAYS).join('|');
-const r1=new RegExp('(?:(?:'+dayNames+')\\s*[,]?\\s*)?('+monthNames+')\\s+(\\d{1,2})(?:st|nd|rd|th)?(?:\\s*[,]\\s*(\\d{4}))?(?:\\s*[,]?\\s*(?:'+dayNames+'))?','i');
-const m1=remaining.match(r1);
-if(m1){const mo=MONTHS[m1[1].toLowerCase()];const da=parseInt(m1[2]);const y=m1[3]?parseInt(m1[3]):yr;date=y+'-'+String(mo+1).padStart(2,'0')+'-'+String(da).padStart(2,'0');remaining=remaining.replace(m1[0],'').trim();return{date,remaining}}
-const r2=new RegExp('(?:(?:'+dayNames+')\\s*[,]?\\s*)?(\\d{1,2})/(\\d{1,2})(?:/(\\d{2,4}))?','i');
+const yr=TODAY.getFullYear();let remaining=text,date='',endDate='';const clean=cleanForParsing(remaining);
+const tmrRe=/\b(tomorrow|tmrw?)\b/i;
+if(tmrRe.test(remaining)){const d=new Date(TODAY);d.setDate(d.getDate()+1);date=isoDate(d);remaining=remaining.replace(tmrRe,'').trim();return{date,endDate,remaining}}
+if(/\btoday\b/i.test(remaining)){date=isoDate(TODAY);remaining=remaining.replace(/\btoday\b/i,'').trim();return{date,endDate,remaining}}
+if(/\btonight\b/i.test(remaining)){date=isoDate(TODAY);remaining=remaining.replace(/\btonight\b/i,'').trim();return{date,endDate,remaining}}
+const rangeRe1=new RegExp('(?:(?:'+DAY_PAT+')\\s*[,]?\\s*)?('+MONTH_PAT+')\\s+(\\d{1,2})(?:st|nd|rd|th)?\\s*[-–—]\\s*(?:('+MONTH_PAT+')\\s+)?(\\d{1,2})(?:st|nd|rd|th)?(?:\\s+(?:morning|afternoon|evening))?(?:\\s*[,]?\\s*(\\d{4}))?(?:\\s*\\([^)]*\\))?','i');
+const rm1=clean.match(rangeRe1);
+if(rm1){const mo1=MONTHS[rm1[1].toLowerCase()],da1=parseInt(rm1[2]);const mo2=rm1[3]?MONTHS[rm1[3].toLowerCase()]:mo1;const da2=parseInt(rm1[4]);const y=rm1[5]?parseInt(rm1[5]):yr;date=y+'-'+String(mo1+1).padStart(2,'0')+'-'+String(da1).padStart(2,'0');endDate=y+'-'+String(mo2+1).padStart(2,'0')+'-'+String(da2).padStart(2,'0');remaining=flexRemove(remaining,rm1[0]);return{date,endDate,remaining}}
+const rangeRe2=new RegExp('(?:('+DAY_PAT+')\\s*[,]?\\s*)?('+MONTH_PAT+')\\s+(\\d{1,2})(?:st|nd|rd|th)?(?:\\s*[,]?\\s*(\\d{4}))?\\s+to\\s+(?:('+DAY_PAT+')\\s*[,]?\\s*)?(?:('+MONTH_PAT+')\\s+)?(\\d{1,2})(?:st|nd|rd|th)?(?:\\s+(?:morning|afternoon|evening))?(?:\\s*[,]?\\s*(\\d{4}))?','i');
+const rm2=clean.match(rangeRe2);
+if(rm2){const mo1=MONTHS[rm2[2].toLowerCase()],da1=parseInt(rm2[3]);const mo2=rm2[6]?MONTHS[rm2[6].toLowerCase()]:mo1;const da2=parseInt(rm2[7]);const y=rm2[4]?parseInt(rm2[4]):(rm2[8]?parseInt(rm2[8]):yr);date=y+'-'+String(mo1+1).padStart(2,'0')+'-'+String(da1).padStart(2,'0');endDate=y+'-'+String(mo2+1).padStart(2,'0')+'-'+String(da2).padStart(2,'0');remaining=flexRemove(remaining,rm2[0]);return{date,endDate,remaining}}
+const r1=new RegExp('(?:(?:this\\s+|next\\s+)?(?:'+DAY_PAT+')\\s*[,.]?\\s*)?('+MONTH_PAT+')\\s+(\\d{1,2})(?:st|nd|rd|th)?(?:\\s*[,]\\s*(\\d{4}))?(?:\\s*[,.]?\\s*(?:'+DAY_PAT+'))?','i');
+const m1=clean.match(r1);
+if(m1){const mo=MONTHS[m1[1].toLowerCase()],da=parseInt(m1[2]);const y=m1[3]?parseInt(m1[3]):yr;date=y+'-'+String(mo+1).padStart(2,'0')+'-'+String(da).padStart(2,'0');remaining=flexRemove(remaining,m1[0]);return{date,endDate,remaining}}
+const r2=new RegExp('(?:(?:'+DAY_PAT+')\\s*[,]?\\s*)?(\\d{1,2})/(\\d{1,2})(?:/(\\d{2,4}))?','i');
 const m2=remaining.match(r2);
-if(m2){const mo=parseInt(m2[1]);const da=parseInt(m2[2]);let y=m2[3]?parseInt(m2[3]):yr;if(y<100)y+=2000;date=y+'-'+String(mo).padStart(2,'0')+'-'+String(da).padStart(2,'0');remaining=remaining.replace(m2[0],'').trim();return{date,remaining}}
-const dayRe=new RegExp('\\b('+dayNames+')\\b','i');
-const dm=remaining.match(dayRe);
-if(dm){const target=DAYS[dm[1].toLowerCase()];const d=new Date(TODAY);const cur=d.getDay();let diff=target-cur;if(diff<=0)diff+=7;d.setDate(d.getDate()+diff);date=isoDate(d);remaining=remaining.replace(dm[0],'').trim();return{date,remaining}}
-return{date:'',remaining:text}
+if(m2){const mo=parseInt(m2[1]),da=parseInt(m2[2]);let y=m2[3]?parseInt(m2[3]):yr;if(y<100)y+=2000;date=y+'-'+String(mo).padStart(2,'0')+'-'+String(da).padStart(2,'0');remaining=remaining.replace(m2[0],'').trim();return{date,endDate,remaining}}
+const dayRe=new RegExp('(?:this\\s+|next\\s+)?\\b('+DAY_PAT+')\\b','i');
+const dm=clean.match(dayRe);
+if(dm){const target=DAYS[dm[1].toLowerCase()];const d=new Date(TODAY);let diff=target-d.getDay();if(diff<=0)diff+=7;d.setDate(d.getDate()+diff);date=isoDate(d);remaining=flexRemove(remaining,dm[0]);return{date,endDate,remaining}}
+return{date:'',endDate:'',remaining:text}
 }
 function extractTime(text){
-let remaining=text,startTime='',endTime='';
-function toHHMM(h,m,ampm){h=parseInt(h);m=parseInt(m||'0');if(ampm){const a=ampm.toLowerCase();if(a.startsWith('p')&&h<12)h+=12;if(a.startsWith('a')&&h===12)h=0}return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')}
-const rangeRe=/(\d{1,2})(?::(\d{2}))?\s*([ap]\.?m\.?)?\s*[-–—to]+\s*(\d{1,2})(?::(\d{2}))?\s*([ap]\.?m\.?)?/i;
-const rm=remaining.match(rangeRe);
-if(rm){let ap1=rm[3]||'',ap2=rm[6]||'';if(!ap1&&ap2)ap1=ap2;if(ap1)ap1=ap1.replace(/\./g,'')+'m';if(ap2)ap2=ap2.replace(/\./g,'')+'m';if(!ap1&&!ap2){const h=parseInt(rm[1]);ap1=h>=8&&h<=11?'am':'pm';ap2=ap1}startTime=toHHMM(rm[1],rm[2],ap1);endTime=toHHMM(rm[4],rm[5],ap2);remaining=remaining.replace(rm[0],'').trim();return{startTime,endTime,remaining}}
-const singleRe=/(?:[@at]*\s*)(\d{1,2})(?::(\d{2}))?\s*([ap]\.?m\.?)/i;
-const sm=remaining.match(singleRe);
-if(sm){let ap=sm[3].replace(/\./g,'')+'m';startTime=toHHMM(sm[1],sm[2],ap);remaining=remaining.replace(sm[0],'').trim();return{startTime,endTime:'',remaining}}
-const atTimeRe=/(?:@|at)\s+(\d{1,2})(?::(\d{2}))?\b/i;
-const atm=remaining.match(atTimeRe);
-if(atm){const h=parseInt(atm[1]);const ampm=h>=8&&h<=11?'am':'pm';startTime=toHHMM(atm[1],atm[2],ampm);remaining=remaining.replace(atm[0],'').trim();return{startTime,endTime:'',remaining}}
-const wordTimeRe=/\b(afternoon|evening)\b/i;
+let remaining=text,startTime='',endTime='';const clean=cleanForParsing(remaining);
+function toHHMM(h,m,ampm){h=parseInt(h);m=parseInt(m||'0');if(ampm){const a=ampm.toLowerCase().replace(/[\s.]/g,'');if(a.startsWith('p')&&h<12)h+=12;if(a.startsWith('a')&&h===12)h=0}return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')}
+function normAP(s){if(!s)return'';const n=s.toLowerCase().replace(/[\s.]/g,'');if(n.startsWith('a'))return'am';if(n.startsWith('p'))return'pm';return''}
+const fromToRe=/\bfrom\s+(\d{1,2})(?::(\d{2}))?\s*([ap]\.?\s*m\.?)?\s+to\s+(\d{1,2})(?::(\d{2}))?\s*([ap]\.?\s*m\.?)?/i;
+const ftm=clean.match(fromToRe);
+if(ftm){let ap1=normAP(ftm[3]),ap2=normAP(ftm[6]);if(!ap1&&ap2)ap1=ap2;if(ap1&&!ap2)ap2=ap1;if(!ap1&&!ap2){const h=parseInt(ftm[1]);ap1=(h>=8&&h<=11)?'am':'pm';ap2=ap1}startTime=toHHMM(ftm[1],ftm[2],ap1);endTime=toHHMM(ftm[4],ftm[5],ap2);remaining=flexRemove(remaining,ftm[0]);return{startTime,endTime,remaining}}
+const rangeRe=/(\d{1,2})(?::(\d{2}))?\s*([ap]\.?\s*m\.?)?\s*(?:[-–—]|to)\s*(\d{1,2})(?::(\d{2}))?\s*([ap]\.?\s*m\.?)?/i;
+const rm=clean.match(rangeRe);
+if(rm){let ap1=normAP(rm[3]),ap2=normAP(rm[6]);if(!ap1&&ap2)ap1=ap2;if(ap1&&!ap2)ap2=ap1;if(!ap1&&!ap2){const h=parseInt(rm[1]);ap1=(h>=8&&h<=11)?'am':'pm';ap2=ap1}startTime=toHHMM(rm[1],rm[2],ap1);endTime=toHHMM(rm[4],rm[5],ap2);remaining=flexRemove(remaining,rm[0]);return{startTime,endTime,remaining}}
+const singleRe=/(?:(?:@|\bat)\s+)?(\d{1,2})(?::(\d{2}))?\s*([ap]\.?\s*m\.?)/i;
+const sm=clean.match(singleRe);
+if(sm){startTime=toHHMM(sm[1],sm[2],normAP(sm[3]));remaining=flexRemove(remaining,sm[0]);return{startTime,endTime:'',remaining}}
+const atTimeRe=/(?:@|\bat)\s+(\d{1,2})(?::(\d{2}))?\b/i;
+const atm=clean.match(atTimeRe);
+if(atm){const h=parseInt(atm[1]);startTime=toHHMM(atm[1],atm[2],(h>=8&&h<=11)?'am':'pm');remaining=flexRemove(remaining,atm[0]);return{startTime,endTime:'',remaining}}
+const wordTimeRe=/\b(noon|morning|afternoon|evening)\b/i;
 const wm=remaining.match(wordTimeRe);
-if(wm){startTime=wm[1].toLowerCase()==='afternoon'?'13:00':'19:00';remaining=remaining.replace(wm[0],'').trim();return{startTime,endTime:'',remaining}}
+if(wm){const w=wm[1].toLowerCase();startTime=w==='noon'?'12:00':w==='morning'?'09:00':w==='afternoon'?'13:00':'19:00';remaining=remaining.replace(wm[0],'').trim();return{startTime,endTime:'',remaining}}
 return{startTime:'',endTime:'',remaining}
 }
 function extractLocation(text,lines){
 let remaining=text,location='';
-const atLocRe=/(?:@|(?:^|[,;.]\s*|\s+)at|(?:^|[,;.]\s*|\s+)in)\s+((?:the\s+)?[A-Za-z][A-Za-z0-9 .,''&\-#]*?(?:\d{5})?)\s*(?=[.;]?\s*$|[.;]\s+|$)/i;
+const atSymRe=/@\s+([A-Za-z0-9][A-Za-z0-9 .,''&\-#()/]*?)(?:\s*[.;!?]?\s*$)/i;
+const asm2=remaining.match(atSymRe);
+if(asm2){location=asm2[1].replace(/[.,;\s]+$/,'').trim();remaining=remaining.replace(asm2[0],'').trim();return{location,remaining}}
+const atLocRe=/((?:^|[,;.]\s*|\s+)(?:at|in))\s+((?:the\s+)?[A-Za-z0-9][A-Za-z0-9 .,''&\-#()/]*?)(?:\s*[.;!?]?\s*$)/i;
 const alm=remaining.match(atLocRe);
-if(alm){location=alm[1].replace(/[.,\s]+$/,'').trim();remaining=remaining.replace(alm[0],'').trim();return{location,remaining}}
-const onlineRe=/\b(online|zoom|virtual|teams|webex)\b(?!\s+(?:call|meeting|session|chat|with))/i;
+if(alm){location=alm[2].replace(/[.,;\s]+$/,'').replace(/^(?:at|in)\s+/i,'').trim();remaining=remaining.replace(alm[0],'').trim();return{location,remaining}}
+const onlineRe=/\b(Online|Virtual|Zoom|Teams|Webex|Google\s*Meet)\b(?!\s+(?:call|meeting|session|chat|with))/i;
 const om=remaining.match(onlineRe);
-if(om){location=om[1];remaining=remaining.replace(om[0],'').trim();return{location,remaining}}
-if(lines.length>1){const last=lines[lines.length-1];if(/^[A-Z][A-Za-z0-9 .''&\-]+$/.test(last)&&last.length<60&&!extractDate(last).date&&!extractTime(last).startTime){location=last;remaining=remaining.replace(last,'').trim();return{location,remaining}}}
+if(om){location=om[1].charAt(0).toUpperCase()+om[1].slice(1);const afterIdx=om.index+om[0].length;let afterStr=remaining.substring(afterIdx);if(/^\s*\([^)]*\)/.test(afterStr)){afterStr=afterStr.replace(/^\s*\([^)]*\)/,'');remaining=remaining.substring(0,om.index)+afterStr}else{remaining=remaining.replace(om[0],'')}remaining=remaining.replace(/\s{2,}/g,' ').trim();return{location,remaining}}
+if(lines.length>1){const last=lines[lines.length-1];if(last.length<80&&last.length>1){const isLabel=/^(?:date|time|speaker|preparation|note|when|where)/i.test(last);const hasDate=extractDate(last).date;const hasTime=extractTime(last).startTime;const isAtLine=/^@\s/.test(last);if(!isLabel&&!hasDate&&!hasTime&&!isAtLine){location=last.replace(/[.,;\s]+$/,'').trim();const idx=remaining.lastIndexOf(last);if(idx>=0)remaining=(remaining.substring(0,idx)+remaining.substring(idx+last.length)).replace(/\s{2,}/g,' ').trim();return{location,remaining}}}}
+const atLine2=/(?:^|\s)@\s+([A-Za-z0-9][A-Za-z0-9 .,''&\-#()/]*?)(?:\s*$)/i;
+const atl2=remaining.match(atLine2);
+if(atl2){location=atl2[1].replace(/[.,;\s]+$/,'').trim();remaining=remaining.replace(atl2[0],'').trim();return{location,remaining}}
 return{location:'',remaining}
 }
 function testParser(){
-const yr=TODAY.getFullYear();const pad=(n)=>String(n).padStart(2,'0');const tmr=new Date(TODAY);tmr.setDate(tmr.getDate()+1);const tmrStr=isoDate(tmr);
+const yr=TODAY.getFullYear();const tmr=new Date(TODAY);tmr.setDate(tmr.getDate()+1);const tmrStr=isoDate(tmr);
 const cases=[
 {input:"Dinner tomorrow at 7pm at Mario's Italian Kitchen",expect:{name:"Dinner",date:tmrStr,startTime:"19:00",location:"Mario's Italian Kitchen"}},
 {input:"Study group Wednesday 6pm - 8pm at Library Room 302",expect:{name:"Study group",startTime:"18:00",endTime:"20:00",location:"Library Room 302"}},
@@ -886,18 +905,61 @@ const cases=[
 {input:"Community service day Saturday 4/26 9AM - 1PM. Meet at parking lot B.",expect:{name:"Community service day",date:yr+"-04-26",startTime:"09:00",endTime:"13:00",location:"parking lot B"}},
 {input:"Piano recital, May 10, 2026, 3:00 p.m., Performing Arts Center",expect:{name:"Piano recital",date:"2026-05-10",startTime:"15:00"}},
 {input:"Finals study session — tomorrow 1:00-4:00pm at the Library, 2nd floor reading room.",expect:{name:"Finals study session",date:tmrStr,startTime:"13:00",endTime:"16:00",location:"the Library, 2nd floor reading room"}},
-{input:"DRBU commencement will be held on May 23, Saturday, at the Sudhana Center, 225 South Hope Street, Ukiah, CA 95482.\nTime: 2:00-4:00 p.m.",expect:{name:"DRBU commencement",date:yr+"-05-23",startTime:"14:00",endTime:"16:00",location:"the Sudhana Center, 225 South Hope Street, Ukiah, CA 95482"}}
+{input:"DRBU commencement will be held on May 23, Saturday, at the Sudhana Center, 225 South Hope Street, Ukiah, CA 95482.\nTime: 2:00-4:00 p.m.",expect:{name:"DRBU commencement",date:yr+"-05-23",startTime:"14:00",endTime:"16:00",location:"the Sudhana Center, 225 South Hope Street, Ukiah, CA 95482"}},
+{input:"CEI Orientation\nDate: Wednesday, May 13\nTime: 11:30 am to 12:15 pm\nLocation: DRBU courtyard",expect:{name:"CEI Orientation",date:yr+"-05-13",startTime:"11:30",endTime:"12:15",location:"DRBU courtyard"}},
+{input:"Sunday, May 17th,\nLocation: Cottage 7 (the one across from cottage 1)",expect:{date:yr+"-05-17",location:"Cottage 7 (the one across from cottage 1)"}},
+{input:"Date: Monday afternoon, May 18.\nTime: 5:00 PM – 6:00 PM.",expect:{date:yr+"-05-18",startTime:"17:00",endTime:"18:00"}},
+{input:"Ven. Bhikkhu Bodhi hopes to attend Doug's evening talk.\nDate: Monday, May 18th to Thursday, May 21 morning\nLocation: Earth Store Hall\nPreparation: Evening Sparkling water and Tea",expect:{date:yr+"-05-18",endDate:yr+"-05-21",location:"Earth Store Hall"}},
+{input:"CTTB Buddha Hall 萬佛城大殿講法\nDate 日期:  May 9  五月九日  (Saturday 星期六)\nTime 時間:  8:15 pm - 9:00 pm (PDT/California time) 晚上  美國加州時間\nSpeaker 講法者:  DM Jin Chuan 近傳法師",expect:{date:yr+"-05-09",startTime:"20:15",endTime:"21:00"}},
+{input:"It will be held May 18- 21 (M-Th) in the Earth Store Hall.",expect:{date:yr+"-05-18",endDate:yr+"-05-21",location:"the Earth Store Hall"}},
+{input:"CEI Orientation\nWednesday, May 13\n11:30 am to 12:15 pm\n@ DRBU courtyard",expect:{name:"CEI Orientation",date:yr+"-05-13",startTime:"11:30",endTime:"12:15",location:"DRBU courtyard"}},
+{input:"Meditation sit\nFriday 6am",expect:{name:"Meditation sit",startTime:"06:00"}},
+{input:"Lunch this Saturday at noon",expect:{name:"Lunch",startTime:"12:00"}},
+{input:"Workshop from 2pm to 5pm on May 14 at the Rec Center",expect:{name:"Workshop",date:yr+"-05-14",startTime:"14:00",endTime:"17:00",location:"the Rec Center"}},
+{input:"May 20\nDharma talk by Ajahn Sumedho\n7:00 - 8:30 PM\nBuddha Hall",expect:{date:yr+"-05-20",startTime:"19:00",endTime:"20:30",location:"Buddha Hall"}},
+{input:"Retreat planning 6/15/26 10am at Admin Office",expect:{name:"Retreat planning",date:"2026-06-15",startTime:"10:00",location:"Admin Office"}},
+{input:"Emergency meeting today at 3pm in Room 201",expect:{name:"Emergency meeting",date:isoDate(TODAY),startTime:"15:00",location:"Room 201"}},
+{input:"The annual fundraiser will take place on June 5th at 6:00 PM at the Community Center.",expect:{name:"The annual fundraiser",date:yr+"-06-05",startTime:"18:00",location:"the Community Center"}},
+{input:"Coffee chat tmrw 8am at Starbucks",expect:{name:"Coffee chat",date:tmrStr,startTime:"08:00",location:"Starbucks"}},
+{input:"Faculty meeting, Thursday, May 15, 3:00-4:30 PM, Conference Room A",expect:{name:"Faculty meeting",date:yr+"-05-15",startTime:"15:00",endTime:"16:30"}},
+{input:"Dharma talk at Buddha Hall on May 22 at 7pm",expect:{name:"Dharma talk",date:yr+"-05-22",startTime:"19:00",location:"Buddha Hall"}},
+{input:"End-of-year banquet.\nDate: Saturday, May 30.\nTime: 6:00 PM - 9:00 PM.\nLocation: Grand Dining Hall.",expect:{name:"End-of-year banquet",date:yr+"-05-30",startTime:"18:00",endTime:"21:00",location:"Grand Dining Hall"}},
+{input:"Vespers service at 5:30pm at the Chapel",expect:{name:"Vespers service",startTime:"17:30",location:"the Chapel"}},
+{input:"Open house from 10:00 AM to 2:00 PM on Saturday at the Library",expect:{name:"Open house",startTime:"10:00",endTime:"14:00",location:"the Library"}},
+{input:"Summer retreat May 25-30 at CTTB",expect:{name:"Summer retreat",date:yr+"-05-25",endDate:yr+"-05-30",location:"CTTB"}},
+{input:"Meditation intensive June 28 - July 4 at Tushita Centre",expect:{name:"Meditation intensive",date:yr+"-06-28",endDate:yr+"-07-04",location:"Tushita Centre"}},
+{input:"Seminar\nMay 19, 2:00-3:30 PM\nHumanities Bldg, Room 204 (2nd floor)",expect:{name:"Seminar",date:yr+"-05-19",startTime:"14:00",endTime:"15:30"}},
+{input:"Potluck\nWhen: Friday evening\nWhere: Cottage 3",expect:{name:"Potluck",startTime:"19:00",location:"Cottage 3"}},
+{input:"June 1\nVolunteer orientation\n9 AM\nFront gate",expect:{date:yr+"-06-01",startTime:"09:00",location:"Front gate"}},
+{input:"Hike Sat 7am. Meet at parking lot.",expect:{name:"Hike",startTime:"07:00",location:"parking lot"}},
+{input:"Tea ceremony May 15 3:00 p.m. at Zen Garden",expect:{name:"Tea ceremony",date:yr+"-05-15",startTime:"15:00",location:"Zen Garden"}},
+{input:"We are hosting a visiting scholar talk. It will be held on May 20 at 4:00 PM in the Lecture Hall.",expect:{date:yr+"-05-20",startTime:"16:00",location:"the Lecture Hall"}},
+{input:"Check-in call Thursday 2pm. Virtual (Google Meet)",expect:{name:"Check-in call",startTime:"14:00",location:"Virtual"}},
+{input:"Book club\nDate: May 16\nTime: 7:00 - 8:30 PM\nVenue: Reading Room",expect:{name:"Book club",date:yr+"-05-16",startTime:"19:00",endTime:"20:30",location:"Reading Room"}},
+{input:"Bulletin board cleanup at the Admin Building",expect:{name:"Bulletin board cleanup",location:"the Admin Building"}},
+{input:"Precepts ceremony\nWhen: Saturday, May 24, 10:00 AM\nWhere: Buddha Hall",expect:{name:"Precepts ceremony",date:yr+"-05-24",startTime:"10:00",location:"Buddha Hall"}},
+{input:"Pizza night Fri 5/16 6pm at the courtyard",expect:{name:"Pizza night",date:yr+"-05-16",startTime:"18:00",location:"the courtyard"}},
+{input:"Chanting 5:00-6:00am at the Main Hall",expect:{name:"Chanting",startTime:"05:00",endTime:"06:00",location:"the Main Hall"}},
+{input:"Weekly sangha meeting\nDate:   June 3  \nTime:   7:00 PM - 8:00 PM  \nLocation:   Earth Store Hall  ",expect:{name:"Weekly sangha meeting",date:yr+"-06-03",startTime:"19:00",endTime:"20:00",location:"Earth Store Hall"}},
+{input:"Dharma talk 講法\nDate 日期: May 16 五月十六日 (Saturday 星期六)\nTime 時間: 8:15 pm - 9:00 pm\nLocation 地點: Buddha Hall 萬佛殿",expect:{date:yr+"-05-16",startTime:"20:15",endTime:"21:00",location:"Buddha Hall"}},
+{input:"Spring dance is scheduled for May 2nd, 8pm - 11pm, Student Union Ballroom.",expect:{name:"Spring dance",date:yr+"-05-02",startTime:"20:00",endTime:"23:00"}},
+{input:"Dawn meditation Saturday morning at the Garden",expect:{name:"Dawn meditation",startTime:"09:00",location:"the Garden"}},
+{input:"All-hands meeting\nThursday 3pm\n@ Main conference room",expect:{name:"All-hands meeting",startTime:"15:00",location:"Main conference room"}}
 ];
-let pass=0,fail=0;
+let pass=0,fail=0;const failures=[];
 cases.forEach((c,i)=>{const r=parseEventBlock(c.input);let ok=true;const errs=[];
 for(const[k,v]of Object.entries(c.expect)){if(r[k]!==v){ok=false;errs.push(k+': got "'+r[k]+'" expected "'+v+'"')}}
-if(ok)pass++;else{fail++;console.warn('FAIL #'+(i+1)+': '+c.input.substring(0,50)+'...',errs.join(', '))}});
-console.log('Parser tests: '+pass+'/'+cases.length+' passed'+(fail?' — '+fail+' FAILED':''));return{pass,fail,total:cases.length}}
-function renderParsedPreview(){const el=$('#evtParsePreview');if(!el)return;if(!_parsedEvents.length){el.innerHTML='';return}let h='';_parsedEvents.forEach((e,i)=>{const nd=!e.date;h+=`<div class="parsed-evt${nd?' needs-date':''}"><button class="parsed-evt-del" onclick="removeParsedEvent(${i})" title="Remove">✕</button><div class="parsed-evt-grid"><div><span class="parsed-evt-label">Name</span><input value="${(e.name||'').replace(/"/g,'&quot;')}" oninput="_parsedEvents[${i}].name=this.value"/></div><div><span class="parsed-evt-label">Date${nd?' <span class="needs-date-flag">needs date</span>':''}</span><input type="date" value="${e.date}" oninput="_parsedEvents[${i}].date=this.value"/></div><div><span class="parsed-evt-label">Start</span><input type="time" value="${e.startTime}" oninput="_parsedEvents[${i}].startTime=this.value"/></div><div><span class="parsed-evt-label">End</span><input type="time" value="${e.endTime}" oninput="_parsedEvents[${i}].endTime=this.value"/></div><div><span class="parsed-evt-label">Location</span><input value="${(e.location||'').replace(/"/g,'&quot;')}" oninput="_parsedEvents[${i}].location=this.value"/></div></div></div>`});h+=`<div style="margin-top:10px"><button class="life-btn" onclick="saveAllParsed()">Save all (${_parsedEvents.length})</button></div>`;el.innerHTML=h}
+if(ok)pass++;else{fail++;failures.push({num:i+1,input:c.input.substring(0,65),errs})}});
+console.log('\n========================================');
+console.log('Parser v2: '+pass+'/'+cases.length+(fail?' — '+fail+' FAILED':' ✓ ALL PASS'));
+console.log('========================================\n');
+failures.forEach(f=>{console.log('  FAIL #'+f.num+': '+f.input);f.errs.forEach(e=>console.log('    → '+e))});
+return{pass,fail,total:cases.length}}
+function renderParsedPreview(){const el=$('#evtParsePreview');if(!el)return;if(!_parsedEvents.length){el.innerHTML='';return}let h='';_parsedEvents.forEach((e,i)=>{const nd=!e.date;h+=`<div class="parsed-evt${nd?' needs-date':''}"><button class="parsed-evt-del" onclick="removeParsedEvent(${i})" title="Remove">✕</button><div class="parsed-evt-grid"><div><span class="parsed-evt-label">Name</span><input value="${(e.name||'').replace(/"/g,'&quot;')}" oninput="_parsedEvents[${i}].name=this.value"/></div><div><span class="parsed-evt-label">Date${nd?' <span class="needs-date-flag">needs date</span>':''}</span><input type="date" value="${e.date}" oninput="_parsedEvents[${i}].date=this.value"/></div><div><span class="parsed-evt-label">End Date</span><input type="date" value="${e.endDate||''}" oninput="_parsedEvents[${i}].endDate=this.value"/></div><div><span class="parsed-evt-label">Start</span><input type="time" value="${e.startTime}" oninput="_parsedEvents[${i}].startTime=this.value"/></div><div><span class="parsed-evt-label">End</span><input type="time" value="${e.endTime}" oninput="_parsedEvents[${i}].endTime=this.value"/></div><div><span class="parsed-evt-label">Location</span><input value="${(e.location||'').replace(/"/g,'&quot;')}" oninput="_parsedEvents[${i}].location=this.value"/></div></div></div>`});h+=`<div style="margin-top:10px"><button class="life-btn" onclick="saveAllParsed()">Save all (${_parsedEvents.length})</button></div>`;el.innerHTML=h}
 function openPasteEvents(){const wrap=document.getElementById('evtPasteWrap');if(wrap)wrap.style.display=wrap.style.display==='none'?'block':'none';if(wrap&&wrap.style.display!=='none'){navigator.clipboard.readText().then(t=>{const ta=$('#evtPasteArea');if(ta&&t)ta.value=t}).catch(()=>{})}}
 function removeParsedEvent(i){_parsedEvents.splice(i,1);renderParsedPreview()}
 function clearParsedEvents(){_parsedEvents=[];const el=$('#evtParsePreview');if(el)el.innerHTML='';const ta=$('#evtPasteArea');if(ta)ta.value=''}
-function saveAllParsed(){if(!_parsedEvents.length)return;if(!state.events)state.events=[];_parsedEvents.forEach(e=>{if(e.name)state.events.push({id:state.nextId++,name:e.name,date:e.date||isoDate(TODAY),endDate:'',startTime:e.startTime||'',endTime:e.endTime||'',location:e.location||'',allDay:false})});_parsedEvents=[];render();scheduleSave()}
+function saveAllParsed(){if(!_parsedEvents.length)return;if(!state.events)state.events=[];_parsedEvents.forEach(e=>{if(e.name)state.events.push({id:state.nextId++,name:e.name,date:e.date||isoDate(TODAY),endDate:e.endDate||'',startTime:e.startTime||'',endTime:e.endTime||'',location:e.location||'',allDay:false})});_parsedEvents=[];render();scheduleSave()}
 function deleteEvent(id){if(!confirm('Delete event?'))return;state.events=(state.events||[]).filter(e=>e.id!==id);render();scheduleSave()}
 let editEvtId=null;
 function openEvtEdit(id){editEvtId=id;const e=(state.events||[]).find(e=>e.id===id);if(!e)return;$('#evtModalTitle').textContent='Edit Event';$('#eName').value=e.name;$('#eDate').value=e.date;$('#eEndDate').value=e.endDate||'';$('#eStart').value=e.startTime||'';$('#eEnd').value=e.endTime||'';$('#eLoc').value=e.location||'';$('#eAllDay').checked=!!e.allDay;$('#evtModal').classList.add('open')}
