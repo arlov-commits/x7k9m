@@ -1,4 +1,4 @@
-<!-- Academic Planner v6.8 -->
+<!-- Academic Planner v6.9 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -84,12 +84,11 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 
 /* Sprint */
 .week-section{margin-bottom:26px}
-.week-hdr{display:flex;align-items:baseline;gap:9px;margin-bottom:0;padding-bottom:5px;border-bottom:1px solid var(--border);flex-wrap:wrap}
-.week-tasks-row{display:flex;align-items:center;gap:6px;padding:6px 0 8px 0;margin-bottom:4px;border-bottom:1px dashed var(--border);flex-wrap:wrap;min-height:28px}
-.week-tasks-row .chip{font-size:.72rem}
-.week-tasks-label{font-size:.64rem;color:var(--text-muted);white-space:nowrap}
+.week-hdr{display:flex;align-items:baseline;gap:9px;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.week-hdr .chip{font-size:.72rem}
 .week-hdr.alloc-target{cursor:pointer}
 .week-hdr.alloc-highlight{background:var(--warning-dim);border-radius:4px}
+.week-hdr .add-day-btn{font-size:.6rem;padding:0 5px;line-height:1.4}
 .week-hdr-title{font-family:'Crimson Pro',serif;font-size:1.15rem;font-weight:600}
 .week-hdr-dates{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--text-dim)}
 .week-hdr-hours{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--text-muted);margin-left:auto}
@@ -453,7 +452,7 @@ function render(){
   const allTabs=[...tabs,'settings'];
   const tn={dashboard:'Dashboard',sprints:'Week',syllabus:'Syllabus',life:'Tasks',events:'Events',notes:'Notes',settings:'Settings'};
   const renderers={dashboard:renderDash,sprints:renderSprints,syllabus:renderSyllabus,life:renderLife,events:renderEvents,notes:renderNotes,settings:renderSettings};
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',pistachio2:'🥜 Pistachio v2',spring:'🌸 Spring',midnight:'🌲 Midnight',peacock:'🦚 Peacock',bodhi:'☸ Bodhi'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v6.8</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}${state.activeTab==='settings'?`<button class="tab active">Settings</button>`:''}</div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;updateSI()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',pistachio2:'🥜 Pistachio v2',spring:'🌸 Spring',midnight:'🌲 Midnight',peacock:'🦚 Peacock',bodhi:'☸ Bodhi'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v6.9</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}${state.activeTab==='settings'?`<button class="tab active">Settings</button>`:''}</div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;updateSI()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;render()},6000);render();scheduleSave()}
@@ -489,8 +488,8 @@ const autoHiddenDays=isCur?wk.days.filter(d=>d.date<todayStr&&!expandedPastDays.
 const totalHidden=manualHidden+autoHiddenDays.length;
 const isAT=allocatingId!==null;
 const weekTasks=state.tasks.filter(t=>t.weekNum===wk.num&&!t.date);
-const weekTasksHtml=weekTasks.length||isAT?`<div class="week-tasks-row" ondragover="event.preventDefault();this.classList.add('alloc-highlight')" ondrop="handleWeekDrop(event,${wk.num})" ondragleave="this.classList.remove('alloc-highlight')" ${isAT?`onclick="placeAllocatedWeek(${wk.num})"`:''} style="${isAT?'cursor:pointer':''}"><span class="week-tasks-label">Week:</span>${weekTasks.map(t=>renderChip(t)).join('')}<button class="add-day-btn" onclick="event.stopPropagation();openAddWeekTask(${wk.num})" title="Add week task" style="font-size:.68rem">+</button></div>`:`<div class="week-tasks-row" ondragover="event.preventDefault();this.classList.add('alloc-highlight')" ondrop="handleWeekDrop(event,${wk.num})" ondragleave="this.classList.remove('alloc-highlight')"><span class="week-tasks-label">Week:</span><button class="add-day-btn" onclick="event.stopPropagation();openAddWeekTask(${wk.num})" title="Add week task" style="font-size:.68rem">+</button></div>`;
-let h=`<div class="week-section"><div class="week-hdr ${isAT?'alloc-target':''}" ${isAT?`onclick="placeAllocatedWeek(${wk.num})"`:''} ondragover="event.preventDefault();this.classList.add('alloc-highlight')" ondrop="handleWeekDrop(event,${wk.num})" ondragleave="this.classList.remove('alloc-highlight')"><span class="week-hdr-title">Week ${wk.num}</span><span class="week-hdr-dates">${fmtDateShort(wk.start)} → ${fmtDateShort(wk.end)}</span>${badges.join('')}${totalHidden?`<button class="expand-week-btn" onclick="expandWeek(${wk.num})" title="Show hidden days">▼ ${totalHidden} hidden</button>`:''}</div>${weekTasksHtml}`;
+const weekChipsHtml=weekTasks.map(t=>renderChip(t)).join('');
+let h=`<div class="week-section"><div class="week-hdr ${isAT?'alloc-target':''}" ${isAT?`onclick="placeAllocatedWeek(${wk.num})"`:''} ondragover="event.preventDefault();this.classList.add('alloc-highlight')" ondrop="handleWeekDrop(event,${wk.num})" ondragleave="this.classList.remove('alloc-highlight')"><span class="week-hdr-title">Week ${wk.num}</span><span class="week-hdr-dates">${fmtDateShort(wk.start)} → ${fmtDateShort(wk.end)}</span>${badges.join('')}${totalHidden?`<button class="expand-week-btn" onclick="event.stopPropagation();expandWeek(${wk.num})" title="Show hidden days">▼ ${totalHidden} hidden</button>`:''}${weekChipsHtml}<button class="add-day-btn" onclick="event.stopPropagation();openAddWeekTask(${wk.num})" title="Add week task">+</button></div>`;
 wk.days.forEach(day=>{if((state.hiddenDays||[]).includes(day.date))return;if(isCur&&day.date<todayStr&&!expandedPastDays.includes(day.date))return;const tasks=state.tasks.filter(t=>t.date===day.date),isT=sameDay(day.dateObj,TODAY),note=state.dayNotes[day.date]||'',canHide=isCur&&day.dateObj<=TODAY;
 const dayEvts=getEventsForDate(day.date);const sylChips=getSylForDate(day.date);const SYL_EMOJI={reading:'📖',paper:'📝',exam:'📋',presentation:'🎤',custom:'📌'};
 // Build unified sorted pill list
