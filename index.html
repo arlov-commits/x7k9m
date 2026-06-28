@@ -358,7 +358,17 @@ function alignedSemStart(){const s=getSemStart();const off=weekStartOffset(s);co
 function semesterWeekNum(d){const diff=Math.round((d-alignedSemStart())/864e5);return Math.floor(diff/7)+1}
 function semesterWeekStart(wkN){const s=alignedSemStart();const d=new Date(s);d.setDate(d.getDate()+(wkN-1)*7);return d}
 
-function generateWeeks(){const end=parseDate(state.maxFutureDate||'2026-05-30'),weeks=[];const wsd=state.weekStartDay;let cur=new Date(TODAY);cur.setDate(cur.getDate()-weekStartOffset(cur));let wk=semesterWeekNum(cur);while(cur<=end){const days=[];for(let i=0;i<7;i++){const d=new Date(cur);d.setDate(d.getDate()+i);if(d>end)break;days.push({date:isoDate(d),dateObj:new Date(d)})}weeks.push({num:wk,start:new Date(cur),end:new Date(cur.getTime()+6*864e5),days});cur.setDate(cur.getDate()+7);wk++}return weeks}
+function generateWeeks(){const weeks=[];
+  // Window end: always at least 8 weeks past today, regardless of a stale maxFutureDate.
+  const minEnd=new Date(TODAY);minEnd.setDate(minEnd.getDate()+8*7);
+  const maxFut=state.maxFutureDate?parseDate(state.maxFutureDate):null;
+  const end=(maxFut&&maxFut>minEnd)?maxFut:minEnd;
+  // Window start: aligned semester start so past weeks remain available to expand,
+  // but never later than the current week (so "this week" is always present).
+  let curWeekStart=new Date(TODAY);curWeekStart.setDate(curWeekStart.getDate()-weekStartOffset(curWeekStart));
+  let cur=alignedSemStart();if(cur>curWeekStart)cur=new Date(curWeekStart);
+  let wk=semesterWeekNum(cur);
+  while(cur<=end){const days=[];for(let i=0;i<7;i++){const d=new Date(cur);d.setDate(d.getDate()+i);if(d>end)break;days.push({date:isoDate(d),dateObj:new Date(d)})}weeks.push({num:wk,start:new Date(cur),end:new Date(cur.getTime()+6*864e5),days});cur.setDate(cur.getDate()+7);wk++}return weeks}
 function getAvailHours(ds){const d=parseDate(ds),dow=d.getDay();if(d>=new Date(2026,3,5)&&d<=new Date(2026,3,11))return 5;if(ds==='2026-03-23')return 0;if(dow===1){return Math.round((d-new Date(2026,2,30))/(7*864e5))%2===0?4:0}return[7,0,0,4,3.5,0,10][dow]}
 
 function defaultTasks(){return[]}
@@ -729,7 +739,14 @@ function deleteTask(id){const t=state.tasks.find(t=>t.id===id);if(!t)return;if(t
 function placeAllocatedWeek(weekNum){if(!allocatingId)return;const lt=state.lifeTasks.find(t=>t.id===allocatingId);if(lt){state.tasks.push({id:state.nextId++,date:'',weekNum,cat:'life',name:lt.name,hours:lt.hours,priority:lt.priority==='high'?'high':'normal',done:false,lifeSourceId:lt.id,time:''});lt.inBank=false;allocatingId=null;render();scheduleSave()}}
 function handleWeekDrop(e,weekNum){e.preventDefault();e.currentTarget.classList.remove('alloc-highlight');if(dragId!==null){const t=state.tasks.find(t=>t.id===dragId);if(t){t.date='';t.weekNum=weekNum;render();scheduleSave()}}dragId=null}
 function openAddWeekTask(weekNum){addingDate='';$('#aName').value='';$('#aTime').value='';$('#aHrs').value='1';$('#aCat').value='life';$('#aPri').value='normal';$('#aPriToggle').className='pri-toggle';$('#aPriToggle').querySelectorAll('.pri-option').forEach((o,i)=>{o.classList.toggle('active',i===0)});$('#aEvtFields').style.display='none';$('#aHrsRow').style.display='';$('#aPriRow').style.display='';$('#aTimeLabel').textContent='Time';addingWeekNum=weekNum;$('#addModal').classList.add('open')}
-function returnExpiredWeekTasks(){const weeks=generateWeeks();const pastWeeks=weeks.filter(wk=>wk.end<TODAY);const expired=state.tasks.filter(t=>t.weekNum&&!t.date&&!t.done&&pastWeeks.some(wk=>wk.num===t.weekNum));expired.forEach(t=>{if(t.lifeSourceId){const lt=state.lifeTasks.find(l=>l.id===t.lifeSourceId);if(lt){lt.inBank=true;lt.done=false}}});if(expired.length){state.tasks=state.tasks.filter(t=>!expired.some(e=>e.id===t.id));scheduleSave()}}
+function returnExpiredWeekTasks(){
+  // Determine the current week number directly so this never depends on the
+  // generated week window. Only return tasks tied to a *past* weekNum that have
+  // NO explicit date — dated tasks live on their day and must never be deleted here.
+  let curStart=new Date(TODAY);curStart.setDate(curStart.getDate()-weekStartOffset(curStart));
+  const curWk=semesterWeekNum(curStart);
+  const expired=state.tasks.filter(t=>t.weekNum&&!t.date&&!t.done&&t.weekNum<curWk);
+  expired.forEach(t=>{if(t.lifeSourceId){const lt=state.lifeTasks.find(l=>l.id===t.lifeSourceId);if(lt){lt.inBank=true;lt.done=false}}});if(expired.length){state.tasks=state.tasks.filter(t=>!expired.some(e=>e.id===t.id));scheduleSave()}}
 function inlineEditChip(id,el){const t=state.tasks.find(t=>t.id===id);if(!t)return;el.setAttribute('draggable','false');const acts=el.querySelector('.chip-acts');if(acts)acts.style.display='none';const starSpan=t.priority==='high'?el.querySelector('span[style]'):null;const origHTML=el.innerHTML;el.innerHTML='';if(starSpan)el.appendChild(starSpan);const nameIn=document.createElement('input');nameIn.type='text';nameIn.value=t.name;nameIn.className='inline-edit-input';nameIn.style.cssText='width:'+Math.max(60,t.name.length*8)+'px;font-size:.78rem;padding:1px 4px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:inherit;font-family:inherit;outline:none;';el.appendChild(nameIn);const hrsIn=document.createElement('input');hrsIn.type='number';hrsIn.value=t.hours;hrsIn.step='0.5';hrsIn.min='0';hrsIn.className='inline-edit-input';hrsIn.style.cssText='width:50px;font-size:.78rem;padding:1px 4px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:inherit;font-family:inherit;margin-left:4px;outline:none;';el.appendChild(document.createTextNode(' '));el.appendChild(hrsIn);hrsIn.insertAdjacentText('beforebegin','(');hrsIn.insertAdjacentText('afterend','h)');nameIn.focus();nameIn.select();function save(){t.name=nameIn.value.trim()||t.name;t.hours=parseFloat(hrsIn.value)||0;render();scheduleSave()}function onKey(e){if(e.key==='Enter'){e.preventDefault();save()}else if(e.key==='Escape'){render()}}nameIn.addEventListener('keydown',onKey);hrsIn.addEventListener('keydown',onKey);nameIn.addEventListener('blur',()=>setTimeout(()=>{if(!el.contains(document.activeElement))save()},100));hrsIn.addEventListener('blur',()=>setTimeout(()=>{if(!el.contains(document.activeElement))save()},100))}
 
 function sendToBank(id){const t=state.lifeTasks.find(t=>t.id===id);if(t){t.inBank=true;render();scheduleSave()}}
