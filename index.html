@@ -1,4 +1,4 @@
-<!-- Academic Planner v7.1 -->
+<!-- Academic Planner v7.2 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -55,6 +55,38 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 .tab{padding:7px 14px;border:none;background:0;color:var(--text-dim);font-family:'Outfit';font-size:.78rem;font-weight:600;cursor:pointer;border-radius:6px;transition:all .2s}
 .tab:hover{color:var(--text)}.tab.active{background:var(--surface3);color:var(--text)}
 .view{display:none}.view.active{display:block}
+/* ---- Responsive navigation (v7.2): mobile-first, swaps at 820px ---- */
+.nav-ico,.bn-ico{flex-shrink:0}
+/* Desktop left side nav (hidden on mobile) */
+.sidenav{display:none;position:fixed;top:0;left:0;bottom:0;width:208px;background:var(--surface);border-right:1px solid var(--border);flex-direction:column;padding:18px 12px;gap:3px;z-index:40;overflow-y:auto}
+.sidenav-title{font-family:'Outfit';font-weight:700;font-size:.8rem;color:var(--text-muted);letter-spacing:.05em;text-transform:uppercase;padding:4px 12px 14px}
+.nav-item{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:0;border:0;border-left:3px solid transparent;color:var(--text-dim);font-family:'Outfit';font-size:.88rem;font-weight:600;padding:11px 12px;border-radius:9px;cursor:pointer;transition:background .15s,color .15s}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--surface3);color:var(--text);border-left-color:var(--accent-ab)}
+.nav-item .nav-ico{font-size:1.05rem;width:22px;text-align:center}
+.nav-spacer{flex:1 1 auto;min-height:8px}
+/* Mobile bottom nav (shown on mobile) */
+.bottomnav{display:flex;position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--border);z-index:40;padding-bottom:env(safe-area-inset-bottom,0)}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:0;border:0;border-top:2px solid transparent;color:var(--text-dim);font-family:'Outfit';font-size:.62rem;font-weight:600;padding:8px 2px 7px;cursor:pointer}
+.bn-item.active{color:var(--text);border-top-color:var(--accent-ab)}
+.bn-item .bn-ico{font-size:1.2rem;line-height:1}
+/* "More" bottom sheet */
+.more-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60}
+.more-overlay.open{display:block}
+.more-sheet{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:8px 12px calc(14px + env(safe-area-inset-bottom,0));z-index:61;box-shadow:0 -6px 20px rgba(0,0,0,.3)}
+.more-sheet-grip{width:40px;height:4px;border-radius:2px;background:var(--surface3);margin:4px auto 8px}
+.more-sheet-item{display:flex;align-items:center;gap:13px;width:100%;text-align:left;background:0;border:0;color:var(--text);font-family:'Outfit';font-size:.95rem;font-weight:600;padding:14px 12px;border-radius:10px;cursor:pointer}
+.more-sheet-item:hover,.more-sheet-item:active{background:var(--surface2)}
+.more-sheet-item.active{background:var(--surface3)}
+.more-sheet-item .nav-ico{font-size:1.15rem;width:24px;text-align:center}
+.app{padding-bottom:calc(74px + env(safe-area-inset-bottom,0))}
+@media(min-width:820px){
+  .sidenav{display:flex}
+  .bottomnav{display:none}
+  body{padding-left:208px}
+  .app{padding-bottom:80px}
+  .more-overlay{display:none!important}
+}
 .legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;width:fit-content;max-width:100%}
 .legend-item{display:flex;align-items:center;gap:6px;font-size:.78rem;font-weight:600;color:var(--text-dim)}
 .legend-dot{width:10px;height:10px;border-radius:3px}
@@ -535,7 +567,13 @@ function render(){
   const allTabs=[...tabs,'settings'];
   const tn={dashboard:'Dashboard',sprints:'Week',syllabus:'Syllabus',life:'Tasks',events:'Events',notes:'Notes',settings:'Settings'};
   const renderers={dashboard:renderDash,sprints:renderSprints,syllabus:renderSyllabus,life:renderLife,events:renderEvents,notes:renderNotes,settings:renderSettings};
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',pistachio2:'🥜 Pistachio v2',spring:'🌸 Spring',midnight:'🌲 Midnight',peacock:'🦚 Peacock',bodhi:'☸ Bodhi'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v7.1</span></div></div><div class="tabs">${tabs.map(t=>`<button class="tab ${state.activeTab===t?'active':''}" onclick="switchTab('${t}')">${tn[t]}</button>`).join('')}${state.activeTab==='settings'?`<button class="tab active">Settings</button>`:''}</div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;updateSI()}
+  const navIcons={sprints:'🗓',syllabus:'📚',life:'✅',events:'📅',notes:'📝',dashboard:'📊',settings:'⚙'};
+  const sideOrder=['sprints','syllabus','life','events','notes','dashboard'];
+  const sideNav=`<nav class="sidenav"><div class="sidenav-title">Planner</div>${sideOrder.map(k=>`<button class="nav-item ${state.activeTab===k?'active':''}" onclick="switchTab('${k}')"><span class="nav-ico">${navIcons[k]}</span>${tn[k]}</button>`).join('')}<div class="nav-spacer"></div><button class="nav-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')"><span class="nav-ico">⚙</span>Settings</button></nav>`;
+  const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
+  const bottomNav=`<nav class="bottomnav"><button class="bn-item ${state.activeTab==='sprints'?'active':''}" onclick="switchTab('sprints')"><span class="bn-ico">🗓</span>Week</button><button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')"><span class="bn-ico">📚</span>Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')"><span class="bn-ico">📅</span>Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)"><span class="bn-ico">⋯</span>More</button></nav>`;
+  const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')"><span class="nav-ico">✅</span>Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')"><span class="nav-ico">📊</span>Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')"><span class="nav-ico">📝</span>Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')"><span class="nav-ico">⚙</span>Settings</button></div></div>`;
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{dark:'● Dark',light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio',pistachio2:'🥜 Pistachio v2',spring:'🌸 Spring',midnight:'🌲 Midnight',peacock:'🦚 Peacock',bodhi:'☸ Bodhi'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v7.2</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;render()},6000);render();scheduleSave()}
@@ -789,7 +827,10 @@ function openCalPick(targetId){
 }
 
 // ===== INTERACTIONS =====
-function switchTab(t){state.activeTab=t;allocatingId=null;render();scheduleSave();if(t==='notes')setTimeout(restoreNotesCursor,50)}
+let moreOpen=false;
+function openMoreSheet(e){if(e)e.stopPropagation();moreOpen=true;document.getElementById('moreOverlay')?.classList.add('open')}
+function closeMoreSheet(){moreOpen=false;document.getElementById('moreOverlay')?.classList.remove('open')}
+function switchTab(t){moreOpen=false;state.activeTab=t;allocatingId=null;render();scheduleSave();if(t==='notes')setTimeout(restoreNotesCursor,50)}
 function setTheme(t){state.theme=t;render();scheduleSave()}
 function cycleTheme(){const ts=['dark','light','ember','persia','ocean','pistachio','pistachio2','spring','midnight','peacock','bodhi'];const i=(ts.indexOf(state.theme)+1)%ts.length;setTheme(ts[i])}
 function toggleTheme(){cycleTheme()}
