@@ -1,4 +1,4 @@
-const CACHE_NAME = 'academic-planner-v7.4';
+const CACHE_NAME = 'academic-planner-v7.5';
 const ASSETS = ['./', './index.html',
   './icons/week_moon.png', './icons/syllabus_book.png', './icons/tasks_lotus.png',
   './icons/events_bell.png', './icons/notes_pen.png', './icons/dashboard_grid.png',
