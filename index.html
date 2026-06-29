@@ -1,4 +1,4 @@
-<!-- Academic Planner v7.6 -->
+<!-- Academic Planner v7.7 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,9 +23,13 @@
 [data-theme="pistachio"]{--bg:#ddd4c6;--surface:#ebe4d8;--surface2:#cfc6b6;--surface3:#c0b6a4;--border:#b0a490;--text:#1a1408;--text-dim:#4a3e2e;--text-muted:#6a5e4e;--accent-bh:#6a7a10;--accent-bh-dim:rgba(106,122,16,.15);--accent-wh:#4a7018;--accent-wh-dim:rgba(74,112,24,.15);--accent-cn:#904828;--accent-cn-dim:rgba(144,72,40,.15);--accent-ab:#3a6040;--accent-ab-dim:rgba(58,96,64,.15);--accent-life:#5a4a38;--accent-life-dim:rgba(90,74,56,.15);--danger:#902820;--danger-dim:rgba(144,40,32,.12);--warning:#6a6010;--warning-dim:rgba(106,96,16,.12);--ok:#4a7018;--ok-dim:rgba(74,112,24,.12)}
 
 *{margin:0;padding:0;box-sizing:border-box}
+/* Background also on <html> (the element that carries data-theme): Chrome on Android tints the
+   bottom OS navigation bar from the root element's background-color, so this recolors that bar
+   to the theme live. (The OS nav-button glyphs themselves remain OS-drawn / not themeable.) */
+html{background:var(--bg);transition:background .3s}
 body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;transition:background .3s,color .3s}
 .app{max-width:900px;margin:0 auto;padding:28px 16px 80px}
-.header{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.header{display:flex;align-items:center;gap:8px;margin-bottom:30px;flex-wrap:wrap}
 .header h1{font-family:'Crimson Pro',serif;font-size:1.6rem;font-weight:600;letter-spacing:-.02em}
 .today-badge{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--text-dim);background:var(--surface2);padding:3px 9px;border-radius:16px}
 .combined-status{font-family:'JetBrains Mono',monospace;font-size:.65rem;display:inline-flex;align-items:center;gap:5px;min-width:90px;transition:color .3s}
@@ -586,7 +590,7 @@ function render(){
   const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
   const bottomNav=`<nav class="bottomnav"><button class="bn-item ${state.activeTab==='sprints'?'active':''}" onclick="switchTab('sprints')">${ico('sprints')}Week</button><button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
   const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v7.6</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v7.7</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
