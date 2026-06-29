@@ -1,0 +1,19 @@
+{
+  "name": "Academic Planner",
+  "short_name": "Planner",
+  "description": "Single-user academic planner: weeks, syllabus, tasks, events, notes.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#1c1a18",
+  "background_color": "#1c1a18",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='6' width='26' height='22' rx='3' fill='%23f5f0e8' stroke='%23d5cfc4' stroke-width='1.5'/%3E%3Crect x='3' y='6' width='26' height='7' rx='3' fill='%23e8ddd0'/%3E%3Cline x1='11' y1='6' x2='11' y2='2' stroke='%23c9a227' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='21' y1='6' x2='21' y2='2' stroke='%23c9a227' stroke-width='2.5' stroke-linecap='round'/%3E%3Cpath d='M10 20l3 3 7-7' fill='none' stroke='%235e8c6a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

@@ -1,9 +1,17 @@
-<!-- Academic Planner v7.5 -->
+<!-- Academic Planner v7.7 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Android/mobile system-bar tinting: this <meta name="theme-color"> sets the browser
+     toolbar/address-bar (and PWA status bar) background to the current theme color, updated
+     live by updateThemeColor() on every render/theme switch. Default = ember theme --bg.
+     NOTE: the Android navigation-button GLYPHS (back/home/recents) are OS-drawn and cannot
+     be recolored by a web app — only this bar BACKGROUND/theme-color is controllable. -->
+<meta name="theme-color" content="#1c1a18">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
 <title>Academic Planner</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='3' y='6' width='26' height='22' rx='3' fill='%23f5f0e8' stroke='%23d5cfc4' stroke-width='1.5'/><rect x='3' y='6' width='26' height='7' rx='3' fill='%23e8ddd0'/><line x1='11' y1='6' x2='11' y2='2' stroke='%23c9a227' stroke-width='2.5' stroke-linecap='round'/><line x1='21' y1='6' x2='21' y2='2' stroke='%23c9a227' stroke-width='2.5' stroke-linecap='round'/><path d='M10 20l3 3 7-7' fill='none' stroke='%235e8c6a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -15,9 +23,13 @@
 [data-theme="pistachio"]{--bg:#ddd4c6;--surface:#ebe4d8;--surface2:#cfc6b6;--surface3:#c0b6a4;--border:#b0a490;--text:#1a1408;--text-dim:#4a3e2e;--text-muted:#6a5e4e;--accent-bh:#6a7a10;--accent-bh-dim:rgba(106,122,16,.15);--accent-wh:#4a7018;--accent-wh-dim:rgba(74,112,24,.15);--accent-cn:#904828;--accent-cn-dim:rgba(144,72,40,.15);--accent-ab:#3a6040;--accent-ab-dim:rgba(58,96,64,.15);--accent-life:#5a4a38;--accent-life-dim:rgba(90,74,56,.15);--danger:#902820;--danger-dim:rgba(144,40,32,.12);--warning:#6a6010;--warning-dim:rgba(106,96,16,.12);--ok:#4a7018;--ok-dim:rgba(74,112,24,.12)}
 
 *{margin:0;padding:0;box-sizing:border-box}
+/* Background also on <html> (the element that carries data-theme): Chrome on Android tints the
+   bottom OS navigation bar from the root element's background-color, so this recolors that bar
+   to the theme live. (The OS nav-button glyphs themselves remain OS-drawn / not themeable.) */
+html{background:var(--bg);transition:background .3s}
 body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;transition:background .3s,color .3s}
 .app{max-width:900px;margin:0 auto;padding:28px 16px 80px}
-.header{display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap}
+.header{display:flex;align-items:center;gap:8px;margin-bottom:30px;flex-wrap:wrap}
 .header h1{font-family:'Crimson Pro',serif;font-size:1.6rem;font-weight:600;letter-spacing:-.02em}
 .today-badge{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--text-dim);background:var(--surface2);padding:3px 9px;border-radius:16px}
 .combined-status{font-family:'JetBrains Mono',monospace;font-size:.65rem;display:inline-flex;align-items:center;gap:5px;min-width:90px;transition:color .3s}
@@ -566,6 +578,7 @@ function render(){
   returnExpiredWeekTasks();
   computeEvtColors();
   document.documentElement.setAttribute('data-theme',state.theme);
+  updateThemeColor();
   const tabs=['sprints','syllabus','life','events','notes','dashboard'];
   const allTabs=[...tabs,'settings'];
   const tn={dashboard:'Dashboard',sprints:'Week',syllabus:'Syllabus',life:'Tasks',events:'Events',notes:'Notes',settings:'Settings'};
@@ -577,7 +590,7 @@ function render(){
   const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
   const bottomNav=`<nav class="bottomnav"><button class="bn-item ${state.activeTab==='sprints'?'active':''}" onclick="switchTab('sprints')">${ico('sprints')}Week</button><button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
   const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v7.5</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v7.7</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -836,6 +849,10 @@ function openMoreSheet(e){if(e)e.stopPropagation();moreOpen=true;document.getEle
 function closeMoreSheet(){moreOpen=false;document.getElementById('moreOverlay')?.classList.remove('open')}
 function switchTab(t){moreOpen=false;state.activeTab=t;allocatingId=null;render();scheduleSave();if(t==='notes')setTimeout(restoreNotesCursor,50)}
 function setTheme(t){state.theme=t;render();scheduleSave()}
+// Sync the mobile system-bar/address-bar tint to the active theme's --bg. Runs on every
+// render (and thus on theme switch) so the bar recolors live. Only the bar background is
+// controllable here; Android nav-button glyphs are OS-drawn and cannot be themed by the app.
+function updateThemeColor(){let c='';try{c=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()}catch(_){}if(!c)c='#1c1a18';let m=document.querySelector('meta[name="theme-color"]');if(!m){m=document.createElement('meta');m.name='theme-color';document.head.appendChild(m)}if(m.getAttribute('content')!==c)m.setAttribute('content',c)}
 function cycleTheme(){const ts=['light','ember','persia','ocean','pistachio'];const i=(ts.indexOf(state.theme)+1)%ts.length;setTheme(ts[i])}
 function toggleTheme(){cycleTheme()}
 function toggleSettings(e){e.stopPropagation();const m=document.getElementById('settingsMenu');m.classList.toggle('open')}
