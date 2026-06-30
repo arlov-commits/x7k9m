@@ -1,4 +1,4 @@
-<!-- Academic Planner v7.7 -->
+<!-- Academic Planner v7.8 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -42,13 +42,6 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line
 @keyframes pulse{from{opacity:.4}to{opacity:1}}
 .theme-toggle{background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);padding:5px 11px;border-radius:16px;cursor:pointer;font-family:'Outfit';font-size:.75rem;font-weight:500}
 .theme-toggle:hover{color:var(--text);border-color:var(--text-dim)}
-.settings-wrap{position:relative;display:inline-block}
-.settings-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);padding:5px 9px;border-radius:16px;cursor:pointer;font-size:.8rem;line-height:1}
-.settings-btn:hover{color:var(--text);border-color:var(--text-dim)}
-.settings-menu{display:none;position:absolute;top:calc(100% + 4px);right:0;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:4px 0;z-index:50;min-width:120px;box-shadow:0 4px 12px rgba(0,0,0,.25)}
-.settings-menu.open{display:block}
-.settings-menu button{display:block;width:100%;text-align:left;background:0;border:0;color:var(--text-dim);font-family:'Outfit';font-size:.76rem;padding:7px 14px;cursor:pointer}
-.settings-menu button:hover{background:var(--surface2);color:var(--text)}
 .version-label{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--text-muted);white-space:nowrap}
 .subtitle{color:var(--text-dim);font-size:.78rem;margin-bottom:22px}
 .tabs{display:flex;gap:2px;margin-bottom:22px;background:var(--surface);border-radius:9px;padding:3px;width:fit-content;border:1px solid var(--border);flex-wrap:wrap}
@@ -590,7 +583,7 @@ function render(){
   const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
   const bottomNav=`<nav class="bottomnav"><button class="bn-item ${state.activeTab==='sprints'?'active':''}" onclick="switchTab('sprints')">${ico('sprints')}Week</button><button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
   const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio'}[state.theme]||state.theme}</button><div class="settings-wrap"><button class="settings-btn" onclick="toggleSettings(event)">⚙</button><div class="settings-menu" id="settingsMenu"><button onclick="switchTab('settings');closeSettings()">⚙ Settings</button><button onclick="exportState();closeSettings()">⬇ Backup</button><button onclick="importState();closeSettings()">⬆ Restore</button></div></div><span class="version-label">v7.7</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto">${{light:'☀ Parchment',ember:'🔥 Ember',persia:'🕌 Persia',ocean:'🌊 Ocean',pistachio:'🌿 Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v7.8</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -805,7 +798,14 @@ function renderSettings(){
   <div class="settings-section"><label>Semester Start Date</label>
   <input type="date" class="life-input" value="${semStart}" onchange="state.semesterStart=this.value;render();scheduleSave()" style="width:160px"/></div>
   <div class="settings-section"><label>Max Future Date (Week tab)</label>
-  <input type="date" class="life-input" value="${state.maxFutureDate||'2026-05-30'}" onchange="state.maxFutureDate=this.value;render();scheduleSave()" style="width:160px"/></div></div>`}
+  <input type="date" class="life-input" value="${state.maxFutureDate||'2026-05-30'}" onchange="state.maxFutureDate=this.value;render();scheduleSave()" style="width:160px"/></div></div>
+  <div class="notes-box"><div class="notes-box-title">Backup &amp; Restore</div>
+  <div class="settings-section"><label>Restore from backup</label>
+  <div style="font-size:.74rem;color:var(--text-muted);margin-bottom:8px">Import a previously exported JSON backup file. This replaces your current data.</div>
+  <button class="life-btn" onclick="importState()">⬆ Restore</button></div>
+  <div class="settings-section"><label>Backup to file</label>
+  <div style="font-size:.74rem;color:var(--text-muted);margin-bottom:8px">Download all your data as a JSON file you can re-import later.</div>
+  <button class="life-btn" onclick="exportState()">⬇ Backup</button></div></div>`}
 
 function getSylForDate(dateStr){
   const chips=[];
@@ -855,9 +855,8 @@ function setTheme(t){state.theme=t;render();scheduleSave()}
 function updateThemeColor(){let c='';try{c=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()}catch(_){}if(!c)c='#1c1a18';let m=document.querySelector('meta[name="theme-color"]');if(!m){m=document.createElement('meta');m.name='theme-color';document.head.appendChild(m)}if(m.getAttribute('content')!==c)m.setAttribute('content',c)}
 function cycleTheme(){const ts=['light','ember','persia','ocean','pistachio'];const i=(ts.indexOf(state.theme)+1)%ts.length;setTheme(ts[i])}
 function toggleTheme(){cycleTheme()}
-function toggleSettings(e){e.stopPropagation();const m=document.getElementById('settingsMenu');m.classList.toggle('open')}
-function closeSettings(){document.getElementById('settingsMenu')?.classList.remove('open')}
-document.addEventListener('click',()=>closeSettings())
+// (gear dropdown removed — Settings is reached via the side-nav / mobile More-sheet Settings item,
+//  and Backup/Restore now live in the Settings view.)
 function toggleEl(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none'}
 
 function hideDay(date){if(!state.hiddenDays)state.hiddenDays=[];if(!state.hiddenDays.includes(date))state.hiddenDays.push(date);render();scheduleSave()}
