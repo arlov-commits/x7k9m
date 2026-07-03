@@ -1,4 +1,4 @@
-const CACHE_NAME = 'academic-planner-v8.2';
+const CACHE_NAME = 'academic-planner-v8.3';
 const ASSETS = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
