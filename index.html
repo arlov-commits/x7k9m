@@ -1,4 +1,4 @@
-<!-- Academic Planner v8.5 -->
+<!-- Academic Planner v8.6 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -254,6 +254,32 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .modal-overlay.open .modal{transform:scale(1) translateY(0);opacity:1}
 .modal-x{position:absolute;top:10px;right:10px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-s);color:var(--text-muted);font-size:15px;line-height:1;cursor:pointer;padding:0;transition:color var(--t-fast) var(--ease),background var(--t-fast) var(--ease)}
 .modal-x:hover{color:var(--text);background:var(--surface3)}
+/* Syllabus quick-view popup (.pop) — centered, per proof-sheet-v8.1 */
+.pop-scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity var(--t-med) var(--ease);z-index:110}
+.pop-scrim.open{opacity:1;pointer-events:auto}
+.pop{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-l);padding:var(--sp-5);width:min(440px,94vw);max-height:84vh;overflow-y:auto;transform:scale(.95) translateY(6px);opacity:0;transition:transform var(--t-med) var(--ease),opacity var(--t-med) var(--ease);box-shadow:0 18px 50px rgba(0,0,0,.28)}
+.pop-scrim.open .pop{transform:scale(1) translateY(0);opacity:1}
+.pop-head{display:flex;align-items:flex-start;gap:var(--sp-2)}
+.pop-title{font-family:var(--font-serif);font-size:var(--fs-l);font-weight:600;line-height:1.2;flex:1}
+.pop-x{flex-shrink:0;width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-s);color:var(--text-muted);cursor:pointer;padding:0}
+.pop-x:hover{color:var(--text);background:var(--surface3)}
+.pop-meta{display:flex;align-items:center;gap:var(--sp-2);margin:var(--sp-3) 0;flex-wrap:wrap}
+.pop-due{font-family:var(--font-serif);font-weight:600;font-size:var(--fs-m)}
+.pop-tag{font-family:var(--font-mono);font-size:var(--fs-2xs);font-weight:600;padding:3px 9px;border-radius:var(--r-pill)}
+.pop-detail{font-size:var(--fs-s);color:var(--text-dim);white-space:pre-line;border-left:2px solid var(--border);padding-left:var(--sp-3);margin:var(--sp-3) 0 var(--sp-4);line-height:1.5}
+.pop-detail .syl-bullet{padding-left:10px}.pop-detail .syl-sub-bullet{padding-left:22px;opacity:.85}
+.pop-actions{display:flex;gap:var(--sp-2);flex-wrap:wrap}
+.pop-btn{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-sans);font-size:var(--fs-s);font-weight:600;padding:8px 13px;border-radius:var(--r-s);border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;transition:background var(--t-fast) var(--ease)}
+.pop-btn:hover{background:var(--surface3)}
+.pop-btn.primary{background:var(--ok);border-color:var(--ok);color:#fff}
+.pop-btn.on{background:var(--warning-dim);border-color:var(--warning);color:var(--warning)}
+.pop-btn .mi{width:15px;height:15px}
+.mi-lg{width:22px;height:22px}
+.days.urgent{color:var(--danger)}.days.soon{color:var(--warning)}.days.ok{color:var(--ok)}.days.past{color:var(--text-muted);text-decoration:line-through}
+.days{font-family:var(--font-mono);font-size:var(--fs-2xs);font-weight:600}
+/* Brief highlight pulse on the target row when jumping Week -> Syllabus */
+.syl-pulse td{animation:rowpulse 1.6s var(--ease)}
+@keyframes rowpulse{0%{background-color:transparent}18%{background-color:var(--pulse-color,var(--accent-ab-dim))}100%{background-color:transparent}}
 .modal h3{font-family:var(--font-serif);font-size:var(--fs-l);margin-bottom:12px}
 .modal label{display:block;font-family:var(--font-mono);font-size:var(--fs-2xs);font-weight:600;color:var(--text-muted);letter-spacing:.03em;margin-bottom:3px;margin-top:8px}
 .modal input,.modal select{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-sans);font-size:var(--fs-s);padding:8px 11px;border-radius:var(--r-s);outline:none;transition:border-color var(--t-fast) var(--ease)}
@@ -372,7 +398,8 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .syl-row-hl{background:var(--warning-dim)}
 .syl-bullet{display:block;padding-left:14px;position:relative}.syl-bullet::before{content:'•';position:absolute;left:4px}
 .syl-sub-bullet{display:block;padding-left:28px;position:relative;font-size:var(--fs-2xs)}.syl-sub-bullet::before{content:'◦';position:absolute;left:16px}
-.chip.syl-mirror{cursor:default;opacity:.75;font-size:var(--fs-2xs);padding:5px 9px;border:1px dashed}
+.chip.syl-mirror{cursor:pointer;opacity:.75;font-size:var(--fs-2xs);padding:5px 9px;border:1px dashed}
+.chip.syl-mirror:hover{opacity:1}
 .chip.syl-mirror .chip-acts{display:none!important}
 @keyframes halo-breathe{0%,100%{box-shadow:0 0 4px 1px var(--halo-color)}50%{box-shadow:0 0 8px 3px var(--halo-color)}}
 .chip.task-halo{--halo-color:rgba(201,162,39,.5);border-left:3px solid #c9a227;animation:halo-breathe 3s ease-in-out infinite}
@@ -441,6 +468,8 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 
 <!-- Event edit modal -->
 <div class="modal-overlay" id="evtModal"><div class="modal"><button class="modal-x" onclick="this.closest('.modal-overlay').classList.remove('open')" aria-label="Close">✕</button><h3 id="evtModalTitle">Edit Event</h3><label>Name</label><input id="eName" type="text"/><label>Start Date</label><input id="eDate" type="date" onchange="edStartChange('eDate','eEndDate')"/><label>Start Time</label><input id="eStart" type="time"/><label>End Date (for multi-day)</label><input id="eEndDate" type="date" onfocus="edEndFocus('eDate','eEndDate')" onchange="edEndChange('eEndDate')"/><label>End Time</label><input id="eEnd" type="time"/><label>Location</label><input id="eLoc" type="text"/><div style="margin-top:8px"><label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="eAllDay"/> All day event</label></div><div class="modal-btns"><button class="mbtn danger" id="eDel">Delete</button><button class="mbtn secondary" id="eCanc">Cancel</button><button class="mbtn primary" id="eSave">Save</button></div></div></div>
+<!-- Syllabus quick-view popup (read-only view of a syllabus record by id) -->
+<div class="pop-scrim" id="sylPop" onclick="if(event.target.id==='sylPop')closeSylPop()"><div class="pop" id="sylPopPanel" role="dialog" aria-label="Syllabus entry"></div></div>
 
 <script>
 const SKEY='sprint-planner-v3';
@@ -685,7 +714,7 @@ function render(){
   const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
   const bottomNav=`<nav class="bottomnav"><button class="bn-item ${state.activeTab==='sprints'?'active':''}" onclick="switchTab('sprints')">${ico('sprints')}Week</button><button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
   const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v8.5</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v8.6</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -729,7 +758,7 @@ const dayEvts=getEventsForDate(day.date);const sylChips=getSylForDate(day.date);
 const pills=[];
 const _now=new Date();
 dayEvts.forEach(ev=>{const et=ev.endTime||ev.startTime||'';let evPast=false;if(isT&&et){const[eh,em]=et.split(':').map(Number);evPast=_now.getHours()>eh||(_now.getHours()===eh&&_now.getMinutes()>=em)}else if(day.dateObj<TODAY)evPast=true;const dragAttr=ev.draggable?` draggable="true" ondragstart="dragEvtId=${ev.evtId};dragEvtAnchor='${ev.isStart?'start':'end'}';event.dataTransfer.setData('text/plain','evt:${ev.evtId}');event.dataTransfer.effectAllowed='move';this.classList.add('dragging')" ondragend="this.classList.remove('dragging')"`:'';const hueStyle=ev.hue?` style="filter:hue-rotate(${ev.hue}deg)"`:'';pills.push({type:'evt',time:ev.startTime||'',html:`<span class="evt-chip${evPast?' evt-past':''}" data-tip="${ev.tip}" data-evt-id="${ev.evtId}"${dragAttr}${hueStyle} onclick="event.stopPropagation();toggleEvtChipMenu(${ev.evtId},this)" ondblclick="event.stopPropagation();openEvtEdit(${ev.evtId})"><span class="mi" style="--ic:var(--ic-bell)"></span> ${ev.label}<span class="chip-acts"><button class="chip-btn" onclick="event.stopPropagation();openEvtEdit(${ev.evtId})" title="Edit"><span class="mi" style="--ic:var(--ic-edit)"></span></button><button class="chip-btn life-remove" onclick="event.stopPropagation();deleteEvent(${ev.evtId})" title="Delete"><span class="mi" style="--ic:var(--ic-x)"></span></button></span></span>`})});
-sylChips.forEach(sc=>{const sylTime=sc.dueTime||'09:00';const fmtSylTime=((h,m)=>{const hr=parseInt(h);return(hr>12?hr-12:hr||12)+':'+m+(hr>=12?'p':'a')})(sylTime.split(':')[0],sylTime.split(':')[1]);pills.push({type:'syl',time:sylTime,html:`<span class="chip ${sc.cat} syl-mirror" data-tip="${CAT_NAMES[sc.cat]||sc.cat} · ${sc.type}${sc.dueTime?' · due '+fmtSylTime:''}"><span class="mi" style="--ic:var(--ic-${SYL_ICON[sc.type]||'pin'})"></span> ${sc.dueTime?'<span style="font-size:.64rem;opacity:.7">'+fmtSylTime+'</span> ':''}${sc.title}${sc.label}</span>`})});
+sylChips.forEach(sc=>{const sylTime=sc.dueTime||'09:00';const fmtSylTime=((h,m)=>{const hr=parseInt(h);return(hr>12?hr-12:hr||12)+':'+m+(hr>=12?'p':'a')})(sylTime.split(':')[0],sylTime.split(':')[1]);pills.push({type:'syl',time:sylTime,html:`<span class="chip ${sc.cat} syl-mirror" data-tip="${CAT_NAMES[sc.cat]||sc.cat} · ${sc.type}${sc.dueTime?' · due '+fmtSylTime:''}" onclick="event.stopPropagation();openSylPopup(${sc.entry.id})"><span class="mi" style="--ic:var(--ic-${SYL_ICON[sc.type]||'pin'})"></span> ${sc.dueTime?'<span style="font-size:.64rem;opacity:.7">'+fmtSylTime+'</span> ':''}${sc.title}${sc.label}</span>`})});
 tasks.forEach(t=>pills.push({type:'task',time:t.time||'',html:renderChip(t)}));
 pills.sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
 const pillsHtml=pills.map(p=>p.html).join('');
@@ -747,7 +776,7 @@ function toggleChipMenu(id,el){const wasOpen=el.classList.contains('menu-open');
 document.addEventListener('click',e=>{if(!e.target.closest('.chip')&&!e.target.closest('.evt-chip')){document.querySelectorAll('.chip.menu-open,.evt-chip.menu-open').forEach(c=>c.classList.remove('menu-open'))}if(!e.target.closest('.dash-cell'))document.querySelectorAll('.dash-cell.dc-active').forEach(c=>c.classList.remove('dc-active'))});
 let _lastTapTime=0,_lastTapEl=null;
 document.addEventListener('touchend',e=>{const now=Date.now();const chip=e.target.closest('.evt-chip');const taskChip=e.target.closest('.chip:not(.evt-chip):not(.syl-mirror)');const target=chip||taskChip;if(!target){_lastTapTime=0;_lastTapEl=null;return}if(target===_lastTapEl&&now-_lastTapTime<400){e.preventDefault();if(chip){const evtId=parseInt(chip.dataset.evtId);if(evtId)openEvtEdit(evtId)}else if(taskChip){const id=parseInt(taskChip.dataset.id);if(id)inlineEditChip(id,taskChip)}_lastTapTime=0;_lastTapEl=null}else{_lastTapTime=now;_lastTapEl=target}});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){const open=document.querySelector('.modal-overlay.open');if(open){e.preventDefault();open.classList.remove('open')}}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){const pop=document.querySelector('.pop-scrim.open');if(pop){e.preventDefault();pop.classList.remove('open');return}const open=document.querySelector('.modal-overlay.open');if(open){e.preventDefault();open.classList.remove('open')}}});
 
 function renderLife(){const op=state.lifeTasks.filter(t=>!t.done),dn=state.lifeTasks.filter(t=>t.done);const cats={};op.forEach(t=>{const c=t.category||'General';if(!cats[c])cats[c]=[];cats[c].push(t)});Object.values(cats).forEach(a=>a.sort((a,b)=>(PRI_ORDER[a.priority]||3)-(PRI_ORDER[b.priority]||3)));
 const catKeys=Object.keys(cats);const order=state.catOrder||[];const sortedCats=order.filter(c=>catKeys.includes(c)).concat(catKeys.filter(c=>!order.includes(c)));
@@ -875,7 +904,7 @@ weekNums.forEach(wkN=>{
       const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
       const dowStr=DOW[dueD.getDay()];
       const dowEndStr=dueEndD?DOW[dueEndD.getDay()]:'';
-      h+=`<tr class="${e.done?'done':''} ${isHl?'syl-row-hl':''}">`;
+      h+=`<tr id="syl-${e.id}" class="${e.done?'done':''} ${isHl?'syl-row-hl':''}">`;
       h+=`<td style="width:28px"><button class="syl-check ${e.done?'checked':''}" onclick="toggleSylDone(${e.id})">${e.done?'✓':''}</button><br><button class="syl-hl-btn ${isHl?'on':''}" onclick="toggleSylHL(${e.id})" title="Highlight"><span class="mi" style="--ic:var(--ic-star)"></span></button></td>`;
       if(ei===0){
         const dotStyle=e.cat==='custom'?'background:var(--text-muted)':'background:var(--accent-'+e.cat+')';
@@ -1267,6 +1296,24 @@ function hideSylDay(date){if(!state.hiddenSylDays)state.hiddenSylDays=[];if(!sta
 function expandSylDays(wkN){const weeks=generateWeeks();const wk=weeks.find(w=>w.num===wkN);if(!wk){state.hiddenSylDays=[];render();scheduleSave();return}const dates=wk.days.map(d=>d.date);state.hiddenSylDays=(state.hiddenSylDays||[]).filter(d=>!dates.includes(d));render();scheduleSave()}
 function toggleSylHL(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=!s.highlighted;render();scheduleSave()}
 function toggleSylDone(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.done=!s.done;if(s.done){state.tasks.forEach(t=>{if(t.syllabusId===id)t.done=true})}render();scheduleSave()}
+// --- Live syllabus-mirror popup (Week tab). Read-only view of a syllabus record by id; all writes
+// reuse toggleSylDone/toggleSylHL (one per-record write each, per SYNC_REFERENCE). ---
+let _sylPopId=null;
+function openSylPopup(id){const s=(state.syllabus||[]).find(x=>x.id===id);if(!s)return;_sylPopId=id;
+  const SYL_ICON={reading:'book',paper:'paper',exam:'seal',presentation:'present',custom:'pin'};const icon=SYL_ICON[s.type]||'pin';
+  const dueD=parseDate(s.due),endD=s.dueEnd?parseDate(s.dueEnd):null;const dlRef=daysBetween(TODAY,endD||dueD);
+  const uc=s.done?'past':(dlRef<0?'past':dlRef<=3?'urgent':dlRef<=7?'soon':'ok');
+  const daysStr=s.done?'done':(dlRef<0?Math.abs(dlRef)+'d ago':dlRef===0?'today':dlRef+'d');
+  const dueStr=endD?fmtDate(dueD)+' → '+fmtDate(endD):fmtDate(dueD);
+  const fmtDueTime=s.dueTime?((h,m)=>{const hr=parseInt(h);return(hr>12?hr-12:hr||12)+':'+m+(hr>=12?'p':'a')})(s.dueTime.split(':')[0],s.dueTime.split(':')[1]):'';
+  const showType=!(s.cat==='custom'&&s.type==='custom')&&s.type;const tagText=(CAT_SHORT[s.cat]||s.cat)+(showType?' · '+s.type:'');
+  const detailHtml=s.detail?s.detail.split('\n').map(line=>line.startsWith('- ')?`<div class="syl-bullet">${line.substring(2)}</div>`:line.startsWith('+ ')?`<div class="syl-sub-bullet">${line.substring(2)}</div>`:`<div>${line||'&nbsp;'}</div>`).join(''):'<span style="opacity:.5">No detail on this entry.</span>';
+  document.getElementById('sylPopPanel').innerHTML=`<div class="pop-head"><span class="mi mi-lg" style="--ic:var(--ic-${icon});color:var(--accent-${s.cat},var(--text-dim));margin-top:3px"></span><div class="pop-title">${s.title}</div><button class="pop-x" onclick="closeSylPop()" aria-label="Close"><span class="mi" style="--ic:var(--ic-x)"></span></button></div><div class="pop-meta"><span class="pop-tag" style="background:var(--accent-${s.cat}-dim,var(--surface3));color:var(--accent-${s.cat},var(--text-dim))">${tagText}</span><span class="pop-due">${dueStr}${fmtDueTime?' · '+fmtDueTime:''}</span><span class="days ${uc}">${daysStr}</span></div><div class="pop-detail">${detailHtml}</div><div class="pop-actions"><button class="pop-btn ${s.done?'':'primary'}" onclick="sylPopComplete()"><span class="mi" style="--ic:var(--ic-${s.done?'up':'check'})"></span> ${s.done?'Undo':'Complete'}</button><button class="pop-btn ${s.highlighted?'on':''}" onclick="sylPopHighlight()"><span class="mi" style="--ic:var(--ic-star)"></span> ${s.highlighted?'Highlighted':'Highlight'}</button><button class="pop-btn" onclick="openSylFromWeek(${id})">Open in Syllabus →</button></div>`;
+  document.getElementById('sylPop').classList.add('open');}
+function closeSylPop(){document.getElementById('sylPop').classList.remove('open')}
+function sylPopComplete(){const id=_sylPopId;toggleSylDone(id);openSylPopup(id)}
+function sylPopHighlight(){const id=_sylPopId;toggleSylHL(id);openSylPopup(id)}
+function openSylFromWeek(id){const s=(state.syllabus||[]).find(x=>x.id===id);closeSylPop();switchTab('syllabus');setTimeout(()=>{const row=document.getElementById('syl-'+id);if(!row)return;if(s)row.style.setProperty('--pulse-color','var(--accent-'+s.cat+'-dim,var(--accent-ab-dim))');row.scrollIntoView({behavior:'smooth',block:'center'});row.classList.remove('syl-pulse');void row.offsetWidth;row.classList.add('syl-pulse');setTimeout(()=>row.classList.remove('syl-pulse'),1700)},90)}
 function inlineSylEdit(id,field,el){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;
 if(field==='title'){const inp=document.createElement('input');inp.type='text';inp.value=s.title;inp.className='syl-title-edit';el.replaceWith(inp);inp.focus();inp.select();function save(){s.title=inp.value.trim()||s.title;render();scheduleSave()}inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();save()}else if(e.key==='Escape')render()});inp.addEventListener('blur',save)}
 else if(field==='detail'){const ta=document.createElement('textarea');ta.value=s.detail||'';ta.className='syl-detail-edit';ta.rows=Math.max(2,(s.detail||'').split('\n').length+1);el.replaceWith(ta);ta.focus();function save(){s.detail=ta.value;render();scheduleSave()}ta.addEventListener('keydown',e=>{if(e.key==='Escape')render()});ta.addEventListener('blur',save)}}
