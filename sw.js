@@ -1,8 +1,5 @@
-const CACHE_NAME = 'academic-planner-v8.0';
-const ASSETS = ['./', './index.html', './manifest.json',
-  './icons/week_moon.png', './icons/syllabus_book.png', './icons/tasks_lotus.png',
-  './icons/events_bell.png', './icons/notes_pen.png', './icons/dashboard_grid.png',
-  './icons/dashboard_wheel.png', './icons/more_menu.png'];
+const CACHE_NAME = 'academic-planner-v8.1';
+const ASSETS = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(
