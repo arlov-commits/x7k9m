@@ -1,4 +1,4 @@
-<!-- Academic Planner v8.4 -->
+<!-- Academic Planner v8.5 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -467,7 +467,7 @@ const SEED_FLAG=SKEY+'-perrecord-seeded';
 let _lastGen=0;
 function genId(){let v=Date.now()*1000+Math.floor(Math.random()*1000);if(v<=_lastGen)v=_lastGen+1;_lastGen=v;return v}
 // Deterministic id for legacy records that lack one (same across devices -> no duplicates on re-seed).
-function deterministicId(coll,rec){const s=coll+'|'+JSON.stringify(rec);let h=5381;for(let i=0;i<s.length;i++){h=((h<<5)+h+s.charCodeAt(i))|0}return coll+'_'+(h>>>0).toString(36)}
+function deterministicId(coll,rec){const c={};for(const k in rec){if(k!=='updatedAt'&&k!=='id')c[k]=rec[k]}const s=coll+'|'+stableStringify(c);let h=5381;for(let i=0;i<s.length;i++){h=((h<<5)+h+s.charCodeAt(i))|0}return coll+'_'+(h>>>0).toString(36)}
 // ---- Low-level REST: one row by id ----
 async function sbUpsertRow(table,id,data,mode){const pref=mode==='ignore'?'resolution=ignore-duplicates':'resolution=merge-duplicates';try{const r=await fetch(SB_URL+'/rest/v1/'+table,{method:'POST',headers:{...SB_HEADERS,'Prefer':pref+',return=minimal'},body:JSON.stringify({id:String(id),data})});return r.ok}catch(e){return false}}
 async function sbTombstoneRow(table,id){try{const r=await fetch(SB_URL+'/rest/v1/'+table+'?id=eq.'+encodeURIComponent(String(id)),{method:'PATCH',headers:{...SB_HEADERS,'Prefer':'return=minimal'},body:JSON.stringify({deleted_at:new Date().toISOString()})});return r.ok}catch(e){return false}}
@@ -564,7 +564,15 @@ function persistLocal(){try{localStorage.setItem(SKEY,JSON.stringify(state));loc
 function scheduleSave(){saveStatus='saving';updateSI();try{detectAndQueue();persistLocal();lastSaveTime=new Date();saveStatus='saved';updateSI()}catch(e){saveStatus='error';updateSI()}if(saveTimer)clearTimeout(saveTimer);saveTimer=setTimeout(()=>{flushQueue()},800)}
 // ---- Change detection: canonical snapshot (id -> content sans updatedAt) per collection ----
 let _snap=null;
-function canonRec(rec){const c={};for(const k in rec){if(k!=='updatedAt')c[k]=rec[k]}return JSON.stringify(c)}
+// Order-independent JSON: keys sorted at every level so field ORDER never affects a record's
+// signature. Without this, the same logical record reshaped on another device (e.g. via
+// applyChosenState's {lifeSourceId,syllabusId,...t}) hashed differently -> spurious re-uploads and,
+// for id-less records, divergent deterministic ids -> cross-device duplicates.
+function stableStringify(v){if(v===null||typeof v!=='object')return JSON.stringify(v);if(Array.isArray(v))return '['+v.map(stableStringify).join(',')+']';return '{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+stableStringify(v[k])).join(',')+'}'}
+function canonRec(rec){const c={};for(const k in rec){if(k!=='updatedAt')c[k]=rec[k]}return stableStringify(c)}
+// Content signature ignoring id + updatedAt: groups records that are the same logical row.
+function contentSig(rec){const c={};for(const k in rec){if(k!=='updatedAt'&&k!=='id')c[k]=rec[k]}return stableStringify(c)}
+function isDetId(key,id){return String(id).startsWith(key+'_')}
 function canonProfile(){const o={};PROFILE_FIELDS.forEach(k=>{o[k]=state[k]});return JSON.stringify(o)}
 function rebuildSnapshot(){_snap={profile:canonProfile()};for(const c of SYNC_COLLECTIONS){const m=new Map();(state[c.key]||[]).forEach(r=>{if(r.id!=null)m.set(String(r.id),canonRec(r))});_snap[c.key]=m}}
 function detectAndQueue(){if(!_snap)rebuildSnapshot();for(const c of SYNC_COLLECTIONS){const arr=state[c.key];if(!Array.isArray(arr))continue;const snapMap=_snap[c.key]||(_snap[c.key]=new Map());const seen=new Set();arr.forEach(rec=>{if(rec.id==null)rec.id=deterministicId(c.key,rec);const sid=String(rec.id);seen.add(sid);const cur=canonRec(rec);if(snapMap.get(sid)!==cur){rec.updatedAt=Date.now();enqueue({op:'upsert',table:c.table,id:sid,data:rec});snapMap.set(sid,canonRec(rec))}});for(const sid of Array.from(snapMap.keys())){if(!seen.has(sid)){snapMap.delete(sid);enqueue({op:'delete',table:c.table,id:sid});addTombstone(c.key,sid)}}}const cp=canonProfile();if(cp!==_snap.profile){_snap.profile=cp;localStorage.setItem(SKEY+'-profileTs',String(Date.now()));enqueue({op:'profile'})}}
@@ -595,6 +603,9 @@ if(!localData){
 if(localData){applyChosenState(localData)}
 migrateRecordIds();
 stripHoursField();
+// Immediate local cleanup of any duplicate rows already cached on this device (offline-safe;
+// the post-pull dedupe in syncPullAndMerge handles duplicates that live only on other devices).
+if(dedupeSyncedCollections())persistLocal();
 rebuildSnapshot();
 lastSaveTime=new Date();saveStatus='saved'}
 // Destructive, intended, idempotent: the hours/time-budget feature is removed, so purge the
@@ -614,6 +625,13 @@ function mergeCollection(localArr,tomb,rows){const byId=new Map((localArr||[]).m
   if(!local){byId.set(rid,rec);changed=true}
   else if(remoteUpdated>(local.updatedAt||0)){byId.set(rid,rec);changed=true}}
   return{arr:Array.from(byId.values()),changed}}
+// Collapse duplicate rows created by the old order-sensitive deterministicId (same content, different
+// ids). Safe by construction: it ONLY ever removes deterministic-style ids (`<coll>_...`, the migration
+// artifact) and NEVER a real numeric genId record. So genuine user-made identical rows (all genIds) are
+// always preserved. If a real record shares the content, every artifact copy is dropped; if the group
+// is all-artifact, the smallest id is kept (deterministic -> every device converges) and the rest go.
+// Removals are tombstoned so they propagate to the other devices.
+function dedupeSyncedCollections(){let changed=false;for(const c of SYNC_COLLECTIONS){const arr=state[c.key];if(!Array.isArray(arr))continue;const groups=new Map();arr.forEach(rec=>{if(rec.id==null)return;const sig=contentSig(rec);let g=groups.get(sig);if(!g){g=[];groups.set(sig,g)}g.push(rec)});const drop=new Set();for(const recs of groups.values()){if(recs.length<2)continue;const dets=recs.filter(r=>isDetId(c.key,r.id));if(!dets.length)continue;const hasReal=recs.some(r=>!isDetId(c.key,r.id));if(hasReal){dets.forEach(r=>drop.add(String(r.id)))}else{dets.slice().sort((a,b)=>String(a.id)<String(b.id)?-1:1).slice(1).forEach(r=>drop.add(String(r.id)))}}if(drop.size){state[c.key]=arr.filter(r=>!drop.has(String(r.id)));drop.forEach(id=>{enqueue({op:'delete',table:c.table,id});addTombstone(c.key,id)});changed=true}}return changed}
 async function sbPullProfile(){try{const r=await fetch(SB_URL+'/rest/v1/profile?id=eq.default&select=*',{headers:SB_HEADERS});if(!r.ok)return false;const d=await r.json();if(!d||!d.length||d[0].deleted_at)return false;const remoteTs=Date.parse(d[0].updated_at)||0;const localTs=parseInt(localStorage.getItem(SKEY+'-profileTs')||'0',10);if(remoteTs>localTs&&!queueHasProfile()){const data=d[0].data||{};PROFILE_FIELDS.forEach(k=>{if(k in data)state[k]=data[k]});localStorage.setItem(SKEY+'-profileTs',String(remoteTs));return true}return false}catch(e){return false}}
 // Flush pending writes, pull rows changed since the watermark, merge by id, advance watermark, re-render.
 // Centralized deferral so NO automatic/background render can wipe in-progress typing.
@@ -628,6 +646,8 @@ async function syncPullAndMerge(force){if(!navigator.onLine)return;if(isUserEdit
   const wm=localStorage.getItem(SKEY+'-watermark');let maxSeen=wm?Date.parse(wm):0;let anyChange=false,netOk=true;const tomb=loadTomb();
   for(const c of SYNC_COLLECTIONS){const rows=await sbPull(c.table,wm);if(rows===null){netOk=false;continue}const res=mergeCollection(state[c.key]||[],tomb[c.key]||(tomb[c.key]={}),rows);if(res.changed){state[c.key]=res.arr;anyChange=true}rows.forEach(r=>{const u=Date.parse(r.updated_at)||0;if(u>maxSeen)maxSeen=u})}
   saveTomb(tomb);
+  // After a full pull every device sees the whole duplicate set, so collapse them convergently.
+  let deduped=false;if(netOk)deduped=dedupeSyncedCollections();if(deduped){anyChange=true;await flushQueue()}
   if(await sbPullProfile())anyChange=true;
   if(netOk&&maxSeen)localStorage.setItem(SKEY+'-watermark',new Date(maxSeen).toISOString());
   if(anyChange){rebuildSnapshot();persistLocal();safeRender()}
@@ -665,7 +685,7 @@ function render(){
   const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
   const bottomNav=`<nav class="bottomnav"><button class="bn-item ${state.activeTab==='sprints'?'active':''}" onclick="switchTab('sprints')">${ico('sprints')}Week</button><button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
   const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v8.4</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v8.5</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
