@@ -1,4 +1,4 @@
-<!-- Academic Planner v9.2 -->
+<!-- Academic Planner v9.3 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -226,7 +226,7 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .weeks-grid{display:grid;grid-template-columns:1fr 30px;column-gap:var(--sp-2);row-gap:0}
 .weeks-grid.no-rail{grid-template-columns:1fr}
 .week-section{display:contents}
-.weeks-grid>.week-hdr,.weeks-grid>.alm-summary,.weeks-grid>.day-row{grid-column:1;min-width:0}
+.weeks-grid>.week-hdr,.weeks-grid>.day-row{grid-column:1;min-width:0}
 .week-section .week-hdr{margin-top:26px}
 .weeks-grid>.week-section:first-child .week-hdr{margin-top:0}
 .day-almanac{grid-column:1/-1;display:flex;flex-direction:column;gap:2px;margin-top:5px;padding-top:5px;border-top:1px dotted var(--border)}
@@ -263,19 +263,10 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
    lack (the glyphs then collapse to zero advance). */
 .alm-ribbon-label .alm-tc{writing-mode:horizontal-tb;font-size:var(--fs-m);font-weight:700;width:1em;word-break:break-all;line-height:1.15;text-align:center;letter-spacing:0}
 .alm-ribbon-label .alm-en{font-size:var(--fs-2xs);white-space:nowrap;letter-spacing:.02em;opacity:.85}
-/* Mobile: the ribbon is hidden, so each week states its opening term on one line instead. */
-.alm-summary{display:none;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;padding:5px 11px;
-  background:var(--accent-bh-dim);border:1px solid var(--accent-bh-dim);border-radius:var(--r-pill);
-  font-size:var(--fs-xs);width:fit-content;max-width:100%}
-.alm-summary .alm-mk.term,.alm-summary .alm-mk.term .alm-en{color:var(--accent-bh)}
-@media(max-width:640px){
-  .weeks-grid{grid-template-columns:1fr}
-  .alm-term-ribbon{display:none}
-  .alm-summary{display:flex}
-  .alm-mk:not(.moon) .alm-en{display:none}
-  .alm-mk{cursor:pointer}
-  .alm-mk.show-en .alm-en{display:inline}
-}
+/* Mobile carries the same almanac as the desktop (v9.3): the same ribbon, and both names on
+   every marker. There is no narrow-width variant, no tap-to-reveal and no summary line — the
+   earlier shorthand made the phone read differently from the browser. The only concession is
+   letting the day-cell markers wrap onto a second line, which they already do. */
 
 /* Life Tasks */
 .life-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
@@ -818,7 +809,7 @@ function render(){
   const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
   const bottomNav=`<nav class="bottomnav"><button class="bn-item ${state.activeTab==='sprints'?'active':''}" onclick="switchTab('sprints')">${ico('sprints')}Week</button><button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
   const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v9.2</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v9.3</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -849,19 +840,18 @@ if(pastWeeks.length){const epw=pastWeeks.filter(wk=>expandedPastWeeks.includes(w
 activeWeeks.forEach(wk=>shown.push(wk));
 
 // Every week goes into ONE grid so a solar-term ribbon can span week headers without breaking.
-// Rail segments are placed by explicit grid-row, so the run from the first to the last day of a
-// term is a single element even when week headers sit between those rows. Column-1 items get an
-// explicit grid-row too: that keeps placement identical whether or not the mobile summary row is
-// displayed, since a display:none item would otherwise shift every row after it.
+// Ribbons are placed by explicit grid-row, so the run from the first to the last day of a term
+// is a single element even when week headers sit between those rows. Headers and day rows carry
+// an explicit grid-row too, so nothing is left to auto-placement alongside the spanning ribbons.
 const perWeek=shown.map(wk=>({wk,days:visibleWeekDays(wk)}));
 const allDays=perWeek.reduce((a,s)=>a.concat(s.days),[]);
 const alm=computeWeekAlmanac(allDays);                       // one pass over the whole visible run
 const rowOf={};                                              // dateKey -> grid row
 let row=0;
-perWeek.forEach(s=>{s.hdrRow=++row;s.sumRow=++row;s.days.forEach(d=>{rowOf[d.date]=++row})});
+perWeek.forEach(s=>{s.hdrRow=++row;s.days.forEach(d=>{rowOf[d.date]=++row})});
 const rail=almTermRailHtml(alm,rowOf);
 h+=`<div class="weeks-grid${rail?'':' no-rail'}">`;
-perWeek.forEach(s=>{h+=renderWeekSection(s.wk,s.days,alm,s.hdrRow,s.sumRow)});
+perWeek.forEach(s=>{h+=renderWeekSection(s.wk,s.days,alm,s.hdrRow)});
 h+=rail+`</div>`;
 return h}
 
@@ -945,7 +935,6 @@ function computeWeekAlmanac(days){
   }catch(e){console.warn('Almanac unavailable for these weeks:',e);return null}
 }
 
-function almToggleEn(el){el.classList.toggle('show-en')}  // mobile: English on tap
 
 // ---- Almanac settings controls ----
 let _almTzFilter='';                                     // filter text only; not part of state
@@ -971,7 +960,7 @@ function almSetLayer(k,on){const L=almLayers();L[k]=!!on;state.almanacLayers=L;r
 // One transition marker. TC then English, strongest weight on the term.
 function almMarkerHtml(m){
   const D=AlmanacData;
-  const open='<span class="alm-mk '+m.kind+'" onclick="event.stopPropagation();almToggleEn(this)">';
+  const open='<span class="alm-mk '+m.kind+'">';         // both names always shown, every width
   if(m.kind==='term'){const t=D.TERMS[m.index];return open+`<span class="alm-tc">${t.tc}</span><span class="alm-en">${t.en}</span></span>`}
   if(m.kind==='hou'){const x=D.HOU[m.index];return open+`<span class="alm-tc">${x.tc}</span><span class="alm-en">${x.en}</span></span>`}
   const mo=D.MOON[m.index];                                // inline SVG, currentColor — no emoji
@@ -1010,19 +999,9 @@ function almTermRailHtml(alm,rowOf){
   }).join('');
 }
 
-// Below ~640px the ribbon is hidden, so each week states its opening term on one line instead.
-// The hou needs no summary — it is already named on every day cell. TC only, English on tap.
-function almSummaryHtml(alm,days){
-  if(!alm||!almLayers().terms||!days||!days.length)return'';
-  const a=alm.byDate[days[0].date];
-  if(!a)return'';
-  const t=AlmanacData.TERMS[a.term];
-  return`<div class="alm-summary"><span class="alm-mk term" onclick="almToggleEn(this)"><span class="alm-tc">${t.tc}</span><span class="alm-en">${t.en}</span></span></div>`;
-}
-
-// The section is display:contents — its header, mobile summary and day rows are grid items of the
-// shared .weeks-grid, each pinned to the row the caller assigned it.
-function renderWeekSection(wk,visDays,alm,hdrRow,sumRow){const isCur=TODAY>=wk.start&&TODAY<=wk.end,isSB=wk.start<=new Date(2026,3,11)&&wk.end>=new Date(2026,3,5);const badges=[];if(isCur)badges.push('<span class="week-badge current">This Week</span>');if(isSB)badges.push('<span class="week-badge break">Spring Break</span>');
+// The section is display:contents — its header and day rows are grid items of the shared
+// .weeks-grid, each pinned to the row the caller assigned it.
+function renderWeekSection(wk,visDays,alm,hdrRow){const isCur=TODAY>=wk.start&&TODAY<=wk.end,isSB=wk.start<=new Date(2026,3,11)&&wk.end>=new Date(2026,3,5);const badges=[];if(isCur)badges.push('<span class="week-badge current">This Week</span>');if(isSB)badges.push('<span class="week-badge break">Spring Break</span>');
 // Count auto-hidden past days (before today in current week) that are not manually expanded
 const todayStr=isoDate(TODAY);const expandedPastDays=state.expandedPastDays||[];
 const manualHidden=wk.days.filter(d=>(state.hiddenDays||[]).includes(d.date)).length;
@@ -1032,8 +1011,7 @@ const isAT=allocatingId!==null;
 const weekTasks=state.tasks.filter(t=>t.weekNum===wk.num&&!t.date);
 const weekChipsHtml=weekTasks.map(t=>renderChip(t)).join('');
 let h=`<div class="week-section"><div class="week-hdr ${isAT?'alloc-target':''}" style="grid-row:${hdrRow}" ${isAT?`onclick="placeAllocatedWeek(${wk.num})"`:''} ondragover="event.preventDefault();this.classList.add('alloc-highlight')" ondrop="handleWeekDrop(event,${wk.num})" ondragleave="this.classList.remove('alloc-highlight')"><span class="week-hdr-title">Week ${wk.num}</span><span class="week-hdr-dates">${fmtDateShort(wk.start)} → ${fmtDateShort(wk.end)}</span>${badges.join('')}${totalHidden?`<button class="expand-week-btn" onclick="event.stopPropagation();expandWeek(${wk.num})" title="Show hidden days">▼ ${totalHidden} hidden</button>`:''}${weekChipsHtml}<button class="add-day-btn" onclick="event.stopPropagation();openAddWeekTask(${wk.num})" title="Add week task">+</button></div>`;
-h+=almSummaryHtml(alm,visDays).replace('class="alm-summary"',`class="alm-summary" style="grid-row:${sumRow}"`);
-visDays.forEach((day,di)=>{const dayRow=sumRow+1+di;const tasks=state.tasks.filter(t=>t.date===day.date),isT=sameDay(day.dateObj,TODAY),note=state.dayNotes[day.date]||'',canHide=isCur&&day.dateObj<=TODAY;
+visDays.forEach((day,di)=>{const dayRow=hdrRow+1+di;const tasks=state.tasks.filter(t=>t.date===day.date),isT=sameDay(day.dateObj,TODAY),note=state.dayNotes[day.date]||'',canHide=isCur&&day.dateObj<=TODAY;
 const dayEvts=getEventsForDate(day.date);const sylChips=getSylForDate(day.date);const SYL_ICON={reading:'book',paper:'paper',exam:'seal',presentation:'present',custom:'pin'};
 // Build unified sorted pill list
 const pills=[];
