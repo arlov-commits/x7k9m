@@ -5,6 +5,8 @@ Operating instructions for Claude Code working in this repo. Read this before ma
 ## What this is
 A single-file academic planner PWA (`index.html`, vanilla HTML/CSS/JS, no build step) for one user. Tabs: Dashboard, Week (sprints), Syllabus, Tasks, Events, Notes. Data persists to localStorage and mirrors to Supabase. Hosted on Cloudflare Pages, auto-deploys from `main`.
 
+The one exception to "single file" is the Week tab almanac (v9.0): `almanac.js` (engine) and `almanac-data.js` (name tables) load as separate scripts and are precached by `sw.js`. They are verified against `almanac-fixtures.json` by `test-almanac.html` + `test-almanac.js` (serve the repo over HTTP and open the page; expect zero failures). `ALMANAC_SPEC.md` carries the provenance — read it before touching the data tables.
+
 ## Deploy workflow (NON-NEGOTIABLE)
 - **Never commit directly to `main`.** A live user depends on `main`.
 - Work on a branch. Push the branch → Cloudflare builds a **preview URL** automatically.
@@ -14,7 +16,7 @@ A single-file academic planner PWA (`index.html`, vanilla HTML/CSS/JS, no build 
 
 ## Versioning
 - Version lives as an HTML comment on line 1: `<!-- Academic Planner vX.Y -->`, and in a visible `.version-label` in the header, and in the service worker `CACHE_NAME`.
-- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v7.0. All three locations must match.
+- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v9.0. All three locations must match.
 - Bumping the SW `CACHE_NAME` every change is required or installed devices serve stale code.
 
 ## Architecture rules (hard-won — do not violate)

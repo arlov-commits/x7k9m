@@ -1,4 +1,4 @@
-<!-- Academic Planner v8.9 -->
+<!-- Academic Planner v9.0 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -216,6 +216,58 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .day-note-btn{font-size:var(--fs-2xs);color:var(--text-muted);cursor:pointer;background:0;border:0;font-family:var(--font-sans);padding:1px 0}.day-note-btn:hover{color:var(--text-dim)}
 .day-note-input{width:100%;margin-top:3px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-sans);font-size:var(--fs-s);padding:5px 9px;border-radius:var(--r-s);resize:vertical;min-height:28px}
 .day-note-input:focus{outline:0;border-color:var(--text-dim)}
+
+/* ---- Almanac (v9.0): day-cell transition footers + ambient right rail ----
+   The footer band is emitted ONLY on days where a cycle flips, so it never reserves
+   empty vertical space. Names wrap rather than ellipsize — 天氣上升地氣下降 is eight
+   characters and clipping a hou name is worse than an uneven row. */
+.week-body{display:grid;grid-template-columns:1fr auto;gap:var(--sp-2);align-items:stretch}
+.week-days{min-width:0}
+.day-almanac{grid-column:1/-1;display:flex;flex-direction:column;gap:2px;margin-top:5px;padding-top:5px;border-top:1px dotted var(--border)}
+.alm-mk{display:inline-flex;align-items:baseline;gap:6px;flex-wrap:wrap;background:0;border:0;padding:0;margin:0;text-align:left;font-family:var(--font-sans);color:var(--text-dim);cursor:default}
+.alm-tc{font-family:var(--font-serif);letter-spacing:.04em}
+.alm-en{font-size:var(--fs-2xs);color:var(--text-muted)}
+.alm-mk.term{color:var(--accent-bh)}
+.alm-mk.term .alm-tc{font-size:var(--fs-s);font-weight:700}
+.alm-mk.term .alm-en{font-weight:600;color:var(--accent-bh);opacity:.8}
+.alm-mk.hou .alm-tc{font-size:var(--fs-xs);font-weight:600;color:var(--text-dim)}
+.alm-mk.moon{color:var(--text-dim)}
+.alm-mk.moon .alm-tc{font-size:var(--fs-xs);font-weight:600}
+.alm-moon-ico{display:inline-flex;align-items:center;color:var(--text-dim);opacity:.85;transform:translateY(2px)}
+
+/* Rail — one column per layer, zodiac outermost. Segments are flex-sized by day count so a
+   mid-week term or sign change splits the rail exactly where the boundary falls. */
+.alm-rail{display:flex;gap:3px;align-self:stretch}
+.alm-rail-col{display:flex;flex-direction:column;gap:3px;width:22px}
+.alm-rail-col.zodiac{width:20px}
+.alm-seg{display:flex;align-items:center;justify-content:center;gap:6px;min-height:0;
+  writing-mode:vertical-rl;text-orientation:mixed;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-pill);
+  padding:8px 0;overflow:hidden;color:var(--text-muted);font-size:var(--fs-2xs)}
+/* English rides the segment's vertical-rl flow with text-orientation:mixed, as intended. The TC
+   is stacked one character per line in horizontal-tb instead of leaning on text-orientation:
+   upright — the visual result is the same upright column, but it does not depend on the CJK
+   font shipping vertical metrics, which some engines lack (glyphs then collapse to zero advance). */
+.alm-seg .alm-tc{writing-mode:horizontal-tb;font-size:var(--fs-2xs);width:1em;word-break:break-all;line-height:1.2;text-align:center;letter-spacing:0}
+.alm-seg .alm-en{font-size:var(--fs-2xs);white-space:nowrap;letter-spacing:.02em}
+.alm-seg.term{color:var(--accent-bh);border-color:var(--accent-bh-dim);background:var(--accent-bh-dim)}
+.alm-seg.zodiac{color:var(--text-dim)}
+.alm-seg .alm-glyph{writing-mode:horizontal-tb;font-size:var(--fs-s);line-height:1}
+/* Mobile summary line — TC only, English revealed on tap (see almToggleEn). */
+.alm-summary{display:none;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;padding:6px 11px;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-pill);
+  font-size:var(--fs-xs);color:var(--text-dim)}
+.alm-summary .alm-sep{color:var(--text-muted);opacity:.6}
+.alm-summary .alm-tc{font-family:var(--font-serif);letter-spacing:.06em}
+.alm-summary .term{color:var(--accent-bh);font-weight:600}
+@media(max-width:640px){
+  .week-body{grid-template-columns:1fr}
+  .alm-rail{display:none}
+  .alm-summary{display:flex}
+  .alm-mk .alm-en{display:none}
+  .alm-mk{cursor:pointer}
+  .alm-mk.show-en .alm-en{display:inline}
+}
 
 /* Life Tasks */
 .life-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
@@ -490,6 +542,13 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 <!-- Syllabus quick-view popup (read-only view of a syllabus record by id) -->
 <div class="pop-scrim" id="sylPop" onclick="if(event.target.id==='sylPop')closeSylPop()"><div class="pop" id="sylPopPanel" role="dialog" aria-label="Syllabus entry"></div></div>
 
+<!-- Almanac: name tables first, then the engine (data has no dependencies, engine has none either,
+     but the app script below reads both). Both are in the sw.js precache list — if they are ever
+     dropped from it, returning devices run new markup against a stale cache and the almanac
+     silently renders nothing. Verified against almanac-fixtures.json by test-almanac.html. -->
+<script src="almanac-data.js"></script>
+<script src="almanac.js"></script>
+
 <script>
 const SKEY='sprint-planner-v3';
 const SB_URL='https://nxjypjgqsywxukcnchmh.supabase.co';
@@ -507,7 +566,7 @@ const SYNC_COLLECTIONS=[
   {key:'deliverables',table:'deliverables'}
 ];
 // Data-meaningful singletons synced as one last-write-wins 'profile' row (SYNC_REFERENCE 1.7).
-const PROFILE_FIELDS=['semesterStart','maxFutureDate','catOrder','dayNotes','hiddenDays'];
+const PROFILE_FIELDS=['semesterStart','maxFutureDate','catOrder','dayNotes','hiddenDays','almanacTz','almanacLayers'];
 const SB_HEADERS={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
 const SEED_FLAG=SKEY+'-perrecord-seeded';
 // Collision-resistant, client-generated, immutable record id (large Number; stored as text PK).
@@ -525,6 +584,20 @@ const TODAY=new Date();TODAY.setHours(0,0,0,0);
 const CAT_NAMES={bh:'Buddhist Hermeneutics',wh:'Western Hermeneutics',cn:'Chinese Classics',ab:'Abhidhamma',custom:'Custom',life:'Task',events:'Event'};
 const CAT_SHORT={bh:'BH',wh:'WH',cn:'CH',ab:'ABI',custom:'✎',life:'TSK',events:'EVT'};
 const PRI_ORDER={high:0,med:1,low:2,normal:3};
+// ---- Almanac settings (v9.0) ----
+// Scope is the almanac strip ONLY. Tasks, events, countdowns and week boundaries keep using
+// local browser time exactly as before — almanacTz must never leak into them.
+const ALM_TZ_DEFAULT='America/Los_Angeles';
+const ALM_LAYER_DEFAULT={terms:true,hou:true,moon:true,zodiac:true};
+// Fallback zone list for engines without Intl.supportedValuesOf (Safari < 15.4).
+const ALM_TZ_FALLBACK=['America/Los_Angeles','America/Denver','America/Chicago','America/New_York',
+  'America/Sao_Paulo','UTC','Europe/London','Europe/Paris','Europe/Berlin','Europe/Moscow',
+  'Asia/Jerusalem','Asia/Kolkata','Asia/Bangkok','Asia/Shanghai','Asia/Hong_Kong','Asia/Taipei',
+  'Asia/Tokyo','Asia/Seoul','Australia/Sydney','Pacific/Auckland'];
+// Synced state can predate these keys; an undefined zone throws inside Intl.DateTimeFormat, so
+// every read goes through these accessors rather than touching state directly.
+function almTz(){const t=state.almanacTz;return(typeof t==='string'&&t)?t:ALM_TZ_DEFAULT}
+function almLayers(){return{...ALM_LAYER_DEFAULT,...(state.almanacLayers||{})}}
 function daysBetween(a,b){return Math.ceil((b-a)/864e5)}
 function fmtDate(d){return['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]+' '+(d.getMonth()+1)+'/'+d.getDate()}
 function fmtDateShort(d){return(d.getMonth()+1)+'/'+d.getDate()}
@@ -605,7 +678,7 @@ function defaultSyllabus(){return[
 {id:5030,cat:'cn',type:'exam',title:'Chinese Classics Midterm Exam',detail:'',due:'2026-04-03',done:true}
 ]}
 
-let state={theme:'ember',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],nextId:4000,weekStartDay:6,semesterStart:'2026-01-17',maxFutureDate:'2026-05-30'};
+let state={theme:'ember',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],nextId:4000,weekStartDay:6,semesterStart:'2026-01-17',maxFutureDate:'2026-05-30',almanacTz:ALM_TZ_DEFAULT,almanacLayers:{...ALM_LAYER_DEFAULT}};
 let saveTimer=null,lastSaveTime=null,saveStatus='saved';
 // localStorage is the source of truth: write there synchronously, then diff & queue per-record pushes.
 function persistLocal(){try{localStorage.setItem(SKEY,JSON.stringify(state));localStorage.setItem(SKEY+'-time',new Date().toISOString())}catch(e){throw e}}
@@ -664,7 +737,11 @@ function stripHoursField(){for(const c of SYNC_COLLECTIONS){const arr=state[c.ke
 // Idempotent: ids already present are never reassigned; deterministic ids keep legacy id-less records
 // consistent across devices so re-seeding never duplicates them.
 function migrateRecordIds(){for(const c of SYNC_COLLECTIONS){const arr=state[c.key];if(!Array.isArray(arr))continue;arr.forEach(rec=>{if(rec.id==null||rec.id===''){rec.id=deterministicId(c.key,rec)}if(rec.updatedAt===undefined)rec.updatedAt=Date.now()})}}
-function applyChosenState(chosen){if(chosen.lifeTasks)chosen.lifeTasks=chosen.lifeTasks.map(t=>({category:'General',priority:'med',inBank:false,...t}));if(chosen.tasks)chosen.tasks=chosen.tasks.map(t=>({lifeSourceId:null,syllabusId:null,...t}));if(!chosen.hiddenDays)chosen.hiddenDays=[];if(!chosen.events)chosen.events=defaultEvents();if(!chosen.syllabus)chosen.syllabus=defaultSyllabus();if(!chosen.notes)chosen.notes=[];if(!chosen.catOrder)chosen.catOrder=[];if(chosen.activeTab==='print')chosen.activeTab='sprints';const THEME_REMAP={dark:'ember',midnight:'ember',peacock:'ocean',bodhi:'persia',temple:'persia',spring:'pistachio',pistachio2:'pistachio'};if(chosen.theme&&THEME_REMAP[chosen.theme])chosen.theme=THEME_REMAP[chosen.theme];state={...state,...chosen}}
+function applyChosenState(chosen){if(chosen.lifeTasks)chosen.lifeTasks=chosen.lifeTasks.map(t=>({category:'General',priority:'med',inBank:false,...t}));if(chosen.tasks)chosen.tasks=chosen.tasks.map(t=>({lifeSourceId:null,syllabusId:null,...t}));if(!chosen.hiddenDays)chosen.hiddenDays=[];if(!chosen.events)chosen.events=defaultEvents();if(!chosen.syllabus)chosen.syllabus=defaultSyllabus();if(!chosen.notes)chosen.notes=[];if(!chosen.catOrder)chosen.catOrder=[];if(chosen.activeTab==='print')chosen.activeTab='sprints';
+  // Almanac keys are absent in any state saved before v9.0 — default them here so a restored or
+  // synced blob can't leave almanacTz undefined (Intl.DateTimeFormat throws on that).
+  if(typeof chosen.almanacTz!=='string'||!chosen.almanacTz)chosen.almanacTz=state.almanacTz||ALM_TZ_DEFAULT;
+  chosen.almanacLayers={...ALM_LAYER_DEFAULT,...(state.almanacLayers||{}),...(chosen.almanacLayers||{})};const THEME_REMAP={dark:'ember',midnight:'ember',peacock:'ocean',bodhi:'persia',temple:'persia',spring:'pistachio',pistachio2:'pistachio'};if(chosen.theme&&THEME_REMAP[chosen.theme])chosen.theme=THEME_REMAP[chosen.theme];state={...state,...chosen}}
 // Per-id reconciliation of pulled rows into a local array. NEVER wholesale-replaces the array:
 // unchanged records keep their identity; only new/changed/deleted records move. (SYNC_REFERENCE 1.6)
 function mergeCollection(localArr,tomb,rows){const byId=new Map((localArr||[]).map(e=>[String(e.id),e]));let changed=false;for(const r of rows){const rid=String(r.id);const remoteUpdated=Date.parse(r.updated_at)||0;if(r.deleted_at){if(byId.has(rid)){byId.delete(rid);changed=true}const dms=Date.parse(r.deleted_at)||0;if(!(rid in tomb)||tomb[rid]<dms){tomb[rid]=dms;changed=true}continue}
@@ -733,7 +810,7 @@ function render(){
   const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
   const bottomNav=`<nav class="bottomnav"><button class="bn-item ${state.activeTab==='sprints'?'active':''}" onclick="switchTab('sprints')">${ico('sprints')}Week</button><button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
   const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v8.9</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v9.0</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -761,6 +838,134 @@ const todayStr=isoDate(TODAY);const expandedPastWeeks=state.expandedPastWeeks||[
 const pastWeeks=weeks.filter(wk=>wk.end<TODAY);const activeWeeks=weeks.filter(wk=>wk.end>=TODAY);
 if(pastWeeks.length){const epw=pastWeeks.filter(wk=>expandedPastWeeks.includes(wk.num));const collapsedCount=pastWeeks.length-epw.length;if(collapsedCount>0)h+=`<div style="margin-bottom:12px"><button class="expand-week-btn" onclick="expandAllPastWeeks()" style="font-size:var(--fs-2xs);padding:3px 10px">▼ ${collapsedCount} past week${collapsedCount>1?'s':''} (show)</button></div>`;epw.forEach(wk=>{h+=renderWeekSection(wk,true)})}
 activeWeeks.forEach(wk=>{h+=renderWeekSection(wk,false)});return h}
+
+/* ============================================================
+   ALMANAC (v9.0) — four cyclical layers over the Week tab.
+   All three solar layers come from one number, the Sun's apparent ecliptic longitude λ☉:
+   a solar term every 15°, a hou every 5°, a tropical sign every 30°. Sign boundaries
+   coincide exactly with the twelve 中氣, so the zodiac needs no separate computation.
+   Moon quarters come from the separate Meeus ch.49 routine.
+
+   Both name tables start at 立春 (λ=315°) and run forward. houIndex % 3 === 0 means that
+   hou opens a term, which is how a day marker knows to print the 節氣 name too — there is
+   deliberately no second crossing pass at 15°.
+
+   A week is ~20 Newton solves at ~0.16 ms. Do not add caching or precomputed tables.
+   ============================================================ */
+const almWrap=l=>(((l-315)%360)+360)%360;              // degrees travelled since 立春
+const almTermIndex=l=>Math.floor(almWrap(l)/15);        // -> AlmanacData.TERMS
+const almHouIndex=l=>Math.floor(almWrap(l)/5);          // -> AlmanacData.HOU
+const almZodIndex=l=>Math.floor((((l%360)+360)%360)/30);// -> AlmanacData.ZODIAC
+function almReady(){return typeof Almanac!=='undefined'&&typeof AlmanacData!=='undefined'}
+
+// Markers (what flips) + ambient state (what the days sit inside) for one run of visible days.
+// Returns null whenever the almanac cannot be drawn, so callers just render nothing.
+function computeWeekAlmanac(days){
+  if(!almReady()||!days||!days.length)return null;
+  const L=almLayers();
+  if(!L.terms&&!L.hou&&!L.moon&&!L.zodiac)return null;
+  const tz=almTz();
+  try{
+    const jd0=Almanac.localNoonJD(days[0].date,tz)-0.5;                    // local midnight, first day
+    const jd1=Almanac.localNoonJD(days[days.length-1].date,tz)+0.5;        // local midnight, day after last
+    const markers={};
+    if(L.terms||L.hou){
+      for(const c of Almanac.longitudeCrossings(jd0,jd1,5)){
+        const key=Almanac.localDateKey(c.jd,tz);
+        const i=almHouIndex(c.deg+1e-6);                                   // epsilon guards the boundary:
+        const arr=markers[key]||(markers[key]=[]);                         // λ returns equal to it within noise
+        if(i%3===0&&L.terms)arr.push({kind:'term',index:i/3});             // a term flip is also a hou flip,
+        if(L.hou)arr.push({kind:'hou',index:i});                           // so both markers land on that day
+      }
+    }
+    if(L.moon){
+      for(const m of Almanac.moonQuartersInRange(jd0,jd1)){
+        const key=Almanac.localDateKey(m.jd,tz);
+        (markers[key]||(markers[key]=[])).push({kind:'moon',index:m.phase});
+      }
+    }
+    // Ambient state is read at LOCAL NOON, never midnight: noon is unambiguous across a DST shift.
+    const ambient=days.map(d=>{
+      const lam=Almanac.solarLongitude(Almanac.localNoonJD(d.date,tz));
+      return{date:d.date,zodiac:almZodIndex(lam),term:almTermIndex(lam),hou:almHouIndex(lam)};
+    });
+    return{markers,ambient};
+  }catch(e){console.warn('Almanac unavailable for this week:',e);return null}
+}
+
+// Collapse consecutive days sharing a value into one rail segment, so the rail splits exactly
+// where a term or sign changes mid-week.
+function almSegments(ambient,layer){const segs=[];ambient.forEach(a=>{const v=a[layer];const last=segs[segs.length-1];if(last&&last.value===v)last.days++;else segs.push({value:v,days:1})});return segs}
+
+function almToggleEn(el){el.classList.toggle('show-en')}  // mobile: English on tap
+
+// ---- Almanac settings controls ----
+let _almTzFilter='';                                     // filter text only; not part of state
+function almTzList(){
+  try{if(typeof Intl.supportedValuesOf==='function'){const v=Intl.supportedValuesOf('timeZone');if(v&&v.length)return v}}catch(e){}
+  console.warn('Intl.supportedValuesOf("timeZone") unavailable — using the short fallback zone list');
+  return ALM_TZ_FALLBACK;
+}
+function almTzOptionsHtml(filter){
+  const cur=almTz(),f=(filter||'').trim().toLowerCase();
+  let list=almTzList();
+  if(f)list=list.filter(z=>z.toLowerCase().includes(f));
+  if(!list.includes(cur))list=[cur,...list];             // the selected zone stays selectable
+  const groups={};
+  list.forEach(z=>{const r=z.includes('/')?z.split('/')[0]:'Other';(groups[r]||(groups[r]=[])).push(z)});
+  return Object.keys(groups).sort().map(r=>`<optgroup label="${r}">${groups[r].map(z=>`<option value="${z}"${z===cur?' selected':''}>${z.replace(/_/g,' ')}</option>`).join('')}</optgroup>`).join('');
+}
+// Filtering rewrites the options in place — a full render would drop focus mid-typing.
+function almTzFilterInput(v){_almTzFilter=v;const s=$('#almTzSelect');if(s)s.innerHTML=almTzOptionsHtml(v)}
+function almSetTz(v){if(!v)return;state.almanacTz=v;render();scheduleSave()}
+function almSetLayer(k,on){const L=almLayers();L[k]=!!on;state.almanacLayers=L;render();scheduleSave()}
+
+// One transition marker. TC then English, strongest weight on the term.
+function almMarkerHtml(m){
+  const D=AlmanacData;
+  const open='<span class="alm-mk '+m.kind+'" onclick="event.stopPropagation();almToggleEn(this)">';
+  if(m.kind==='term'){const t=D.TERMS[m.index];return open+`<span class="alm-tc">${t.tc}</span><span class="alm-en">${t.en}</span></span>`}
+  if(m.kind==='hou'){const x=D.HOU[m.index];return open+`<span class="alm-tc">${x.tc}</span><span class="alm-en">${x.en}</span></span>`}
+  const mo=D.MOON[m.index];                                // inline SVG, currentColor — no emoji
+  return open+`<span class="alm-moon-ico">${mo.svg}</span><span class="alm-tc">${mo.tc}</span><span class="alm-en">${mo.en}</span></span>`;
+}
+
+// Footer band for one day. Emits nothing at all on days where nothing flips.
+function almDayFooterHtml(alm,dateKey){
+  if(!alm)return'';
+  const marks=alm.markers[dateKey];
+  if(!marks||!marks.length)return'';
+  return`<div class="day-almanac">${marks.map(almMarkerHtml).join('')}</div>`;
+}
+
+// Right rail: zodiac outermost, then term, then the current hou nearest the days.
+// English is dropped from one-day segments, which are too short to hold it.
+function almRailHtml(alm){
+  if(!alm)return'';
+  const D=AlmanacData,L=almLayers();
+  const cols=[];
+  const col=(layer,cls,body)=>{
+    const segs=almSegments(alm.ambient,layer);
+    return`<div class="alm-rail-col ${cls}">${segs.map(s=>`<div class="alm-seg ${cls}" style="flex:${s.days}" title="${body(s.value).title}">${s.days>1?body(s.value).full:body(s.value).short}</div>`).join('')}</div>`;
+  };
+  if(L.hou)cols.push(col('hou','hou',i=>({title:D.HOU[i].tc+' · '+D.HOU[i].en,short:`<span class="alm-tc">${D.HOU[i].tc}</span>`,full:`<span class="alm-tc">${D.HOU[i].tc}</span><span class="alm-en">${D.HOU[i].en}</span>`})));
+  if(L.terms)cols.push(col('term','term',i=>({title:D.TERMS[i].tc+' · '+D.TERMS[i].en,short:`<span class="alm-tc">${D.TERMS[i].tc}</span>`,full:`<span class="alm-tc">${D.TERMS[i].tc}</span><span class="alm-en">${D.TERMS[i].en}</span>`})));
+  if(L.zodiac)cols.push(col('zodiac','zodiac',i=>({title:D.ZODIAC[i].name+' · begins at '+D.ZODIAC[i].term,short:`<span class="alm-glyph">${D.ZODIAC[i].glyph}</span>`,full:`<span class="alm-glyph">${D.ZODIAC[i].glyph}</span><span class="alm-en">${D.ZODIAC[i].name}</span>`})));
+  if(!cols.length)return'';
+  return`<div class="alm-rail" aria-hidden="true">${cols.join('')}</div>`;
+}
+
+// Below ~640px the rail is clutter; this one line replaces it. TC only, English on tap.
+function almSummaryHtml(alm){
+  if(!alm||!alm.ambient.length)return'';
+  const D=AlmanacData,L=almLayers(),a=alm.ambient[0],items=[];
+  if(L.zodiac)items.push(`<span class="alm-mk zodiac" onclick="almToggleEn(this)"><span class="alm-glyph">${D.ZODIAC[a.zodiac].glyph}</span><span class="alm-en">${D.ZODIAC[a.zodiac].name}</span></span>`);
+  if(L.terms)items.push(`<span class="alm-mk term" onclick="almToggleEn(this)"><span class="alm-tc">${D.TERMS[a.term].tc}</span><span class="alm-en">${D.TERMS[a.term].en}</span></span>`);
+  if(L.hou)items.push(`<span class="alm-mk hou" onclick="almToggleEn(this)"><span class="alm-tc">${D.HOU[a.hou].tc}</span><span class="alm-en">${D.HOU[a.hou].en}</span></span>`);
+  if(!items.length)return'';
+  return`<div class="alm-summary">${items.join('<span class="alm-sep">·</span>')}</div>`;
+}
+
 function renderWeekSection(wk,isPastSection){const isCur=TODAY>=wk.start&&TODAY<=wk.end,isSB=wk.start<=new Date(2026,3,11)&&wk.end>=new Date(2026,3,5);const badges=[];if(isCur)badges.push('<span class="week-badge current">This Week</span>');if(isSB)badges.push('<span class="week-badge break">Spring Break</span>');
 // Count auto-hidden past days (before today in current week) that are not manually expanded
 const todayStr=isoDate(TODAY);const expandedPastDays=state.expandedPastDays||[];
@@ -771,7 +976,13 @@ const isAT=allocatingId!==null;
 const weekTasks=state.tasks.filter(t=>t.weekNum===wk.num&&!t.date);
 const weekChipsHtml=weekTasks.map(t=>renderChip(t)).join('');
 let h=`<div class="week-section"><div class="week-hdr ${isAT?'alloc-target':''}" ${isAT?`onclick="placeAllocatedWeek(${wk.num})"`:''} ondragover="event.preventDefault();this.classList.add('alloc-highlight')" ondrop="handleWeekDrop(event,${wk.num})" ondragleave="this.classList.remove('alloc-highlight')"><span class="week-hdr-title">Week ${wk.num}</span><span class="week-hdr-dates">${fmtDateShort(wk.start)} → ${fmtDateShort(wk.end)}</span>${badges.join('')}${totalHidden?`<button class="expand-week-btn" onclick="event.stopPropagation();expandWeek(${wk.num})" title="Show hidden days">▼ ${totalHidden} hidden</button>`:''}${weekChipsHtml}<button class="add-day-btn" onclick="event.stopPropagation();openAddWeekTask(${wk.num})" title="Add week task">+</button></div>`;
-wk.days.forEach(day=>{if((state.hiddenDays||[]).includes(day.date))return;if(isCur&&day.date<todayStr&&!expandedPastDays.includes(day.date))return;const tasks=state.tasks.filter(t=>t.date===day.date),isT=sameDay(day.dateObj,TODAY),note=state.dayNotes[day.date]||'',canHide=isCur&&day.dateObj<=TODAY;
+// Almanac runs over the days actually on screen, so the rail segments line up with the rows
+// and a collapsed past day never leaves a gap in the strip.
+const visDays=wk.days.filter(day=>{if((state.hiddenDays||[]).includes(day.date))return false;if(isCur&&day.date<todayStr&&!expandedPastDays.includes(day.date))return false;return true});
+const alm=computeWeekAlmanac(visDays);
+h+=almSummaryHtml(alm);
+h+=`<div class="week-body"><div class="week-days">`;
+visDays.forEach(day=>{const tasks=state.tasks.filter(t=>t.date===day.date),isT=sameDay(day.dateObj,TODAY),note=state.dayNotes[day.date]||'',canHide=isCur&&day.dateObj<=TODAY;
 const dayEvts=getEventsForDate(day.date);const sylChips=getSylForDate(day.date);const SYL_ICON={reading:'book',paper:'paper',exam:'seal',presentation:'present',custom:'pin'};
 // Build unified sorted pill list
 const pills=[];
@@ -781,7 +992,8 @@ sylChips.forEach(sc=>{const sylTime=sc.dueTime||'09:00';const fmtSylTime=((h,m)=
 tasks.forEach(t=>pills.push({type:'task',time:t.time||'',html:renderChip(t)}));
 pills.sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
 const pillsHtml=pills.map(p=>p.html).join('');
-h+=`<div class="day-row ${isT?'is-today':''} ${isAT?'alloc-target':''}" data-date="${day.date}" ondragover="event.preventDefault();this.classList.add('alloc-highlight')" ondrop="handleDrop(event,'${day.date}')" ondragleave="this.classList.remove('alloc-highlight')" ${isAT?`onclick="placeAllocated('${day.date}')"`:''}><div class="day-left"><span class="day-name">${fmtDate(day.dateObj)}</span>${canHide?`<button class="hide-day-btn" onclick="event.stopPropagation();hideDay('${day.date}')" title="Hide this day">hide</button>`:''}</div><div class="day-tasks-area" ondragover="handleChipDragOver(event)" ondrop="handleChipDrop(event,'${day.date}')" ondragleave="clearDropIndicators(this)">${pillsHtml}</div><div class="day-right"><button class="add-day-btn" onclick="event.stopPropagation();openAddTask('${day.date}')" title="Add">+</button></div><div class="day-note-row"><button class="day-note-btn" onclick="event.stopPropagation();toggleEl('dn-${day.date}')">${note?'<span class=\'mi\' style=\'--ic:var(--ic-pen)\'></span>':'+ note'}</button><textarea class="day-note-input" id="dn-${day.date}" style="display:${note?'block':'none'}" onclick="event.stopPropagation()" oninput="state.dayNotes['${day.date}']=this.value;scheduleSave()" placeholder="Notes...">${note}</textarea></div></div>`});h+='</div>';return h}
+h+=`<div class="day-row ${isT?'is-today':''} ${isAT?'alloc-target':''}" data-date="${day.date}" ondragover="event.preventDefault();this.classList.add('alloc-highlight')" ondrop="handleDrop(event,'${day.date}')" ondragleave="this.classList.remove('alloc-highlight')" ${isAT?`onclick="placeAllocated('${day.date}')"`:''}><div class="day-left"><span class="day-name">${fmtDate(day.dateObj)}</span>${canHide?`<button class="hide-day-btn" onclick="event.stopPropagation();hideDay('${day.date}')" title="Hide this day">hide</button>`:''}</div><div class="day-tasks-area" ondragover="handleChipDragOver(event)" ondrop="handleChipDrop(event,'${day.date}')" ondragleave="clearDropIndicators(this)">${pillsHtml}</div><div class="day-right"><button class="add-day-btn" onclick="event.stopPropagation();openAddTask('${day.date}')" title="Add">+</button></div><div class="day-note-row"><button class="day-note-btn" onclick="event.stopPropagation();toggleEl('dn-${day.date}')">${note?'<span class=\'mi\' style=\'--ic:var(--ic-pen)\'></span>':'+ note'}</button><textarea class="day-note-input" id="dn-${day.date}" style="display:${note?'block':'none'}" onclick="event.stopPropagation()" oninput="state.dayNotes['${day.date}']=this.value;scheduleSave()" placeholder="Notes...">${note}</textarea></div>${almDayFooterHtml(alm,day.date)}</div>`});
+h+=`</div>${almRailHtml(alm)}</div></div>`;return h}
 
 function renderChip(t){const isLife=t.cat==='life'&&t.lifeSourceId;let acts='';
 if(isLife){acts=`<span class="chip-acts"><button class="chip-btn life-return" onclick="event.stopPropagation();returnToBank(${t.id})" title="Return to bank"><span class="mi" style="--ic:var(--ic-up)"></span></button><button class="chip-btn" onclick="event.stopPropagation();toggleTaskDone(${t.id})" title="${t.done?'Undo':'Done'}">${t.done?'<span class="mi" style="--ic:var(--ic-up)"></span>':'<span class="mi" style="--ic:var(--ic-check)"></span>'}</button><button class="chip-btn" onclick="event.stopPropagation();openTaskEdit(${t.id})" title="Edit"><span class="mi" style="--ic:var(--ic-edit)"></span></button><button class="chip-btn" onclick="event.stopPropagation();duplicateTask(${t.id})" title="Duplicate"><span class="mi" style="--ic:var(--ic-dup)"></span></button><button class="chip-btn life-remove" onclick="event.stopPropagation();deleteTask(${t.id})" title="Delete"><span class="mi" style="--ic:var(--ic-x)"></span></button></span>`}
@@ -957,6 +1169,13 @@ function renderSettings(){
   <input type="date" class="life-input" value="${semStart}" onchange="state.semesterStart=this.value;render();scheduleSave()" style="width:160px"/></div>
   <div class="settings-section"><label>Max Future Date (Week tab)</label>
   <input type="date" class="life-input" value="${state.maxFutureDate||'2026-05-30'}" onchange="state.maxFutureDate=this.value;render();scheduleSave()" style="width:160px"/></div></div>
+  <div class="notes-box"><div class="notes-box-title">Almanac (Week tab)</div>
+  <div class="settings-section"><label>Timezone</label>
+  <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Places solar terms, 候, moon quarters and the zodiac rail on the right day. This zone is used for the almanac only — tasks, events, countdowns and week boundaries keep using your device's local time. DST is handled automatically.</div>
+  <input class="life-input" id="almTzFilter" value="${_almTzFilter.replace(/"/g,'&quot;')}" oninput="almTzFilterInput(this.value)" placeholder="Filter zones…" style="width:190px;margin-bottom:6px"/>
+  <select class="life-select" id="almTzSelect" onchange="almSetTz(this.value)" style="width:260px;max-width:100%;display:block">${almTzOptionsHtml(_almTzFilter)}</select></div>
+  <div class="settings-section"><label>Layers</label>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:var(--fs-xs)">${[['terms','Solar terms 節氣'],['hou','Pentads 候'],['moon','Moon quarters'],['zodiac','Zodiac sign']].map(([k,lbl])=>`<label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox"${almLayers()[k]?' checked':''} onchange="almSetLayer('${k}',this.checked)"/> ${lbl}</label>`).join('')}</div></div></div>
   <div class="notes-box"><div class="notes-box-title">Backup &amp; Restore</div>
   <div class="settings-section"><label>Restore from backup</label>
   <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Import a previously exported JSON backup file. This replaces your current data.</div>
