@@ -1,4 +1,4 @@
-<!-- Academic Planner v9.4 -->
+<!-- Academic Planner v9.5 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -228,7 +228,7 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
    hou name is worse than an uneven row. */
 /* grid-template-columns is written inline per tab: one ribbon column for Week, up to four for
    Season, and none at all when every ribbon layer is switched off. */
-.weeks-grid{display:grid;column-gap:var(--sp-2);row-gap:0;--alm-rib-w:30px}
+.weeks-grid{display:grid;column-gap:var(--sp-2);row-gap:0;--alm-rib-w:30px;--alm-zb-w:54px}
 .week-section{display:contents}
 .weeks-grid>.week-hdr,.weeks-grid>.day-row,.weeks-grid>.season-row{grid-column:1;min-width:0}
 .week-section .week-hdr{margin-top:26px}
@@ -237,10 +237,16 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .alm-mk{display:inline-flex;align-items:baseline;gap:6px;flex-wrap:wrap;background:0;border:0;padding:0;margin:0;text-align:left;font-family:var(--font-sans);color:var(--text-dim);cursor:default}
 .alm-tc{font-family:var(--font-serif);letter-spacing:.04em}
 .alm-en{font-size:var(--fs-2xs);color:var(--text-muted)}
+/* Day cells read English-first (v9.5), so the English carries the weight and the Chinese trails
+   it a shade quieter. The vertical pills keep the opposite order and their own styling. */
 .alm-mk.term{color:var(--accent-bh)}
-.alm-mk.term .alm-tc{font-size:var(--fs-s);font-weight:700}
-.alm-mk.term .alm-en{font-weight:600;color:var(--accent-bh);opacity:.8}
-.alm-mk.hou .alm-tc{font-size:var(--fs-xs);font-weight:600;color:var(--text-dim)}
+.alm-mk.term .alm-en{font-size:var(--fs-s);font-weight:700;color:var(--accent-bh)}
+.alm-mk.term .alm-tc{font-size:var(--fs-xs);font-weight:600;opacity:.85}
+.alm-mk.hou .alm-en{font-size:var(--fs-xs);font-weight:600;color:var(--text-dim)}
+.alm-mk.hou .alm-tc{font-size:var(--fs-xs);font-weight:600;color:var(--text-muted)}
+/* The opening day of a 候 is called out; the days that merely continue it stay quiet. */
+.alm-mk.hou.hou-start .alm-en{color:var(--accent-wh);font-weight:700}
+.alm-mk.hou.hou-start .alm-tc{color:var(--accent-wh);opacity:.9}
 /* Moon quarters carry no TC (v9.2), so the icon plus the English name IS the label — it is
    never the thing hidden behind a tap on mobile, or the marker would read as a bare glyph. */
 .alm-mk.moon{color:var(--text-dim)}
@@ -260,9 +266,24 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .alm-term-ribbon.alm-swap{cursor:pointer}
 .alm-term-ribbon.alm-swap:hover,.alm-term-ribbon.alm-swap:focus-visible{background:var(--accent-bh);outline:0}
 .alm-term-ribbon.alm-swap:hover .alm-ribbon-label,.alm-term-ribbon.alm-swap:focus-visible .alm-ribbon-label{color:var(--bg)}
-/* Season's other ribbons sit back from the term: quieter fills, and the sign uses its glyph. */
-.alm-term-ribbon.branch,.alm-term-ribbon.zodiac,.alm-term-ribbon.season{background:var(--surface2);border-color:var(--border)}
-.alm-term-ribbon.branch .alm-ribbon-label,.alm-term-ribbon.zodiac .alm-ribbon-label,.alm-term-ribbon.season .alm-ribbon-label{color:var(--text-dim)}
+/* The merged sign/branch pill sits back from the term ribbon. When both halves are on it is
+   filled as two tones split down the middle, one behind each system; with only one half enabled
+   it falls back to a single tone so there is no empty band. */
+.alm-term-ribbon.zb{background:var(--surface2);border-color:var(--border)}
+.alm-term-ribbon.zb.dual{background:linear-gradient(to right,var(--surface2) 0 50%,var(--accent-cn-dim) 50% 100%)}
+/* column-reverse, not column: the block axis of a vertical-rl box runs right to left, so the
+   plain order would put the western half on the right. This lays them out sign-then-branch
+   left to right, matching the fill halves above. */
+.alm-ribbon-label.alm-zb{flex-direction:column-reverse;gap:0;padding:10px 0}
+.alm-zb-half{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;min-width:0}
+.alm-zb.dual .alm-zb-half{flex:0 0 50%}
+/* Western half: the glyph and a spaced, upright-reading name. Eastern half: the branch character
+   stacked like the other CJK labels, with its animal in the serif face. */
+.alm-zb-half.west{color:var(--text-muted)}
+.alm-zb-half.west .alm-en{font-size:var(--fs-2xs);letter-spacing:.09em;text-transform:uppercase}
+.alm-zb-half.east{color:var(--text-dim)}
+.alm-zb-half.east .alm-en{font-family:var(--font-serif);font-size:var(--fs-2xs);font-style:italic;letter-spacing:.02em}
+.alm-zb-half.east .alm-tc{font-size:var(--fs-m);font-weight:700}
 .alm-ribbon-label .alm-glyph{writing-mode:horizontal-tb;font-size:var(--fs-m);line-height:1}
 .alm-ribbon-inner{position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:center}
 /* A ribbon can run three weeks tall, so the name is sticky rather than centred once — otherwise
@@ -286,11 +307,11 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .season-marks{display:flex;flex-wrap:wrap;align-items:baseline;gap:1px var(--sp-3);min-width:0}
 .season-hdr{margin-bottom:6px}
 .season-grid .week-section .week-hdr{margin-top:20px}
-/* Season carries four ribbons where Week carries one, so on a phone they are narrowed and pulled
+/* Season carries two ribbons where Week carries one, so on a phone they are narrowed and pulled
    together — otherwise they take a third of the width and the day rows wrap into tall blocks. */
 @media(max-width:700px){
   .season-row{grid-template-columns:68px 1fr;padding:5px 8px;gap:var(--sp-1)}
-  .season-grid{--alm-rib-w:24px;column-gap:5px}
+  .season-grid{--alm-rib-w:26px;--alm-zb-w:46px;column-gap:5px}
 }
 
 /* Mobile carries the same almanac as the desktop (v9.3): the same ribbons, and both names on
@@ -617,8 +638,8 @@ const PRI_ORDER={high:0,med:1,low:2,normal:3};
 // Scope is the almanac strip ONLY. Tasks, events, countdowns and week boundaries keep using
 // local browser time exactly as before — almanacTz must never leak into them.
 const ALM_TZ_DEFAULT='America/Los_Angeles';
-// terms/hou/moon apply to both tabs; branch, zodiac and season are Season-tab ribbons.
-const ALM_LAYER_DEFAULT={terms:true,hou:true,moon:true,branch:true,zodiac:true,season:true};
+// terms/hou/moon apply to both tabs; branch and zodiac are the two halves of Season's merged pill.
+const ALM_LAYER_DEFAULT={terms:true,hou:true,moon:true,branch:true,zodiac:true};
 // Fallback zone list for engines without Intl.supportedValuesOf (Safari < 15.4).
 const ALM_TZ_FALLBACK=['America/Los_Angeles','America/Denver','America/Chicago','America/New_York',
   'America/Sao_Paulo','UTC','Europe/London','Europe/Paris','Europe/Berlin','Europe/Moscow',
@@ -842,7 +863,7 @@ function render(){
   const moreActive=['life','dashboard','notes','settings','season'].includes(state.activeTab);
   const bottomNav=`<nav class="bottomnav"><button class="bn-item ${state.activeTab==='sprints'?'active':''}" onclick="switchTab('sprints')">${ico('sprints')}Week</button><button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
   const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button><button class="more-sheet-item ${state.activeTab==='season'?'active':''}" onclick="switchTab('season')">${ico('season')}Season</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v9.4</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v9.5</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -899,7 +920,7 @@ function almGridPlan(perWeek){
   perWeek.forEach(s=>{s.hdrRow=++row;s.days.forEach(d=>{rowOf[d.date]=++row})});
   return{alm,rowOf,allDays};
 }
-function almGridCols(rail){return rail.widths.length?`1fr repeat(${rail.widths.length},var(--alm-rib-w))`:'1fr'}
+function almGridCols(rail){return rail.vars.length?'1fr '+rail.vars.map(v=>`var(${v})`).join(' '):'1fr'}
 
 // The days of a week that actually reach the screen: manually hidden days and the not-yet-expanded
 // past days of the current week drop out.
@@ -973,8 +994,9 @@ function computeWeekAlmanac(days){
     let cur=almHouIndex(Almanac.solarLongitude(Almanac.localNoonJD(days[0].date,tz)));
     let ci=0;
     const ambient=days.map(d=>{
-      while(ci<crossings.length&&crossings[ci].key<=d.date){cur=crossings[ci].hou;ci++}
-      return{date:d.date,term:Math.floor(cur/3),hou:cur};                  // 3 hou to a term
+      let opens=false;                                                     // does a hou begin today?
+      while(ci<crossings.length&&crossings[ci].key<=d.date){if(crossings[ci].key===d.date)opens=true;cur=crossings[ci].hou;ci++}
+      return{date:d.date,term:Math.floor(cur/3),hou:cur,houStart:opens};   // 3 hou to a term
     });
     const byDate={};ambient.forEach(a=>{byDate[a.date]=a});
     return{markers,ambient,byDate};
@@ -1003,12 +1025,14 @@ function almTzFilterInput(v){_almTzFilter=v;const s=$('#almTzSelect');if(s)s.inn
 function almSetTz(v){if(!v)return;state.almanacTz=v;render();scheduleSave()}
 function almSetLayer(k,on){const L=almLayers();L[k]=!!on;state.almanacLayers=L;render();scheduleSave()}
 
-// One transition marker. TC then English, strongest weight on the term.
+// One day-cell marker. English leads and the Chinese follows (v9.5) — the reverse of the vertical
+// pills, where the glyphs come first. `m.start` marks the opening day of a 候, which is styled
+// apart from the days that merely continue it.
 function almMarkerHtml(m){
   const D=AlmanacData;
-  const open='<span class="alm-mk '+m.kind+'">';         // both names always shown, every width
-  if(m.kind==='term'){const t=D.TERMS[m.index];return open+`<span class="alm-tc">${t.tc}</span><span class="alm-en">${t.en}</span></span>`}
-  if(m.kind==='hou'){const x=D.HOU[m.index];return open+`<span class="alm-tc">${x.tc}</span><span class="alm-en">${x.en}</span></span>`}
+  const open='<span class="alm-mk '+m.kind+(m.start?' hou-start':'')+'">'; // both names, every width
+  if(m.kind==='term'){const t=D.TERMS[m.index];return open+`<span class="alm-en">${t.en}</span><span class="alm-tc">${t.tc}</span></span>`}
+  if(m.kind==='hou'){const x=D.HOU[m.index];return open+`<span class="alm-en">${x.en}</span><span class="alm-tc">${x.tc}</span></span>`}
   const mo=D.MOON[m.index];                                // inline SVG, currentColor — no emoji
   return open+`<span class="alm-moon-ico">${mo.svg}</span><span class="alm-en">${mo.en}</span></span>`;
 }
@@ -1019,7 +1043,7 @@ function almDayMarkers(alm,dateKey,opts){
   if(!alm)return[];
   const L=almLayers(),marks=alm.markers[dateKey]||[],a=alm.byDate[dateKey],out=[];
   if(opts.term)marks.forEach(m=>{if(m.kind==='term')out.push(almMarkerHtml(m))});
-  if(opts.hou&&L.hou&&a)out.push(almMarkerHtml({kind:'hou',index:a.hou}));
+  if(opts.hou&&L.hou&&a)out.push(almMarkerHtml({kind:'hou',index:a.hou,start:a.houStart}));
   if(opts.moon)marks.forEach(m=>{if(m.kind==='moon')out.push(almMarkerHtml(m))});
   return out;
 }
@@ -1040,42 +1064,52 @@ function almDayFooterHtml(alm,dateKey){
    turns at each 節 (every other term), the sign at each 中氣 (the terms in between), the season at
    each of the 四立. test-almanac.js asserts these against the tables for all 24 terms. */
 const almBranchOfTerm=t=>Math.floor(t/2);                    // -> AlmanacData.BRANCHES
-const almSeasonOfTerm=t=>Math.floor(t/6);                    // -> AlmanacData.SEASONS
 const almZodOfTerm=t=>Math.floor(((((t-3)%24)+24)%24)/2);    // -> AlmanacData.ZODIAC
+/* Sign and branch share one column (v9.5). Their boundaries interleave — the sign turns at each
+   中氣, the branch at each 節 — so a run where BOTH hold constant is exactly one solar term, and
+   the merged pill reads Libra/Rooster, then Libra/Dog, then Scorpio/Dog. The two halves sit side
+   by side in the pill, each in its own type style over its own half of the fill. */
 const ALM_RIBBONS={
-  term:  {layer:'terms', get:a=>a.term,                 lbl:i=>AlmanacData.TERMS[i]},
-  branch:{layer:'branch',get:a=>almBranchOfTerm(a.term),lbl:i=>AlmanacData.BRANCHES[i]},
-  zodiac:{layer:'zodiac',get:a=>almZodOfTerm(a.term),   lbl:i=>{const z=AlmanacData.ZODIAC[i];return{tc:z.glyph,en:z.name,glyph:true}}},
-  season:{layer:'season',get:a=>almSeasonOfTerm(a.term),lbl:i=>AlmanacData.SEASONS[i]}
+  term:{layer:'terms',w:'--alm-rib-w',get:a=>a.term,
+        render:i=>{const t=AlmanacData.TERMS[i];return{tip:t.tc+' · '+t.en,
+          html:`<div class="alm-ribbon-label"><span class="alm-tc">${t.tc}</span><span class="alm-en">${t.en}</span></div>`}}},
+  zb:{layer:'zb',w:'--alm-zb-w',get:a=>almZodOfTerm(a.term)*100+almBranchOfTerm(a.term),
+      render:v=>{
+        const L=almLayers(),z=AlmanacData.ZODIAC[Math.floor(v/100)],b=AlmanacData.BRANCHES[v%100];
+        const west=L.zodiac?`<div class="alm-zb-half west"><span class="alm-glyph">${z.glyph}</span><span class="alm-en">${z.name}</span></div>`:'';
+        const east=L.branch?`<div class="alm-zb-half east"><span class="alm-tc">${b.tc}</span><span class="alm-en">${b.en}</span></div>`:'';
+        return{tip:(L.zodiac?z.name:'')+(L.zodiac&&L.branch?' / ':'')+(L.branch?b.tc+' '+b.en:''),
+               html:`<div class="alm-ribbon-label alm-zb${L.zodiac&&L.branch?' dual':''}">${west}${east}</div>`};
+      }}
 };
-// Returns {html, count} — count drives the grid's column template, so a disabled layer takes no
-// column at all rather than leaving an empty gutter. Every ribbon is one --alm-rib-w wide, which
-// a media query narrows on phones where four of them would otherwise crowd the day rows.
+// Returns {html, vars} — vars drives the grid's column template, so a disabled layer takes no
+// column at all rather than leaving an empty gutter, and a media query can narrow every ribbon
+// on phones by redefining the width tokens.
 function almRibbonsHtml(alm,rowOf,keys){
-  if(!alm)return{html:'',widths:[]};
-  const L=almLayers(),parts=[],widths=[];
+  if(!alm)return{html:'',vars:[]};
+  const L=almLayers(),parts=[],vars=[];
   keys.forEach(key=>{
     const spec=ALM_RIBBONS[key];
-    if(!L[spec.layer])return;
+    if(key==='zb'?(!L.zodiac&&!L.branch):!L[spec.layer])return;
     const runs=[];
     alm.ambient.forEach(a=>{
       const v=spec.get(a),last=runs[runs.length-1];
       if(last&&last.value===v&&almNextDay(last.endDate)===a.date)last.endDate=a.date;
       else runs.push({value:v,startDate:a.date,endDate:a.date});
     });
-    const col=2+widths.length;
+    const col=2+vars.length;
     const html=runs.map(r=>{
-      const n=spec.lbl(r.value),r0=rowOf[r.startDate],r1=rowOf[r.endDate];
+      const n=spec.render(r.value),r0=rowOf[r.startDate],r1=rowOf[r.endDate];
       if(!r0||!r1)return'';
       // Only the term ribbon is the tab-swap handle, in both tabs.
       const swap=key==='term'?` onclick="almSwapTab()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();almSwapTab()}"`:'';
-      const tip=n.tc+' · '+n.en+(key==='term'?(state.activeTab==='season'?' — open the Week view here':' — open the Season view here'):'');
-      return`<div class="alm-term-ribbon ${key}${key==='term'?' alm-swap':''}" style="grid-row:${r0}/${r1+1};grid-column:${col}" title="${tip}"${swap}><div class="alm-ribbon-inner"><div class="alm-ribbon-label"><span class="${n.glyph?'alm-glyph':'alm-tc'}">${n.tc}</span><span class="alm-en">${n.en}</span></div></div></div>`;
+      const tip=n.tip+(key==='term'?(state.activeTab==='season'?' — open the Week view here':' — open the Season view here'):'');
+      return`<div class="alm-term-ribbon ${key}${key==='term'?' alm-swap':''}${key==='zb'&&L.zodiac&&L.branch?' dual':''}" style="grid-row:${r0}/${r1+1};grid-column:${col}" title="${tip}"${swap}><div class="alm-ribbon-inner">${n.html}</div></div>`;
     }).join('');
     if(!html)return;
-    widths.push(1);parts.push(html);
+    vars.push(spec.w);parts.push(html);
   });
-  return{html:parts.join(''),widths};
+  return{html:parts.join(''),vars};
 }
 
 /* ---- Season tab (v9.4) ----
@@ -1088,7 +1122,7 @@ function renderSeason(){
   if(!almReady())return h+`<div class="notes-box"><div class="notes-box-text" style="font-size:var(--fs-xs);color:var(--text-muted)">The almanac engine did not load, so there is nothing to show here. A hard refresh usually fixes it.</div></div>`;
   if(sel.collapsedCount>0)h+=`<div style="margin-bottom:12px"><button class="expand-week-btn" onclick="expandAllPastWeeks()" style="font-size:var(--fs-2xs);padding:3px 10px">▼ ${sel.collapsedCount} past week${sel.collapsedCount>1?'s':''} (show)</button></div>`;
   const g=almGridPlan(sel.perWeek);
-  const rail=almRibbonsHtml(g.alm,g.rowOf,['term','branch','zodiac','season']);
+  const rail=almRibbonsHtml(g.alm,g.rowOf,['term','zb']);
   h+=`<div class="weeks-grid season-grid" style="grid-template-columns:${almGridCols(rail)}">`;
   sel.perWeek.forEach(s=>{
     h+=`<div class="week-section"><div class="week-hdr season-hdr" style="grid-row:${s.hdrRow}"><span class="week-hdr-title">Week ${s.wk.num}</span><span class="week-hdr-dates">${fmtDateShort(s.wk.start)} → ${fmtDateShort(s.wk.end)}</span></div>`;
@@ -1339,8 +1373,8 @@ function renderSettings(){
   <input class="life-input" id="almTzFilter" value="${_almTzFilter.replace(/"/g,'&quot;')}" oninput="almTzFilterInput(this.value)" placeholder="Filter zones…" style="width:190px;margin-bottom:6px"/>
   <select class="life-select" id="almTzSelect" onchange="almSetTz(this.value)" style="width:260px;max-width:100%;display:block">${almTzOptionsHtml(_almTzFilter)}</select></div>
   <div class="settings-section"><label>Layers</label>
-  <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Solar terms, 候 and moon quarters appear in both the Week and Season tabs; the branch, sign and season ribbons are Season only.</div>
-  <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:var(--fs-xs)">${[['terms','Solar terms 節氣'],['hou','Pentads 候'],['moon','Moon quarters'],['branch','Earthly branch 月建'],['zodiac','Zodiac sign'],['season','Season']].map(([k,lbl])=>`<label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox"${almLayers()[k]?' checked':''} onchange="almSetLayer('${k}',this.checked)"/> ${lbl}</label>`).join('')}</div></div></div>
+  <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Solar terms, 候 and moon quarters appear in both the Week and Season tabs; the branch and sign share one ribbon in the Season tab only.</div>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:var(--fs-xs)">${[['terms','Solar terms 節氣'],['hou','Pentads 候'],['moon','Moon quarters'],['branch','Earthly branch 月建'],['zodiac','Zodiac sign']].map(([k,lbl])=>`<label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox"${almLayers()[k]?' checked':''} onchange="almSetLayer('${k}',this.checked)"/> ${lbl}</label>`).join('')}</div></div></div>
   <div class="notes-box"><div class="notes-box-title">Backup &amp; Restore</div>
   <div class="settings-section"><label>Restore from backup</label>
   <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Import a previously exported JSON backup file. This replaces your current data.</div>
