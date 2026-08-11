@@ -1,4 +1,4 @@
-<!-- Academic Planner v9.1 -->
+<!-- Academic Planner v9.2 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -223,7 +223,7 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
    summary at desktop width leaves an empty zero-height track instead of shifting rows.
    Names wrap rather than ellipsize — 天氣上升地氣下降 is eight characters and clipping a
    hou name is worse than an uneven row. */
-.weeks-grid{display:grid;grid-template-columns:1fr 26px;column-gap:var(--sp-2);row-gap:0}
+.weeks-grid{display:grid;grid-template-columns:1fr 30px;column-gap:var(--sp-2);row-gap:0}
 .weeks-grid.no-rail{grid-template-columns:1fr}
 .week-section{display:contents}
 .weeks-grid>.week-hdr,.weeks-grid>.alm-summary,.weeks-grid>.day-row{grid-column:1;min-width:0}
@@ -237,8 +237,10 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .alm-mk.term .alm-tc{font-size:var(--fs-s);font-weight:700}
 .alm-mk.term .alm-en{font-weight:600;color:var(--accent-bh);opacity:.8}
 .alm-mk.hou .alm-tc{font-size:var(--fs-xs);font-weight:600;color:var(--text-dim)}
+/* Moon quarters carry no TC (v9.2), so the icon plus the English name IS the label — it is
+   never the thing hidden behind a tap on mobile, or the marker would read as a bare glyph. */
 .alm-mk.moon{color:var(--text-dim)}
-.alm-mk.moon .alm-tc{font-size:var(--fs-xs);font-weight:600}
+.alm-mk.moon .alm-en{font-size:var(--fs-xs);font-weight:600;color:var(--text-dim)}
 .alm-moon-ico{display:inline-flex;align-items:center;color:var(--text-dim);opacity:.85;transform:translateY(2px)}
 
 /* The running solar-term ribbon. One element per unbroken run of days in a term, spanning its
@@ -259,7 +261,7 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
    per line in horizontal-tb instead of leaning on text-orientation:upright — same upright column
    visually, but it does not depend on the CJK font shipping vertical metrics, which some engines
    lack (the glyphs then collapse to zero advance). */
-.alm-ribbon-label .alm-tc{writing-mode:horizontal-tb;font-size:var(--fs-2xs);font-weight:700;width:1em;word-break:break-all;line-height:1.2;text-align:center;letter-spacing:0}
+.alm-ribbon-label .alm-tc{writing-mode:horizontal-tb;font-size:var(--fs-m);font-weight:700;width:1em;word-break:break-all;line-height:1.15;text-align:center;letter-spacing:0}
 .alm-ribbon-label .alm-en{font-size:var(--fs-2xs);white-space:nowrap;letter-spacing:.02em;opacity:.85}
 /* Mobile: the ribbon is hidden, so each week states its opening term on one line instead. */
 .alm-summary{display:none;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;padding:5px 11px;
@@ -270,7 +272,7 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
   .weeks-grid{grid-template-columns:1fr}
   .alm-term-ribbon{display:none}
   .alm-summary{display:flex}
-  .alm-mk .alm-en{display:none}
+  .alm-mk:not(.moon) .alm-en{display:none}
   .alm-mk{cursor:pointer}
   .alm-mk.show-en .alm-en{display:inline}
 }
@@ -816,7 +818,7 @@ function render(){
   const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
   const bottomNav=`<nav class="bottomnav"><button class="bn-item ${state.activeTab==='sprints'?'active':''}" onclick="switchTab('sprints')">${ico('sprints')}Week</button><button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
   const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v9.1</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v9.2</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -882,14 +884,15 @@ function visibleWeekDays(wk){
    solar term every 15°, a hou every 5°. Moon quarters come from the separate Meeus ch.49
    routine. Both name tables start at 立春 (λ=315°) and run forward.
 
-   Where each layer lives (v9.1):
+   Where each layer lives:
      · solar term 節氣 — the running vertical ribbon, plus a marker on the day it flips
      · hou 候        — named at the base of every day cell, repeated for each of its days
-     · moon quarter  — a marker on the day it falls
+     · moon quarter  — a marker on the day it falls (icon + English; no TC, per v9.2)
 
-   The hou is read from each day's ambient longitude rather than from crossings, which is
-   why only the 15° term pass is scanned. The tropical zodiac was dropped in v9.1; its
-   table still ships in almanac-data.js and test-almanac.js still checks the 中氣 pairing.
+   One 5° pass covers both solar layers: every hou boundary is a crossing, and every third
+   one opens a term, so there is deliberately no second pass at 15°. The tropical zodiac
+   was dropped in v9.1; its table still ships in almanac-data.js and test-almanac.js still
+   checks the 中氣 pairing.
 
    A day is one Newton solve at ~0.16 ms. Do not add caching or precomputed tables.
    ============================================================ */
@@ -909,13 +912,14 @@ function computeWeekAlmanac(days){
   try{
     const jd0=Almanac.localNoonJD(days[0].date,tz)-0.5;                    // local midnight, first day
     const jd1=Almanac.localNoonJD(days[days.length-1].date,tz)+0.5;        // local midnight, day after last
-    const markers={};
-    if(L.terms){
-      for(const c of Almanac.longitudeCrossings(jd0,jd1,15)){
+    const markers={},crossings=[];
+    if(L.terms||L.hou){
+      for(const c of Almanac.longitudeCrossings(jd0,jd1,5)){
         const key=Almanac.localDateKey(c.jd,tz);
-        const i=almTermIndex(c.deg+1e-6);                                  // epsilon guards the boundary:
-        (markers[key]||(markers[key]=[])).push({kind:'term',index:i});     // λ returns equal to it within noise
-      }
+        const i=almHouIndex(c.deg+1e-6);                                   // epsilon guards the boundary:
+        crossings.push({key,hou:i});                                       // λ returns equal to it within noise
+        if(i%3===0&&L.terms)(markers[key]||(markers[key]=[])).push({kind:'term',index:i/3});
+      }                                                                    // i%3===0 => this hou opens a term
     }
     if(L.moon){
       for(const m of Almanac.moonQuartersInRange(jd0,jd1)){
@@ -923,10 +927,18 @@ function computeWeekAlmanac(days){
         (markers[key]||(markers[key]=[])).push({kind:'moon',index:m.phase});
       }
     }
-    // Ambient state is read at LOCAL NOON, never midnight: noon is unambiguous across a DST shift.
+    // A day belongs to the term and hou that BEGAN on or before it — the traditional 節氣日
+    // reckoning, and the same day the fixtures record in la_date. So the state carries forward
+    // from the last crossing rather than being resampled: a term that starts at 19:18 local
+    // owns the whole of that day, which is what puts the ribbon's first day and the day-cell
+    // flip marker on the same date instead of one day apart.
+    // The baseline comes from LOCAL NOON of the first day (noon is unambiguous across a DST
+    // shift, midnight is not); any crossing landing on that first day then overrides it.
+    let cur=almHouIndex(Almanac.solarLongitude(Almanac.localNoonJD(days[0].date,tz)));
+    let ci=0;
     const ambient=days.map(d=>{
-      const lam=Almanac.solarLongitude(Almanac.localNoonJD(d.date,tz));
-      return{date:d.date,term:almTermIndex(lam),hou:almHouIndex(lam)};
+      while(ci<crossings.length&&crossings[ci].key<=d.date){cur=crossings[ci].hou;ci++}
+      return{date:d.date,term:Math.floor(cur/3),hou:cur};                  // 3 hou to a term
     });
     const byDate={};ambient.forEach(a=>{byDate[a.date]=a});
     return{markers,ambient,byDate};
@@ -963,7 +975,7 @@ function almMarkerHtml(m){
   if(m.kind==='term'){const t=D.TERMS[m.index];return open+`<span class="alm-tc">${t.tc}</span><span class="alm-en">${t.en}</span></span>`}
   if(m.kind==='hou'){const x=D.HOU[m.index];return open+`<span class="alm-tc">${x.tc}</span><span class="alm-en">${x.en}</span></span>`}
   const mo=D.MOON[m.index];                                // inline SVG, currentColor — no emoji
-  return open+`<span class="alm-moon-ico">${mo.svg}</span><span class="alm-tc">${mo.tc}</span><span class="alm-en">${mo.en}</span></span>`;
+  return open+`<span class="alm-moon-ico">${mo.svg}</span><span class="alm-en">${mo.en}</span></span>`;
 }
 
 // Footer band for one day: the term on the day it flips, then that day's hou — which is named on
