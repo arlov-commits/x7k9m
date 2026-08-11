@@ -90,6 +90,23 @@
       var z = zodIndex(i * 30 + 1e-6);
       note(g, z === i, 'zodIndex(' + i * 30 + ') = ' + z + ', want ' + i);
     }
+
+    /* The Season tab derives sign, branch and season from the solar-term index rather than from
+       λ again, so that all four layers turn over on exactly the same day. These assert the
+       derivations agree with the tables for every one of the 24 terms. */
+    note(g, D.BRANCHES.length === 12, 'BRANCHES.length = ' + D.BRANCHES.length + ', want 12');
+    note(g, D.SEASONS.length === 4, 'SEASONS.length = ' + D.SEASONS.length + ', want 4');
+    for (i = 0; i < 24; i++) {
+      var b = D.BRANCHES[Math.floor(i / 2)];                     // 月建 turns at each 節
+      note(g, b.term === D.TERMS[i - (i % 2)].tc,
+        'term ' + D.TERMS[i].tc + ' -> branch ' + b.tc + ' (opens at ' + b.term + '), want month opening at ' + D.TERMS[i - (i % 2)].tc);
+      var s = D.SEASONS[Math.floor(i / 6)];                      // season turns at each 四立
+      note(g, s.term === D.TERMS[i - (i % 6)].tc,
+        'term ' + D.TERMS[i].tc + ' -> season ' + s.tc + ' (opens at ' + s.term + '), want ' + D.TERMS[i - (i % 6)].tc);
+      var zi = Math.floor((((i - 3) % 24) + 24) % 24 / 2);       // sign turns at each 中氣
+      note(g, D.ZODIAC[zi].term === D.TERMS[i % 2 ? i : i - 1 < 0 ? 23 : i - 1].tc,
+        'term ' + D.TERMS[i].tc + ' -> sign ' + D.ZODIAC[zi].name + ' (opens at ' + D.ZODIAC[zi].term + ')');
+    }
   }
 
   /* Local noon must stay local noon across both DST edges. 2026-03-08 springs forward,

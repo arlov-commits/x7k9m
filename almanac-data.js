@@ -1,5 +1,6 @@
 /* almanac-data.js — name tables for solar terms, 72 hou, tropical zodiac, moon phases.
- * v1.0 — data only, no logic. Traditional Chinese throughout.
+ * v1.1 — data only, no logic. Traditional Chinese throughout.
+ * v1.1 adds BRANCHES (地支 solar months) and SEASONS, both keyed off the solar-term index.
  * 72 hou follow 吳澄《月令七十二候集解》; variants noted in ALMANAC_SPEC.md.
  * Index rule: both tables start at 立春 (λ=315°) and run forward in 15° / 5° steps.
  */
@@ -110,6 +111,25 @@
     { tc: '水澤腹堅', en: 'Waters and marshes freeze solid to the depths' }
   ];
 
+  /* 12 earthly branches 地支 as SOLAR months 月建 — index = floor(termIndex / 2), so the month
+     turns at each 節 (the even-indexed solar terms counting from 立春) and the 中氣 falls mid-month.
+     寅 opens at 立春, which is why this table starts there rather than at 子.
+     `en` is the branch's zodiac animal, the name it is usually recognised by in English. */
+  var BRANCHES = [
+    { tc: '寅', en: 'Tiger', term: '立春' }, { tc: '卯', en: 'Rabbit', term: '驚蟄' },
+    { tc: '辰', en: 'Dragon', term: '清明' }, { tc: '巳', en: 'Snake', term: '立夏' },
+    { tc: '午', en: 'Horse', term: '芒種' }, { tc: '未', en: 'Goat', term: '小暑' },
+    { tc: '申', en: 'Monkey', term: '立秋' }, { tc: '酉', en: 'Rooster', term: '白露' },
+    { tc: '戌', en: 'Dog', term: '寒露' }, { tc: '亥', en: 'Pig', term: '立冬' },
+    { tc: '子', en: 'Rat', term: '大雪' }, { tc: '丑', en: 'Ox', term: '小寒' }
+  ];
+
+  /* Four seasons — index = floor(termIndex / 6). Each opens on one of the 四立. */
+  var SEASONS = [
+    { tc: '春', en: 'Spring', term: '立春' }, { tc: '夏', en: 'Summer', term: '立夏' },
+    { tc: '秋', en: 'Autumn', term: '立秋' }, { tc: '冬', en: 'Winter', term: '立冬' }
+  ];
+
   /* Tropical zodiac — index = floor(lambda / 30). Boundaries coincide exactly with the 12 中氣. */
   var ZODIAC = [
     { name: 'Aries', glyph: '\u2648\uFE0E', term: '春分' }, { name: 'Taurus', glyph: '\u2649\uFE0E', term: '穀雨' },
@@ -139,7 +159,8 @@
            '<path d="M8 1.5A6.5 6.5 0 0 0 8 14.5Z" fill="currentColor"/></svg>' }
   ];
 
-  root.AlmanacData = { TERMS: TERMS, HOU: HOU, ZODIAC: ZODIAC, MOON: MOON };
+  root.AlmanacData = { TERMS: TERMS, HOU: HOU, ZODIAC: ZODIAC, MOON: MOON,
+                       BRANCHES: BRANCHES, SEASONS: SEASONS };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 
 if (typeof module !== 'undefined' && module.exports) module.exports = globalThis.AlmanacData;

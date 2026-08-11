@@ -1,4 +1,4 @@
-<!-- Academic Planner v9.3 -->
+<!-- Academic Planner v9.4 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -61,6 +61,9 @@
   --nv-menu:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M4.5 7h15M4.5 12h15M4.5 17h15'/%3E%3C/svg%3E");
   --nv-quill:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7.5 17C10 10 14 6 20 4c-2 8-7 12-12.5 13z'/%3E%3Cpath d='M8 16.5L18.5 6'/%3E%3C/svg%3E");
   --nv-scroll:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='3' width='14' height='3' rx='1.5'/%3E%3Crect x='5' y='18' width='14' height='3' rx='1.5'/%3E%3Cpath d='M7 6v12M17 6v12'/%3E%3Cpath d='M9.5 9.5h5M9.5 12h5M9.5 14.5h3'/%3E%3C/svg%3E");
+  /* Week tab (v9.4): a calendar with one week-row picked out. The moon it used to carry moved
+     to the Season tab, which is where the lunar and solar cycles now live. */
+  --nv-calendar:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.2' y='5.2' width='17.6' height='15.6' rx='2.2'/%3E%3Cpath d='M3.2 9.8h17.6'/%3E%3Cpath d='M8.2 3.1v3.8M15.8 3.1v3.8'/%3E%3Crect x='6.3' y='12.6' width='11.4' height='3.3' rx='1.3' fill='black' stroke='none'/%3E%3C/svg%3E");
 }
 .t{font-family:var(--font-mono);font-size:var(--fs-2xs);font-weight:500;opacity:.75}
 .mi{display:inline-block;width:15px;height:15px;background:currentColor;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat;flex-shrink:0;vertical-align:-2px}
@@ -223,10 +226,11 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
    summary at desktop width leaves an empty zero-height track instead of shifting rows.
    Names wrap rather than ellipsize — 天氣上升地氣下降 is eight characters and clipping a
    hou name is worse than an uneven row. */
-.weeks-grid{display:grid;grid-template-columns:1fr 30px;column-gap:var(--sp-2);row-gap:0}
-.weeks-grid.no-rail{grid-template-columns:1fr}
+/* grid-template-columns is written inline per tab: one ribbon column for Week, up to four for
+   Season, and none at all when every ribbon layer is switched off. */
+.weeks-grid{display:grid;column-gap:var(--sp-2);row-gap:0;--alm-rib-w:30px}
 .week-section{display:contents}
-.weeks-grid>.week-hdr,.weeks-grid>.day-row{grid-column:1;min-width:0}
+.weeks-grid>.week-hdr,.weeks-grid>.day-row,.weeks-grid>.season-row{grid-column:1;min-width:0}
 .week-section .week-hdr{margin-top:26px}
 .weeks-grid>.week-section:first-child .week-hdr{margin-top:0}
 .day-almanac{grid-column:1/-1;display:flex;flex-direction:column;gap:2px;margin-top:5px;padding-top:5px;border-top:1px dotted var(--border)}
@@ -249,9 +253,17 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
    run must never stretch its day row to fit a vertical name. */
 /* Clipped with clip-path, NOT overflow:hidden: an overflow:hidden box is a scroll container, and
    the sticky label below would then stick to a box that never scrolls. clip-path only clips paint. */
-.alm-term-ribbon{grid-column:2;position:relative;min-height:0;margin-bottom:5px;
+.alm-term-ribbon{position:relative;min-height:0;margin-bottom:5px;
   background:var(--accent-bh-dim);border:1px solid var(--accent-bh-dim);border-radius:var(--r-pill);
   clip-path:inset(0 round var(--r-pill))}
+/* The 節氣 ribbon doubles as the Week <-> Season handle, so it alone reads as pressable. */
+.alm-term-ribbon.alm-swap{cursor:pointer}
+.alm-term-ribbon.alm-swap:hover,.alm-term-ribbon.alm-swap:focus-visible{background:var(--accent-bh);outline:0}
+.alm-term-ribbon.alm-swap:hover .alm-ribbon-label,.alm-term-ribbon.alm-swap:focus-visible .alm-ribbon-label{color:var(--bg)}
+/* Season's other ribbons sit back from the term: quieter fills, and the sign uses its glyph. */
+.alm-term-ribbon.branch,.alm-term-ribbon.zodiac,.alm-term-ribbon.season{background:var(--surface2);border-color:var(--border)}
+.alm-term-ribbon.branch .alm-ribbon-label,.alm-term-ribbon.zodiac .alm-ribbon-label,.alm-term-ribbon.season .alm-ribbon-label{color:var(--text-dim)}
+.alm-ribbon-label .alm-glyph{writing-mode:horizontal-tb;font-size:var(--fs-m);line-height:1}
 .alm-ribbon-inner{position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:center}
 /* A ribbon can run three weeks tall, so the name is sticky rather than centred once — otherwise
    it scrolls out of view and a long stretch of ribbon reads as unlabelled. */
@@ -263,7 +275,25 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
    lack (the glyphs then collapse to zero advance). */
 .alm-ribbon-label .alm-tc{writing-mode:horizontal-tb;font-size:var(--fs-m);font-weight:700;width:1em;word-break:break-all;line-height:1.15;text-align:center;letter-spacing:0}
 .alm-ribbon-label .alm-en{font-size:var(--fs-2xs);white-space:nowrap;letter-spacing:.02em;opacity:.85}
-/* Mobile carries the same almanac as the desktop (v9.3): the same ribbon, and both names on
+/* Season rows (v9.4). No academic content means no chips, no note field and no add button, so
+   the row collapses to a date plus that day's almanac laid out on one line. */
+.season-row{display:grid;grid-template-columns:88px 1fr;gap:var(--sp-2);align-items:baseline;
+  margin-bottom:3px;padding:5px 10px;background:var(--surface);border-radius:var(--r-s);
+  border-left:3px solid transparent}
+.season-row.is-today{border-left-color:var(--warning);background:var(--surface2)}
+.season-date{font-family:var(--font-serif);font-weight:600;font-size:var(--fs-s);color:var(--text-dim);white-space:nowrap}
+.season-row.is-today .season-date{color:var(--text)}
+.season-marks{display:flex;flex-wrap:wrap;align-items:baseline;gap:1px var(--sp-3);min-width:0}
+.season-hdr{margin-bottom:6px}
+.season-grid .week-section .week-hdr{margin-top:20px}
+/* Season carries four ribbons where Week carries one, so on a phone they are narrowed and pulled
+   together — otherwise they take a third of the width and the day rows wrap into tall blocks. */
+@media(max-width:700px){
+  .season-row{grid-template-columns:68px 1fr;padding:5px 8px;gap:var(--sp-1)}
+  .season-grid{--alm-rib-w:24px;column-gap:5px}
+}
+
+/* Mobile carries the same almanac as the desktop (v9.3): the same ribbons, and both names on
    every marker. There is no narrow-width variant, no tap-to-reveal and no summary line — the
    earlier shorthand made the phone read differently from the browser. The only concession is
    letting the day-cell markers wrap onto a second line, which they already do. */
@@ -587,7 +617,8 @@ const PRI_ORDER={high:0,med:1,low:2,normal:3};
 // Scope is the almanac strip ONLY. Tasks, events, countdowns and week boundaries keep using
 // local browser time exactly as before — almanacTz must never leak into them.
 const ALM_TZ_DEFAULT='America/Los_Angeles';
-const ALM_LAYER_DEFAULT={terms:true,hou:true,moon:true};   // zodiac layer removed in v9.1
+// terms/hou/moon apply to both tabs; branch, zodiac and season are Season-tab ribbons.
+const ALM_LAYER_DEFAULT={terms:true,hou:true,moon:true,branch:true,zodiac:true,season:true};
 // Fallback zone list for engines without Intl.supportedValuesOf (Safari < 15.4).
 const ALM_TZ_FALLBACK=['America/Los_Angeles','America/Denver','America/Chicago','America/New_York',
   'America/Sao_Paulo','UTC','Europe/London','Europe/Paris','Europe/Berlin','Europe/Moscow',
@@ -799,17 +830,19 @@ function render(){
   document.documentElement.setAttribute('data-theme',state.theme);
   updateThemeColor();
   const tabs=['sprints','syllabus','life','events','notes','dashboard'];
-  const allTabs=[...tabs,'settings'];
-  const tn={dashboard:'Dashboard',sprints:'Week',syllabus:'Syllabus',life:'Tasks',events:'Events',notes:'Notes',settings:'Settings'};
-  const renderers={dashboard:renderDash,sprints:renderSprints,syllabus:renderSyllabus,life:renderLife,events:renderEvents,notes:renderNotes,settings:renderSettings};
-  const navIconTok={sprints:'moon',syllabus:'scroll',life:'lotus',events:'bell',notes:'quill',dashboard:'grid',settings:'wheel',more:'menu'};
+  // Season sits after Settings in both navs (v9.4): it is a reference view, not part of the
+  // academic run of tabs, and the term ribbon in either tab jumps straight across to the other.
+  const allTabs=[...tabs,'settings','season'];
+  const tn={dashboard:'Dashboard',sprints:'Week',syllabus:'Syllabus',life:'Tasks',events:'Events',notes:'Notes',settings:'Settings',season:'Season'};
+  const renderers={dashboard:renderDash,sprints:renderSprints,syllabus:renderSyllabus,life:renderLife,events:renderEvents,notes:renderNotes,settings:renderSettings,season:renderSeason};
+  const navIconTok={sprints:'calendar',season:'moon',syllabus:'scroll',life:'lotus',events:'bell',notes:'quill',dashboard:'grid',settings:'wheel',more:'menu'};
   const ico=k=>`<span class="nav-icon" style="--icon:var(--nv-${navIconTok[k]})"></span>`;
   const sideOrder=['sprints','syllabus','life','events','notes','dashboard'];
-  const sideNav=`<nav class="sidenav"><div class="sidenav-title">Planner</div>${sideOrder.map(k=>`<button class="nav-item ${state.activeTab===k?'active':''}" onclick="switchTab('${k}')">${ico(k)}${tn[k]}</button>`).join('')}<div class="nav-spacer"></div><button class="nav-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></nav>`;
-  const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
+  const sideNav=`<nav class="sidenav"><div class="sidenav-title">Planner</div>${sideOrder.map(k=>`<button class="nav-item ${state.activeTab===k?'active':''}" onclick="switchTab('${k}')">${ico(k)}${tn[k]}</button>`).join('')}<div class="nav-spacer"></div><button class="nav-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button><button class="nav-item ${state.activeTab==='season'?'active':''}" onclick="switchTab('season')">${ico('season')}Season</button></nav>`;
+  const moreActive=['life','dashboard','notes','settings','season'].includes(state.activeTab);
   const bottomNav=`<nav class="bottomnav"><button class="bn-item ${state.activeTab==='sprints'?'active':''}" onclick="switchTab('sprints')">${ico('sprints')}Week</button><button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
-  const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v9.3</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
+  const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button><button class="more-sheet-item ${state.activeTab==='season'?'active':''}" onclick="switchTab('season')">${ico('season')}Season</button></div></div>`;
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v9.4</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -832,28 +865,41 @@ function renderDash(){
 function renderSprints(){const weeks=generateWeeks();const bankTasks=state.lifeTasks.filter(t=>t.inBank&&!t.done&&!state.tasks.some(s=>s.lifeSourceId===t.id));
 let h=`<div class="legend"><div class="legend-item"><span class="legend-dot bh"></span>BH</div><div class="legend-item"><span class="legend-dot wh"></span>WH</div><div class="legend-item"><span class="legend-dot cn"></span>CN</div><div class="legend-item"><span class="legend-dot ab"></span>ABI</div><div class="legend-item"><span class="legend-dot events"></span>Events</div><div class="legend-item"><span class="legend-dot life"></span>Tasks</div></div>`;
 if(bankTasks.length||allocatingId){h+=`<div class="task-bank"><div class="task-bank-title">Task Bank${allocatingId?' — click a day to place':''}</div><div class="bank-items">`;if(!bankTasks.length)h+=`<span class="bank-empty">All placed. Send more from Tasks tab.</span>`;bankTasks.forEach(t=>{const isA=allocatingId===t.id;h+=`<div class="bank-chip ${isA?'allocating':''}">${t.name}<button class="bank-btn alloc" onclick="startAllocate(${t.id})" title="Place on a day"><span class="mi mi-flip" style="--ic:var(--ic-up)"></span></button><button class="bank-btn done-btn" onclick="bankComplete(${t.id})" title="Done"><span class="mi" style="--ic:var(--ic-check)"></span></button><button class="bank-btn remove-btn" onclick="bankRemove(${t.id})" title="Remove"><span class="mi" style="--ic:var(--ic-x)"></span></button></div>`});h+=`</div></div>`}
-const todayStr=isoDate(TODAY);const expandedPastWeeks=state.expandedPastWeeks||[];const expandedPastDays=state.expandedPastDays||[];
-// Split weeks into past and current/future
-const pastWeeks=weeks.filter(wk=>wk.end<TODAY);const activeWeeks=weeks.filter(wk=>wk.end>=TODAY);
-const shown=[];
-if(pastWeeks.length){const epw=pastWeeks.filter(wk=>expandedPastWeeks.includes(wk.num));const collapsedCount=pastWeeks.length-epw.length;if(collapsedCount>0)h+=`<div style="margin-bottom:12px"><button class="expand-week-btn" onclick="expandAllPastWeeks()" style="font-size:var(--fs-2xs);padding:3px 10px">▼ ${collapsedCount} past week${collapsedCount>1?'s':''} (show)</button></div>`;epw.forEach(wk=>shown.push(wk))}
-activeWeeks.forEach(wk=>shown.push(wk));
+const sel=almWeekSelection();
+if(sel.collapsedCount>0)h+=`<div style="margin-bottom:12px"><button class="expand-week-btn" onclick="expandAllPastWeeks()" style="font-size:var(--fs-2xs);padding:3px 10px">▼ ${sel.collapsedCount} past week${sel.collapsedCount>1?'s':''} (show)</button></div>`;
 
 // Every week goes into ONE grid so a solar-term ribbon can span week headers without breaking.
 // Ribbons are placed by explicit grid-row, so the run from the first to the last day of a term
 // is a single element even when week headers sit between those rows. Headers and day rows carry
 // an explicit grid-row too, so nothing is left to auto-placement alongside the spanning ribbons.
-const perWeek=shown.map(wk=>({wk,days:visibleWeekDays(wk)}));
-const allDays=perWeek.reduce((a,s)=>a.concat(s.days),[]);
-const alm=computeWeekAlmanac(allDays);                       // one pass over the whole visible run
-const rowOf={};                                              // dateKey -> grid row
-let row=0;
-perWeek.forEach(s=>{s.hdrRow=++row;s.days.forEach(d=>{rowOf[d.date]=++row})});
-const rail=almTermRailHtml(alm,rowOf);
-h+=`<div class="weeks-grid${rail?'':' no-rail'}">`;
-perWeek.forEach(s=>{h+=renderWeekSection(s.wk,s.days,alm,s.hdrRow)});
-h+=rail+`</div>`;
+const g=almGridPlan(sel.perWeek);
+const rail=almRibbonsHtml(g.alm,g.rowOf,['term']);           // Week keeps only the 24 terms
+h+=`<div class="weeks-grid" style="grid-template-columns:${almGridCols(rail)}">`;
+sel.perWeek.forEach(s=>{h+=renderWeekSection(s.wk,s.days,g.alm,s.hdrRow)});
+h+=rail.html+`</div>`;
 return h}
+
+// Which weeks and days reach the screen. Week and Season share this so their rows correspond
+// one-to-one, which is what lets the term ribbon carry a scroll position between the two tabs.
+function almWeekSelection(){
+  const weeks=generateWeeks();
+  const expandedPastWeeks=state.expandedPastWeeks||[];
+  const pastWeeks=weeks.filter(wk=>wk.end<TODAY),activeWeeks=weeks.filter(wk=>wk.end>=TODAY);
+  const epw=pastWeeks.filter(wk=>expandedPastWeeks.includes(wk.num));
+  const shown=epw.concat(activeWeeks);
+  return{perWeek:shown.map(wk=>({wk,days:visibleWeekDays(wk)})),collapsedCount:pastWeeks.length-epw.length};
+}
+
+// Assigns every header and day row its grid row, and computes the almanac once for the run.
+function almGridPlan(perWeek){
+  const allDays=perWeek.reduce((a,s)=>a.concat(s.days),[]);
+  const alm=computeWeekAlmanac(allDays);
+  const rowOf={};
+  let row=0;
+  perWeek.forEach(s=>{s.hdrRow=++row;s.days.forEach(d=>{rowOf[d.date]=++row})});
+  return{alm,rowOf,allDays};
+}
+function almGridCols(rail){return rail.widths.length?`1fr repeat(${rail.widths.length},var(--alm-rib-w))`:'1fr'}
 
 // The days of a week that actually reach the screen: manually hidden days and the not-yet-expanded
 // past days of the current week drop out.
@@ -967,36 +1013,125 @@ function almMarkerHtml(m){
   return open+`<span class="alm-moon-ico">${mo.svg}</span><span class="alm-en">${mo.en}</span></span>`;
 }
 
-// Footer band for one day: the term on the day it flips, then that day's hou — which is named on
-// EVERY day it runs, not only where it changes — then any moon quarter.
-function almDayFooterHtml(alm,dateKey){
-  if(!alm)return'';
+// The markers for one day, as a list. `opts` picks which layers this tab shows: the Week tab is
+// academic and carries only the moon, while Season carries the term flip, the hou and the moon.
+function almDayMarkers(alm,dateKey,opts){
+  if(!alm)return[];
   const L=almLayers(),marks=alm.markers[dateKey]||[],a=alm.byDate[dateKey],out=[];
-  marks.forEach(m=>{if(m.kind==='term')out.push(almMarkerHtml(m))});
-  if(L.hou&&a)out.push(almMarkerHtml({kind:'hou',index:a.hou}));
-  marks.forEach(m=>{if(m.kind==='moon')out.push(almMarkerHtml(m))});
-  if(!out.length)return'';
-  return`<div class="day-almanac">${out.join('')}</div>`;
+  if(opts.term)marks.forEach(m=>{if(m.kind==='term')out.push(almMarkerHtml(m))});
+  if(opts.hou&&L.hou&&a)out.push(almMarkerHtml({kind:'hou',index:a.hou}));
+  if(opts.moon)marks.forEach(m=>{if(m.kind==='moon')out.push(almMarkerHtml(m))});
+  return out;
+}
+// Week-tab footer band. Emits nothing on days where nothing falls, so most rows are untouched.
+function almDayFooterHtml(alm,dateKey){
+  const out=almDayMarkers(alm,dateKey,{term:false,hou:false,moon:true});
+  return out.length?`<div class="day-almanac">${out.join('')}</div>`:'';
 }
 
-// The running solar-term ribbon. One element per unbroken run of days sharing a term, placed by
-// explicit grid-row: a run that crosses a week boundary spans the intervening week-header row, so
-// the ribbon stays continuous instead of restarting as a fresh pill in each week.
-// A run also breaks when the visible days are not calendar-consecutive (a collapsed week between
-// two expanded ones), since those days are adjacent in the grid but not in time.
-function almTermRailHtml(alm,rowOf){
-  if(!alm||!almLayers().terms)return'';
-  const D=AlmanacData,runs=[];
-  alm.ambient.forEach(a=>{
-    const last=runs[runs.length-1];
-    if(last&&last.value===a.term&&almNextDay(last.endDate)===a.date)last.endDate=a.date;
-    else runs.push({value:a.term,startDate:a.date,endDate:a.date});
+/* The running ribbons. Each is one element per unbroken run of days sharing a value, placed by
+   explicit grid-row: a run that crosses a week boundary spans the intervening week-header row, so
+   the ribbon stays continuous instead of restarting as a fresh pill in each week. A run also
+   breaks when the visible days are not calendar-consecutive (a collapsed week between two expanded
+   ones), since those days are adjacent in the grid but not in time.
+
+   Sign, branch and season are all derived from the solar-term index rather than resampled from λ,
+   so every layer turns over on exactly the same day the term does. Boundaries: the branch month
+   turns at each 節 (every other term), the sign at each 中氣 (the terms in between), the season at
+   each of the 四立. test-almanac.js asserts these against the tables for all 24 terms. */
+const almBranchOfTerm=t=>Math.floor(t/2);                    // -> AlmanacData.BRANCHES
+const almSeasonOfTerm=t=>Math.floor(t/6);                    // -> AlmanacData.SEASONS
+const almZodOfTerm=t=>Math.floor(((((t-3)%24)+24)%24)/2);    // -> AlmanacData.ZODIAC
+const ALM_RIBBONS={
+  term:  {layer:'terms', get:a=>a.term,                 lbl:i=>AlmanacData.TERMS[i]},
+  branch:{layer:'branch',get:a=>almBranchOfTerm(a.term),lbl:i=>AlmanacData.BRANCHES[i]},
+  zodiac:{layer:'zodiac',get:a=>almZodOfTerm(a.term),   lbl:i=>{const z=AlmanacData.ZODIAC[i];return{tc:z.glyph,en:z.name,glyph:true}}},
+  season:{layer:'season',get:a=>almSeasonOfTerm(a.term),lbl:i=>AlmanacData.SEASONS[i]}
+};
+// Returns {html, count} — count drives the grid's column template, so a disabled layer takes no
+// column at all rather than leaving an empty gutter. Every ribbon is one --alm-rib-w wide, which
+// a media query narrows on phones where four of them would otherwise crowd the day rows.
+function almRibbonsHtml(alm,rowOf,keys){
+  if(!alm)return{html:'',widths:[]};
+  const L=almLayers(),parts=[],widths=[];
+  keys.forEach(key=>{
+    const spec=ALM_RIBBONS[key];
+    if(!L[spec.layer])return;
+    const runs=[];
+    alm.ambient.forEach(a=>{
+      const v=spec.get(a),last=runs[runs.length-1];
+      if(last&&last.value===v&&almNextDay(last.endDate)===a.date)last.endDate=a.date;
+      else runs.push({value:v,startDate:a.date,endDate:a.date});
+    });
+    const col=2+widths.length;
+    const html=runs.map(r=>{
+      const n=spec.lbl(r.value),r0=rowOf[r.startDate],r1=rowOf[r.endDate];
+      if(!r0||!r1)return'';
+      // Only the term ribbon is the tab-swap handle, in both tabs.
+      const swap=key==='term'?` onclick="almSwapTab()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();almSwapTab()}"`:'';
+      const tip=n.tc+' · '+n.en+(key==='term'?(state.activeTab==='season'?' — open the Week view here':' — open the Season view here'):'');
+      return`<div class="alm-term-ribbon ${key}${key==='term'?' alm-swap':''}" style="grid-row:${r0}/${r1+1};grid-column:${col}" title="${tip}"${swap}><div class="alm-ribbon-inner"><div class="alm-ribbon-label"><span class="${n.glyph?'alm-glyph':'alm-tc'}">${n.tc}</span><span class="alm-en">${n.en}</span></div></div></div>`;
+    }).join('');
+    if(!html)return;
+    widths.push(1);parts.push(html);
   });
-  return runs.map(r=>{
-    const t=D.TERMS[r.value],r0=rowOf[r.startDate],r1=rowOf[r.endDate];
-    if(!r0||!r1)return'';
-    return`<div class="alm-term-ribbon" style="grid-row:${r0}/${r1+1}" title="${t.tc} · ${t.en}"><div class="alm-ribbon-inner"><div class="alm-ribbon-label"><span class="alm-tc">${t.tc}</span><span class="alm-en">${t.en}</span></div></div></div>`;
-  }).join('');
+  return{html:parts.join(''),widths};
+}
+
+/* ---- Season tab (v9.4) ----
+   The same weeks and the same days as the Week tab, so the two views stay row-for-row aligned,
+   but with no academic content: each row is just the date and that day's almanac, which lets the
+   cell be a fraction of the height. Ribbons: term, branch, sign, season. */
+function renderSeason(){
+  const sel=almWeekSelection();
+  let h=`<div class="life-header"><span class="life-title">Season</span><span class="legend-hint">節氣 · 候 · 月建 · sign · moon</span></div>`;
+  if(!almReady())return h+`<div class="notes-box"><div class="notes-box-text" style="font-size:var(--fs-xs);color:var(--text-muted)">The almanac engine did not load, so there is nothing to show here. A hard refresh usually fixes it.</div></div>`;
+  if(sel.collapsedCount>0)h+=`<div style="margin-bottom:12px"><button class="expand-week-btn" onclick="expandAllPastWeeks()" style="font-size:var(--fs-2xs);padding:3px 10px">▼ ${sel.collapsedCount} past week${sel.collapsedCount>1?'s':''} (show)</button></div>`;
+  const g=almGridPlan(sel.perWeek);
+  const rail=almRibbonsHtml(g.alm,g.rowOf,['term','branch','zodiac','season']);
+  h+=`<div class="weeks-grid season-grid" style="grid-template-columns:${almGridCols(rail)}">`;
+  sel.perWeek.forEach(s=>{
+    h+=`<div class="week-section"><div class="week-hdr season-hdr" style="grid-row:${s.hdrRow}"><span class="week-hdr-title">Week ${s.wk.num}</span><span class="week-hdr-dates">${fmtDateShort(s.wk.start)} → ${fmtDateShort(s.wk.end)}</span></div>`;
+    s.days.forEach((day,di)=>{
+      const isT=sameDay(day.dateObj,TODAY);
+      const marks=almDayMarkers(g.alm,day.date,{term:true,hou:true,moon:true});
+      h+=`<div class="season-row ${isT?'is-today':''}" style="grid-row:${s.hdrRow+1+di}" data-date="${day.date}"><span class="season-date">${fmtDate(day.dateObj)}</span><span class="season-marks">${marks.join('')}</span></div>`;
+    });
+    h+='</div>';
+  });
+  h+=rail.html+`</div>`;
+  return h;
+}
+
+/* Tapping the 節氣 ribbon in either tab crosses to the other at the same place. The anchor is the
+   first row fully in view; after the swap the page is scrolled so that same date sits back at the
+   same offset. Both tabs draw the same days, so the date is normally present in both — the search
+   for the next date on or after the anchor only matters if that ever stops being true. */
+const ALM_ROWS='.day-row[data-date],.season-row[data-date]';
+// Puts `date` back at `top` pixels down the viewport. Works from the row's absolute document
+// offset (rect.top + scrollY) and scrolls to an absolute position: a relative scrollBy would be
+// measured against a scroll offset the browser is about to clamp, because swapping tabs changes
+// the document height under us.
+function almAlignTo(date,top){
+  const to=document.querySelector('.view.active');
+  if(!to)return;
+  const rows=[...to.querySelectorAll(ALM_ROWS)];
+  const el=rows.find(r=>r.dataset.date===date)||rows.find(r=>r.dataset.date>=date)||rows[rows.length-1];
+  if(!el)return;
+  window.scrollTo(0,Math.max(0,el.getBoundingClientRect().top+window.scrollY-top));
+}
+function almSwapTab(){
+  const from=document.querySelector('.view.active');
+  let anchor=null;
+  if(from){                                                  // anchor on the first row fully in view
+    const rows=[...from.querySelectorAll(ALM_ROWS)];
+    const hit=rows.find(r=>r.getBoundingClientRect().top>=0)||rows[rows.length-1];
+    if(hit)anchor={date:hit.dataset.date,top:hit.getBoundingClientRect().top};
+  }
+  switchTab(state.activeTab==='season'?'sprints':'season');
+  if(!anchor)return;
+  almAlignTo(anchor.date,anchor.top);                        // once now,
+  requestAnimationFrame(()=>almAlignTo(anchor.date,anchor.top)); // once more after the reflow settles
 }
 
 // The section is display:contents — its header and day rows are grid items of the shared
@@ -1204,7 +1339,8 @@ function renderSettings(){
   <input class="life-input" id="almTzFilter" value="${_almTzFilter.replace(/"/g,'&quot;')}" oninput="almTzFilterInput(this.value)" placeholder="Filter zones…" style="width:190px;margin-bottom:6px"/>
   <select class="life-select" id="almTzSelect" onchange="almSetTz(this.value)" style="width:260px;max-width:100%;display:block">${almTzOptionsHtml(_almTzFilter)}</select></div>
   <div class="settings-section"><label>Layers</label>
-  <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:var(--fs-xs)">${[['terms','Solar terms 節氣'],['hou','Pentads 候'],['moon','Moon quarters']].map(([k,lbl])=>`<label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox"${almLayers()[k]?' checked':''} onchange="almSetLayer('${k}',this.checked)"/> ${lbl}</label>`).join('')}</div></div></div>
+  <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Solar terms, 候 and moon quarters appear in both the Week and Season tabs; the branch, sign and season ribbons are Season only.</div>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:var(--fs-xs)">${[['terms','Solar terms 節氣'],['hou','Pentads 候'],['moon','Moon quarters'],['branch','Earthly branch 月建'],['zodiac','Zodiac sign'],['season','Season']].map(([k,lbl])=>`<label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox"${almLayers()[k]?' checked':''} onchange="almSetLayer('${k}',this.checked)"/> ${lbl}</label>`).join('')}</div></div></div>
   <div class="notes-box"><div class="notes-box-title">Backup &amp; Restore</div>
   <div class="settings-section"><label>Restore from backup</label>
   <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Import a previously exported JSON backup file. This replaces your current data.</div>
