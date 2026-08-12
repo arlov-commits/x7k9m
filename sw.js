@@ -1,8 +1,8 @@
-const CACHE_NAME = 'academic-planner-v10.1';
-// almanac-data.js + almanac.js must stay in this list: index.html loads them as separate
-// scripts, so a stale cache would serve new markup with no engine and the almanac strip
-// would silently render empty.
-const ASSETS = ['./', './index.html', './manifest.json', './almanac-data.js', './almanac.js'];
+const CACHE_NAME = 'academic-planner-v10.2';
+// almanac-data.js, almanac.js and calendars-data.js must stay in this list: index.html loads them
+// as separate scripts, so a stale cache would serve new markup with no engine and the almanac
+// strip and monastery calendar layers would silently render empty.
+const ASSETS = ['./', './index.html', './manifest.json', './almanac-data.js', './almanac.js', './calendars-data.js'];
 
 self.addEventListener('install', e => {
   e.waitUntil(
