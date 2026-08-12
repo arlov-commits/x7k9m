@@ -1,6 +1,7 @@
 /* almanac-data.js — name tables for solar terms, 72 hou, tropical zodiac, moon phases.
- * v1.1 — data only, no logic. Traditional Chinese throughout.
+ * v1.2 — data only, no logic. Traditional Chinese throughout.
  * v1.1 adds BRANCHES (地支 solar months) and SEASONS, both keyed off the solar-term index.
+ * v1.2 adds TERM_LINKS — further reading per solar term, same index as TERMS.
  * 72 hou follow 吳澄《月令七十二候集解》; variants noted in ALMANAC_SPEC.md.
  * Index rule: both tables start at 立春 (λ=315°) and run forward in 15° / 5° steps.
  */
@@ -33,6 +34,35 @@
     { deg: 270, tc: '冬至', en: 'Winter Solstice' },
     { deg: 285, tc: '小寒', en: 'Minor Cold' },
     { deg: 300, tc: '大寒', en: 'Major Cold' }
+  ];
+
+  /* Further reading per solar term, same index as TERMS (0 = 立春). Opened from the term pill in
+     the Season tab. External editorial content, not part of the astronomy. */
+  var TERM_LINKS = [
+    'https://sinocultural.com/blogs/china-24-solar-terms/lichun-%E7%AB%8B%E6%98%A5-the-beginning-of-spring-in-the-chinese-solar-terms',
+    'https://sinocultural.com/blogs/china-24-solar-terms/the-rhythm-of-rain-celebrating-china-s-rain-water-solar-term',
+    'https://sinocultural.com/blogs/china-24-solar-terms/jingzhe-the-awakening-of-spring-s-energy',
+    'https://sinocultural.com/blogs/china-24-solar-terms/spring-equinox-%E6%98%A5%E5%88%86-the-balance-of-light-and-darkness',
+    'https://sinocultural.com/blogs/china-24-solar-terms/qingming-festival-2025-traditional-customs-and-modern-significance',
+    'https://sinocultural.com/blogs/china-24-solar-terms/grain-rain-guyu-a-beautiful-chapter-in-china-24-solar-terms',
+    'https://sinocultural.com/blogs/china-24-solar-terms/embracing-the-beginning-of-summer-a-guide-to-lixia%E7%AB%8B%E5%A4%8F',
+    'https://sinocultural.com/blogs/china-24-solar-terms/xiaoman%E5%B0%8F%E6%BB%A1-the-art-of-small-fullness-in-nature-s-cycle',
+    'https://sinocultural.com/blogs/china-24-solar-terms/grain-in-earmangzhong-unveiling-the-9th-solar-term-of-ancient-chinese-wisdom',
+    'https://sinocultural.com/blogs/china-24-solar-terms/summer-solsticexiazhi-%E5%A4%8F%E8%87%B3-where-ancient-wisdom-meets-the-longest-day',
+    'https://sinocultural.com/blogs/china-24-solar-terms/lesser-heat-xiaoshu%E5%B0%8F%E6%9A%91-understanding-the-summer-solstice-and-its-impact',
+    'https://sinocultural.com/blogs/china-24-solar-terms/great-heat-dashu-%E5%A4%A7%E6%9A%91-celebrate-the-peak-of-summer-with-chinese-traditions',
+    'https://sinocultural.com/blogs/china-24-solar-terms/a-fun-guide-to-the-beginning-of-autumnliqiu-%E7%AB%8B%E7%A7%8B-from-autumn-fat-to-crisp-breezes',
+    'https://sinocultural.com/blogs/china-24-solar-terms/end-of-heatchushu-%E5%A4%84%E6%9A%91-welcoming-autumn-with-ancient-chinese-traditions',
+    'https://sinocultural.com/blogs/china-24-solar-terms/white-dew-bailu-%E7%99%BD%E9%9C%B2-the-autumn-elegance-of-china-s-24-solar-terms',
+    'https://sinocultural.com/blogs/china-24-solar-terms/autumn-equinox-qiufen-%E7%A7%8B%E5%88%86-the-golden-balance-of-china-s-24-solar-terms',
+    'https://sinocultural.com/blogs/china-24-solar-terms/cold-dew-hanlu-%E5%AF%92%E9%9C%B2-2025-welcoming-autumn-s-chill-with-warm-traditions',
+    'https://sinocultural.com/blogs/china-24-solar-terms/frost-s-descent-%E9%9C%9C%E9%99%8D-shuangjiang-2025-opening-the-curtain-to-winter-s-serenity',
+    'https://sinocultural.com/blogs/china-24-solar-terms/the-start-of-winter-lidong-%E7%AB%8B%E5%86%AC-embracing-warmth-and-balance-as-winter-begins',
+    'https://sinocultural.com/blogs/china-24-solar-terms/lesser-snow-xiaoxue-embracing-winters-gentle-descent',
+    'https://sinocultural.com/blogs/china-24-solar-terms/greater-snow-daxue-%E5%A4%A7%E9%9B%AA-welcoming-winter-s-deepest-elegance',
+    'https://sinocultural.com/blogs/china-24-solar-terms/winter-solstice-dongzhi-embracing-renewal-and-warmth-at-the-heart-of-winter',
+    'https://sinocultural.com/blogs/china-24-solar-terms/minor-cold-xiaohan-%E5%B0%8F%E5%AF%92-the-quiet-deepening-of-winter-in-china-s-24-solar-terms',
+    'https://sinocultural.com/blogs/china-24-solar-terms/great-cold-dahan-%E5%A4%A7%E5%AF%92-reflecting-on-the-year-and-welcoming-the-chinese-new-year'
   ];
 
   /* 72 hou — index = floor((((lambda - 315) mod 360)) / 5); term = floor(index / 3) */
@@ -160,7 +190,7 @@
   ];
 
   root.AlmanacData = { TERMS: TERMS, HOU: HOU, ZODIAC: ZODIAC, MOON: MOON,
-                       BRANCHES: BRANCHES, SEASONS: SEASONS };
+                       BRANCHES: BRANCHES, SEASONS: SEASONS, TERM_LINKS: TERM_LINKS };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 
 if (typeof module !== 'undefined' && module.exports) module.exports = globalThis.AlmanacData;

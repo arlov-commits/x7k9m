@@ -96,6 +96,22 @@
        derivations agree with the tables for every one of the 24 terms. */
     note(g, D.BRANCHES.length === 12, 'BRANCHES.length = ' + D.BRANCHES.length + ', want 12');
     note(g, D.SEASONS.length === 4, 'SEASONS.length = ' + D.SEASONS.length + ', want 4');
+
+    /* TERM_LINKS is index-locked to TERMS: one entry per term, all distinct, all https. The eight
+       terms whose slug carries an unmistakable name — the 四立, the solstices and the equinoxes —
+       are spot-checked, which pins the list's alignment at eight points around the year. */
+    note(g, D.TERM_LINKS.length === 24, 'TERM_LINKS.length = ' + D.TERM_LINKS.length + ', want 24');
+    note(g, new Set(D.TERM_LINKS).size === D.TERM_LINKS.length, 'TERM_LINKS has duplicate entries');
+    D.TERM_LINKS.forEach(function (u, i) {
+      note(g, /^https:\/\//.test(u), 'TERM_LINKS[' + i + '] is not an https URL: ' + u);
+    });
+    var anchors = { 0: 'lichun', 3: 'spring-equinox', 6: 'lixia', 9: 'summer-solstice',
+                    12: 'liqiu', 15: 'autumn-equinox', 18: 'lidong', 21: 'winter-solstice' };
+    Object.keys(anchors).forEach(function (k) {
+      var want = anchors[k];
+      note(g, D.TERM_LINKS[k].indexOf(want) !== -1,
+        'TERM_LINKS[' + k + '] for ' + D.TERMS[k].tc + ' should contain "' + want + '": ' + D.TERM_LINKS[k]);
+    });
     for (i = 0; i < 24; i++) {
       var b = D.BRANCHES[Math.floor(i / 2)];                     // 月建 turns at each 節
       note(g, b.term === D.TERMS[i - (i % 2)].tc,
