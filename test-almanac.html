@@ -1,0 +1,109 @@
+<!-- Almanac engine test harness — standalone, NOT part of the app.
+     Serve the repo root and open this file, e.g.  python3 -m http.server 8000
+     then http://localhost:8000/test-almanac.html  (fetch of the fixtures JSON
+     is blocked under file://, so opening the file directly will not work). -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Almanac engine tests</title>
+<style>
+:root{color-scheme:light dark;--ok:#2f7d3f;--bad:#b83030;--dim:#6b6b6b;--line:#d8d4cc;--bg:#fbfaf7;--fg:#1d1a17;--panel:#fff}
+@media(prefers-color-scheme:dark){:root{--ok:#67b97a;--bad:#e0796b;--dim:#9a938a;--line:#3a3733;--bg:#1b1917;--fg:#e9e2d8;--panel:#232019}}
+*{box-sizing:border-box}
+body{margin:0;padding:28px 20px 60px;background:var(--bg);color:var(--fg);
+     font:15px/1.55 ui-sans-serif,system-ui,'Segoe UI',sans-serif}
+main{max-width:900px;margin:0 auto}
+h1{font-size:1.5rem;margin:0 0 4px}
+.sub{color:var(--dim);font-size:.85rem;margin-bottom:22px}
+#summary{font-weight:700;font-size:1.1rem;padding:12px 16px;border-radius:10px;margin-bottom:20px;
+         border:1px solid var(--line);background:var(--panel)}
+#summary.pass{border-color:var(--ok);color:var(--ok)}
+#summary.fail{border-color:var(--bad);color:var(--bad)}
+.grp{border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:12px;background:var(--panel)}
+.grp h2{font-size:1rem;margin:0 0 4px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.tag{font:600 .72rem/1 ui-monospace,monospace;padding:3px 7px;border-radius:999px;border:1px solid currentColor}
+.tag.ok{color:var(--ok)}.tag.bad{color:var(--bad)}
+.meta{color:var(--dim);font-size:.82rem;font-family:ui-monospace,monospace}
+ul{margin:8px 0 0;padding-left:20px}
+li{color:var(--bad);font-size:.82rem;font-family:ui-monospace,monospace;margin-bottom:3px}
+table{border-collapse:collapse;width:100%;font-size:.85rem;margin-top:8px}
+th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line)}
+th{color:var(--dim);font-weight:600}
+td.mark{font-weight:600}
+</style>
+</head>
+<body>
+<main>
+  <h1>Almanac engine tests</h1>
+  <div class="sub">Asserts <code>almanac.js</code> + <code>almanac-data.js</code> against
+    <code>almanac-fixtures.json</code> (pyephem VSOP87 / ELP2000-82B ground truth). Expected: zero failures.</div>
+  <div id="summary">Running…</div>
+  <div id="results"></div>
+  <div class="grp" id="sample"></div>
+</main>
+
+<script src="almanac-data.js"></script>
+<script src="almanac.js"></script>
+<script src="test-almanac.js"></script>
+<script>
+const esc = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+function renderReport(r){
+  const sum = document.getElementById('summary');
+  sum.className = r.totalFail ? 'fail' : 'pass';
+  sum.textContent = r.totalFail
+    ? `${r.totalFail} FAILED — ${r.totalPass} passed (${r.tz})`
+    : `All ${r.totalPass} assertions passed (${r.tz})`;
+  document.getElementById('results').innerHTML = r.groups.map(g => `
+    <div class="grp">
+      <h2>${esc(g.name)}
+        <span class="tag ${g.fail ? 'bad' : 'ok'}">${g.fail ? g.fail + ' FAIL' : 'PASS'}</span>
+        <span class="meta">${g.pass} passed · worst Δ ${g.worstMin.toFixed(2)} min</span>
+      </h2>
+      ${g.failures.length ? '<ul>' + g.failures.map(f => `<li>${esc(f)}</li>`).join('') + '</ul>' : ''}
+    </div>`).join('');
+}
+
+/* Derives the week the spec asks to eyeball, so the expected render is on the page next to
+   the assertions: the 12th must carry both a New Moon and 候 白露降, and the week opens on
+   Leo / 立秋 / 涼風至. This is a readout, not an assertion — the app render is checked by hand. */
+function renderSampleWeek(tz){
+  const D = AlmanacData, A = Almanac, T = AlmanacTests;
+  const days = [];
+  for (let i = 8; i <= 14; i++) days.push('2026-08-' + String(i).padStart(2, '0'));
+  const jd0 = A.localNoonJD(days[0], tz) - 0.5, jd1 = A.localNoonJD(days[days.length - 1], tz) + 0.5;
+  const marks = {};
+  for (const c of A.longitudeCrossings(jd0, jd1, 5)) {
+    const k = A.localDateKey(c.jd, tz), i = T.houIndex(c.deg + 1e-6);
+    (marks[k] ||= []).push((i % 3 === 0 ? D.TERMS[i / 3].tc + ' · ' + D.TERMS[i / 3].en + ' / ' : '')
+      + D.HOU[i].tc + ' · ' + D.HOU[i].en);
+  }
+  for (const m of A.moonQuartersInRange(jd0, jd1)) {
+    (marks[A.localDateKey(m.jd, tz)] ||= []).push(D.MOON[m.phase].tc + ' · ' + D.MOON[m.phase].en);
+  }
+  const rows = days.map(d => {
+    const l = A.solarLongitude(A.localNoonJD(d, tz));
+    return `<tr><td>${d}</td><td class="meta">${l.toFixed(3)}°</td>
+      <td>${D.ZODIAC[T.zodIndex(l)].name} / ${D.TERMS[T.termIndex(l)].tc} / ${D.HOU[T.houIndex(l)].tc}</td>
+      <td class="mark">${esc((marks[d] || []).join('  +  '))}</td></tr>`;
+  }).join('');
+  document.getElementById('sample').innerHTML = `
+    <h2>Sample week — 2026-08-08 → 08-14 <span class="meta">${esc(tz)}</span></h2>
+    <div class="meta">Ambient state is read at local noon; markers are the crossings that land in each day.</div>
+    <table><tr><th>Date</th><th>λ☉</th><th>Sign / term / hou</th><th>Markers</th></tr>${rows}</table>`;
+}
+
+fetch('almanac-fixtures.json')
+  .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+  .then(fx => { const r = AlmanacTests.run(fx); renderReport(r); renderSampleWeek(r.tz); })
+  .catch(e => {
+    const sum = document.getElementById('summary');
+    sum.className = 'fail';
+    sum.textContent = 'Could not load almanac-fixtures.json (' + e.message +
+      '). Serve the repo over HTTP — e.g. python3 -m http.server — rather than opening this file directly.';
+  });
+</script>
+</body>
+</html>
