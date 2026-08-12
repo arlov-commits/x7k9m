@@ -2,7 +2,12 @@
  * v1.2 — data only, no logic. Traditional Chinese throughout.
  * v1.1 adds BRANCHES (地支 solar months) and SEASONS, both keyed off the solar-term index.
  * v1.2 adds TERM_LINKS — further reading per solar term, same index as TERMS.
- * 72 hou follow 吳澄《月令七十二候集解》; variants noted in ALMANAC_SPEC.md.
+ * 72 hou follow the CHINESE list of 吳澄《月令七十二候集解》; variants noted in ALMANAC_SPEC.md.
+ * NOT the Japanese 七十二候, which is a different list — Japan rewrote it in 1685 for its own
+ * climate. The clearest tell is 立秋: Chinese 涼風至 / 白露降 / 寒蟬鳴, Japanese 涼風至 / 寒蝉鳴 /
+ * 蒙霧升降. So 白露降 "white dew descends" is the SECOND hou of 立秋 at 140 deg, and is unrelated
+ * to the solar term 白露 at 165 deg some 25 days later, which opens with 鴻雁來. Japanese-list
+ * sources (nippon.com among them) put 草露白 at 白露 instead and have no 白露降 at all.
  * Index rule: both tables start at 立春 (λ=315°) and run forward in 15° / 5° steps.
  */
 (function (root) {

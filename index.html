@@ -1,4 +1,4 @@
-<!-- Academic Planner v9.9 -->
+<!-- Academic Planner v10.0 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -229,7 +229,7 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
    hou name is worse than an uneven row. */
 /* grid-template-columns is written inline per tab: one ribbon column for Week, up to four for
    Season, and none at all when every ribbon layer is switched off. */
-.weeks-grid{display:grid;column-gap:var(--alm-col-gap);row-gap:0;--alm-col-gap:var(--sp-2);--alm-stack-w:34px;--alm-lane-w:26px}
+.weeks-grid{display:grid;column-gap:var(--alm-col-gap);row-gap:0;--alm-col-gap:var(--sp-2);--alm-stack-w:34px;--alm-lane-w:28px}
 .week-section{display:contents}
 /* Descendant, not child: .week-section is display:contents, so these are grid items but their
    DOM parent is the section. A child combinator here silently matches nothing and the rows fall
@@ -268,8 +268,8 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
    A container is only ever as tall as the runs it holds, so no z-index games are needed —
    DOM order alone puts the subs in front. */
 .alm-pill{position:relative;min-height:0;margin-bottom:5px;
-  background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-pill);
-  clip-path:inset(0 round var(--r-pill))}
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-m);
+  clip-path:inset(0 round var(--r-m))}
 .alm-pill.pod{background:var(--surface3);border-color:var(--surface3)}
 /* The label is absolutely positioned so a pill contributes NO intrinsic height: a one-day run
    must never stretch its row to fit a vertical name. Clipped with clip-path rather than
@@ -277,8 +277,11 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
    would then stick to a box that never scrolls. */
 .alm-ribbon-inner{position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:center}
 /* A pill can run weeks tall, so the name is sticky rather than centred once. */
+/* padding-top is inline-start in vertical-rl, so this is the gap above the first glyph. It is
+   set a little larger than the side padding: a circular sign like ♌ otherwise reads as crowded
+   into the corner radius rather than sitting inside the pill. */
 .alm-ribbon-label{position:sticky;top:92px;display:flex;align-items:center;justify-content:center;
-  gap:6px;padding:10px 0;writing-mode:vertical-rl;text-orientation:mixed}
+  gap:6px;padding:13px 0 11px;writing-mode:vertical-rl;text-orientation:mixed}
 /* English rides the vertical-rl flow with text-orientation:mixed. The TC is stacked one character
    per line in horizontal-tb instead of leaning on text-orientation:upright — same upright column
    visually, but it does not depend on the CJK font shipping vertical metrics, which some engines
@@ -292,7 +295,7 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 /* Sub-pills are inset on the INNER side only, leaving a strip of the container showing along the
    outer edge of the column — that strip is where the container's own name runs, otherwise the
    subs would tile over it completely and the container would be invisible. */
-.alm-pill.cap{margin:3px 3px 8px;border-radius:var(--r-pill);clip-path:inset(0 round var(--r-pill))}
+.alm-pill.cap{margin:3px 3px 8px;border-radius:var(--r-m);clip-path:inset(0 round var(--r-m))}
 .alm-pill.terms.cap{margin-right:22px}                 /* right column: container spine on the right */
 .alm-pill.moonsign.cap{margin-left:22px}               /* left column: container spine on the left  */
 .alm-pill.branch .alm-ribbon-inner{justify-content:flex-end}
@@ -312,11 +315,11 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
    position, its fill, and the sticky glyph tag below — never by a glyph repeated on every pill. */
 .alm-pill.track{border-color:var(--border)}
 .alm-pill.track.first{margin-right:calc(var(--alm-col-gap) / -2);border-right:0;
-  border-radius:var(--r-pill) 0 0 var(--r-pill);clip-path:inset(0 round var(--r-pill) 0 0 var(--r-pill))}
+  border-radius:var(--r-m) 0 0 var(--r-m);clip-path:inset(0 round var(--r-m) 0 0 var(--r-m))}
 .alm-pill.track.mid{margin-left:calc(var(--alm-col-gap) / -2);margin-right:calc(var(--alm-col-gap) / -2);
   border-left:0;border-right:0;border-radius:0;clip-path:none}
 .alm-pill.track.last{margin-left:calc(var(--alm-col-gap) / -2);border-left:0;
-  border-radius:0 var(--r-pill) var(--r-pill) 0;clip-path:inset(0 round 0 var(--r-pill) var(--r-pill) 0)}
+  border-radius:0 var(--r-m) var(--r-m) 0;clip-path:inset(0 round 0 var(--r-m) var(--r-m) 0)}
 .alm-pill.track.sun{background:var(--surface3)}
 .alm-pill.track.merc{background:var(--surface2)}
 .alm-pill.track.moon{background:var(--surface)}
@@ -328,7 +331,7 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 /* Sticky track tags. Emitted after the pills so they float above them, and pinned higher than the
    pill labels so the two never collide. */
 .alm-lane-tag{position:relative;pointer-events:none;display:flex;justify-content:center}
-.alm-lane-glyph{position:sticky;top:52px;font-size:var(--fs-m);line-height:1;color:var(--text-muted);
+.alm-lane-glyph{position:sticky;top:52px;border-radius:var(--r-s);font-size:var(--fs-m);line-height:1;color:var(--text-muted);
   background:var(--bg);border-radius:var(--r-pill);padding:3px 0 5px;width:100%;text-align:center}
 
 /* Weather in the day cells (v9.8). Numbers use the mono face like every other figure in the app.
@@ -356,7 +359,7 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .season-row.is-today .season-date{color:var(--text)}
 .season-marks{display:flex;flex-wrap:wrap;align-items:baseline;gap:1px var(--sp-3);min-width:0}
 .season-hdr{margin-bottom:6px}
-.season-grid{--alm-stack-w:46px;--alm-lane-w:26px}
+.season-grid{--alm-stack-w:46px;--alm-lane-w:28px}
 .season-grid .week-section .week-hdr{margin-top:20px}
 /* Season carries two ribbons where Week carries one, so on a phone they are narrowed and pulled
    together — otherwise they take a third of the width and the day rows wrap into tall blocks. */
@@ -937,7 +940,7 @@ function render(){
   const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
   const bottomNav=`<nav class="bottomnav">${slotBtn('bn-item')}<button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
   const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v9.9</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v10.0</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -1161,12 +1164,13 @@ const ALM_LANES={
   zodiac:{get:a=>almZodOfTerm(a.term),
     lbl:i=>{const z=AlmanacData.ZODIAC[i];return{tip:'Sun in '+z.name+' · from '+z.term,
       html:`<span class="alm-glyph">${z.glyph}</span><span class="alm-en">${z.name}</span>`}}},
+  // Neither of these tracks has room for a name, so the sign itself carries the tooltip.
   moonsign:{get:a=>a.moonSign,
-    lbl:i=>{const z=AlmanacData.ZODIAC[i];return{tip:'Moon in '+z.name,
-      html:`<span class="alm-glyph">${z.glyph}</span>`}}},
+    lbl:i=>{const z=AlmanacData.ZODIAC[i],t='Moon in '+z.name;return{tip:t,
+      html:`<span class="alm-glyph" title="${t}">${z.glyph}</span>`}}},
   mercury:{get:a=>a.merc,
-    lbl:v=>{const z=AlmanacData.ZODIAC[v>>1],rx=v&1;return{tip:'Mercury in '+z.name+(rx?' — retrograde':' — direct'),
-      html:`<span class="alm-glyph">${z.glyph}</span>`+(rx?`<span class="alm-rx">${ALM_RX}</span>`:'')}}}
+    lbl:v=>{const z=AlmanacData.ZODIAC[v>>1],rx=v&1,t='Mercury in '+z.name+(rx?' — retrograde':' — direct');
+      return{tip:t,html:`<span class="alm-glyph" title="${t}">${z.glyph}</span>`+(rx?`<span class="alm-rx" title="${t}">${ALM_RX}</span>`:'')}}}
 };
 
 // One layer's pills, as unbroken runs. `role` is pod (container), cap (nested) or solo.

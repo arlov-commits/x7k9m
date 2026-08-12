@@ -183,6 +183,16 @@ The low-precision version put one term on the wrong local date within a six-year
 
 **Cross-checked against a published almanac**, not just against itself: all 24 solar terms and all 12 new moons of 2026 match the Hong Kong Observatory's Gregorian–Lunar Conversion Table exactly at day level in Hong Kong Time, with times agreeing to the minute. HKO derives its figures from HM Nautical Almanac Office and the US Naval Observatory, so this is genuinely independent of both the engine and the pyephem fixtures.
 
+**Chinese list, not Japanese.** Japan rewrote the 72 候 in 1685 (Shibukawa Shunkai) for its own
+climate, and that revised list is what most English-language pages show. They diverge at 立秋:
+the Chinese list runs 涼風至 (135°) / 白露降 (140°) / 寒蟬鳴 (145°), the Japanese 涼風至 / 寒蝉鳴 /
+蒙霧升降. So in this app 白露降 "white dew descends" falls in mid-August as the second hou of
+立秋, and has nothing to do with the solar term 白露 at 165° about 25 days later, which opens
+with 鴻雁來. Japanese-list sources show 草露白 at 白露 and contain no 白露降 at all. Verified
+against zh.wikipedia's 七十二候 table (which gives the same degrees) and ja.wikipedia's, which
+prints the Japanese and original Chinese columns side by side. Do not "fix" this to match a
+Japanese table.
+
 **Hou names** follow 吳澄《月令七十二候集解》, verified against 中國氣象局, the 中國農業博物館 summary of《逸周書·時訓解》, and 百度百科's transcription of the 集解. Three corrections were made against the draft list this project started from, and you should not silently revert them:
 
 - Hou 5 is **候雁北** "Wild geese fly north", not 鴻雁來. The draft duplicated 鴻雁來 at both hou 5 and hou 43; 集解 gives 候雁北 for 雨水二候 and notes 鴻雁北 as the《月令》/《漢書》variant. Hou 43 (白露初候) genuinely is 鴻雁來.
