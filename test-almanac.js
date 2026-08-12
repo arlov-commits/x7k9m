@@ -89,6 +89,79 @@
     });
   }
 
+  /* Mercury has no fixture either, so it is checked structurally. Each of these fails loudly if a
+     series term is wrong: the geocentric elongation from the Sun is bounded by the geometry of an
+     inferior orbit, and retrograde motion has a well-known cadence, length and spacing. */
+  function checkMercury(g) {
+    var j0 = A.jdFromDate(new Date('2026-01-01T00:00:00Z')), N = 365 * 6;
+    var worst = 0, runs = [], prev = false, i;
+    for (i = 0; i < N; i++) {
+      var jd = j0 + i;
+      var e = Math.abs(((A.mercuryLongitude(jd) - A.solarLongitude(jd)) % 360 + 540) % 360 - 180);
+      if (e > worst) worst = e;
+      var r = A.mercuryRetrograde(jd);
+      if (r && !prev) runs.push({ s: i, e: i }); else if (r) runs[runs.length - 1].e = i;
+      prev = r;
+    }
+    note(g, worst <= 28.5, 'max elongation from the Sun over 6 years = ' + worst.toFixed(2) +
+      ' deg, must not exceed ~28 for an inferior planet');
+    note(g, runs.length >= 16 && runs.length <= 21,
+      runs.length + ' retrograde stretches in 6 years, expected about 18 (three a year)');
+    var durs = runs.map(function (r) { return r.e - r.s + 1; });
+    note(g, Math.min.apply(null, durs) >= 17 && Math.max.apply(null, durs) <= 28,
+      'retrograde lengths ' + Math.min.apply(null, durs) + '-' + Math.max.apply(null, durs) +
+      ' days, expected roughly 19-25');
+    var gaps = runs.slice(1).map(function (r, k) { return r.s - runs[k].s; });
+    note(g, Math.min.apply(null, gaps) >= 100 && Math.max.apply(null, gaps) <= 135,
+      'spacing between stretches ' + Math.min.apply(null, gaps) + '-' + Math.max.apply(null, gaps) +
+      ' days, expected about one synodic period (~116)');
+  }
+
+  /* The 72 hou, checked for synchronisation two independent ways.
+
+     By degree: hou i must open at exactly 315 + 5i degrees, its term must be floor(i/3), and that
+     term must open at 315 + 15*floor(i/3). A single inserted or dropped entry shifts every hou
+     after it and this fails immediately.
+
+     By grouping: the flat table is re-stated here as the 三候 of each of the 24 terms, taken from
+     吳澄《月令七十二候集解》. This is the same knowledge organised the other way round, so a
+     mis-ordering that a flat list would hide shows up as a term whose three hou are wrong. */
+  var SANHOU = [
+    ['東風解凍','蟄蟲始振','魚陟負冰'], ['獺祭魚','候雁北','草木萌動'],
+    ['桃始華','倉庚鳴','鷹化為鳩'],     ['玄鳥至','雷乃發聲','始電'],
+    ['桐始華','田鼠化為鴽','虹始見'],   ['萍始生','鳴鳩拂其羽','戴勝降于桑'],
+    ['螻蟈鳴','蚯蚓出','王瓜生'],       ['苦菜秀','靡草死','麥秋至'],
+    ['螳螂生','鵙始鳴','反舌無聲'],     ['鹿角解','蜩始鳴','半夏生'],
+    ['溫風至','蟋蟀居壁','鷹始摯'],     ['腐草為螢','土潤溽暑','大雨時行'],
+    ['涼風至','白露降','寒蟬鳴'],       ['鷹乃祭鳥','天地始肅','禾乃登'],
+    ['鴻雁來','玄鳥歸','群鳥養羞'],     ['雷始收聲','蟄蟲坯戶','水始涸'],
+    ['鴻雁來賓','雀入大水為蛤','菊有黃華'], ['豺乃祭獸','草木黃落','蟄蟲咸俯'],
+    ['水始冰','地始凍','雉入大水為蜃'], ['虹藏不見','天氣上升地氣下降','閉塞而成冬'],
+    ['鶡鴠不鳴','虎始交','荔挺出'],     ['蚯蚓結','麋角解','水泉動'],
+    ['雁北鄉','鵲始巢','雉始雊'],       ['雞始乳','征鳥厲疾','水澤腹堅']
+  ];
+  function checkHouSync(g) {
+    var norm = function (d) { return ((d % 360) + 360) % 360; };
+    for (var i = 0; i < 72; i++) {
+      var openDeg = norm(315 + 5 * i);
+      note(g, houIndex(openDeg + 1e-6) === i,
+        'hou ' + i + ' ' + D.HOU[i].tc + ' should open at ' + openDeg + ' deg, but that longitude indexes hou ' + houIndex(openDeg + 1e-6));
+      var t = Math.floor(i / 3);
+      note(g, termIndex(openDeg + 1e-6) === t,
+        'hou ' + i + ' ' + D.HOU[i].tc + ' should sit in term ' + t + ' ' + D.TERMS[t].tc + ', got ' + D.TERMS[termIndex(openDeg + 1e-6)].tc);
+      note(g, D.TERMS[t].deg === norm(315 + 15 * t),
+        'term ' + t + ' ' + D.TERMS[t].tc + ' deg = ' + D.TERMS[t].deg + ', want ' + norm(315 + 15 * t));
+    }
+    note(g, SANHOU.length === 24, 'SANHOU covers ' + SANHOU.length + ' terms, want 24');
+    for (var t2 = 0; t2 < 24; t2++) {
+      for (var k = 0; k < 3; k++) {
+        var got = D.HOU[t2 * 3 + k].tc, want = SANHOU[t2][k];
+        note(g, got === want,
+          D.TERMS[t2].tc + ' hou ' + (k + 1) + ' is ' + got + ', but 集解 gives ' + want);
+      }
+    }
+  }
+
   function checkTables(g) {
     note(g, D.HOU.length === 72, 'HOU.length = ' + D.HOU.length + ', want 72');
     note(g, D.TERMS.length === 24, 'TERMS.length = ' + D.TERMS.length + ', want 24');
@@ -187,6 +260,14 @@
 
     g = group('Moon longitude (by elongation)');
     checkMoonLongitude(g, fixtures.moon_quarters);
+    groups.push(g);
+
+    g = group('72 hou synchronisation');
+    checkHouSync(g);
+    groups.push(g);
+
+    g = group('Mercury (structural)');
+    checkMercury(g);
     groups.push(g);
 
     g = group('Name tables & index math');

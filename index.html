@@ -1,4 +1,4 @@
-<!-- Academic Planner v9.8 -->
+<!-- Academic Planner v9.9 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -63,6 +63,7 @@
   --nv-scroll:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='3' width='14' height='3' rx='1.5'/%3E%3Crect x='5' y='18' width='14' height='3' rx='1.5'/%3E%3Cpath d='M7 6v12M17 6v12'/%3E%3Cpath d='M9.5 9.5h5M9.5 12h5M9.5 14.5h3'/%3E%3C/svg%3E");
   /* Week tab (v9.4): a calendar with one week-row picked out. The moon it used to carry moved
      to the Season tab, which is where the lunar and solar cycles now live. */
+  --ic-drop:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.2c3.4 4.1 5.4 7.1 5.4 9.6a5.4 5.4 0 0 1-10.8 0c0-2.5 2-5.5 5.4-9.6z'/%3E%3C/svg%3E");
   --nv-calendar:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.2' y='5.2' width='17.6' height='15.6' rx='2.2'/%3E%3Cpath d='M3.2 9.8h17.6'/%3E%3Cpath d='M8.2 3.1v3.8M15.8 3.1v3.8'/%3E%3Crect x='6.3' y='12.6' width='11.4' height='3.3' rx='1.3' fill='black' stroke='none'/%3E%3C/svg%3E");
 }
 .t{font-family:var(--font-mono);font-size:var(--fs-2xs);font-weight:500;opacity:.75}
@@ -228,7 +229,7 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
    hou name is worse than an uneven row. */
 /* grid-template-columns is written inline per tab: one ribbon column for Week, up to four for
    Season, and none at all when every ribbon layer is switched off. */
-.weeks-grid{display:grid;column-gap:var(--alm-col-gap);row-gap:0;--alm-col-gap:var(--sp-2);--alm-stack-w:34px}
+.weeks-grid{display:grid;column-gap:var(--alm-col-gap);row-gap:0;--alm-col-gap:var(--sp-2);--alm-stack-w:34px;--alm-lane-w:26px}
 .week-section{display:contents}
 /* Descendant, not child: .week-section is display:contents, so these are grid items but their
    DOM parent is the section. A child combinator here silently matches nothing and the rows fall
@@ -276,7 +277,7 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
    would then stick to a box that never scrolls. */
 .alm-ribbon-inner{position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:center}
 /* A pill can run weeks tall, so the name is sticky rather than centred once. */
-.alm-ribbon-label{position:sticky;top:84px;display:flex;align-items:center;justify-content:center;
+.alm-ribbon-label{position:sticky;top:92px;display:flex;align-items:center;justify-content:center;
   gap:6px;padding:10px 0;writing-mode:vertical-rl;text-orientation:mixed}
 /* English rides the vertical-rl flow with text-orientation:mixed. The TC is stacked one character
    per line in horizontal-tb instead of leaning on text-orientation:upright — same upright column
@@ -306,23 +307,42 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .alm-pill.zodiac .alm-en{font-size:var(--fs-2xs);letter-spacing:.09em;text-transform:uppercase}
 .alm-pill.moonsign{background:var(--surface);border-color:var(--border)}
 .alm-pill.moonsign .alm-ribbon-label{color:var(--text-muted)}
-/* The term pill is a link in the Season tab only. */
-.alm-pill.alm-link{cursor:pointer}
-.alm-pill.alm-link:hover,.alm-pill.alm-link:focus-visible{background:var(--accent-bh);outline:0}
-.alm-pill.alm-link:hover .alm-ribbon-label,.alm-pill.alm-link:focus-visible .alm-ribbon-label{color:var(--bg)}
+/* Western flank: three parallel tracks of one strip, pulled together over the column gaps so they
+   meet on seams. Only the outer edges of the strip are rounded. Each track is told apart by its
+   position, its fill, and the sticky glyph tag below — never by a glyph repeated on every pill. */
+.alm-pill.track{border-color:var(--border)}
+.alm-pill.track.first{margin-right:calc(var(--alm-col-gap) / -2);border-right:0;
+  border-radius:var(--r-pill) 0 0 var(--r-pill);clip-path:inset(0 round var(--r-pill) 0 0 var(--r-pill))}
+.alm-pill.track.mid{margin-left:calc(var(--alm-col-gap) / -2);margin-right:calc(var(--alm-col-gap) / -2);
+  border-left:0;border-right:0;border-radius:0;clip-path:none}
+.alm-pill.track.last{margin-left:calc(var(--alm-col-gap) / -2);border-left:0;
+  border-radius:0 var(--r-pill) var(--r-pill) 0;clip-path:inset(0 round 0 var(--r-pill) var(--r-pill) 0)}
+.alm-pill.track.sun{background:var(--surface3)}
+.alm-pill.track.merc{background:var(--surface2)}
+.alm-pill.track.moon{background:var(--surface)}
+.alm-pill.track .alm-ribbon-label{color:var(--text-dim)}
+.alm-pill.track.sun .alm-en{font-size:var(--fs-2xs);letter-spacing:.09em;text-transform:uppercase}
+/* Retrograde is a modifier on Mercury's own pills: the ℞ plus a lighter, recessed fill. */
+.alm-rx{writing-mode:horizontal-tb;font-family:var(--font-serif);font-size:var(--fs-s);font-weight:700;
+  line-height:1;color:var(--danger)}
+/* Sticky track tags. Emitted after the pills so they float above them, and pinned higher than the
+   pill labels so the two never collide. */
+.alm-lane-tag{position:relative;pointer-events:none;display:flex;justify-content:center}
+.alm-lane-glyph{position:sticky;top:52px;font-size:var(--fs-m);line-height:1;color:var(--text-muted);
+  background:var(--bg);border-radius:var(--r-pill);padding:3px 0 5px;width:100%;text-align:center}
 
 /* Weather in the day cells (v9.8). Numbers use the mono face like every other figure in the app.
    An estimate beyond the forecast horizon is marked with a leading dot and dimmed, so a typical
    value never reads as a forecast. */
-.wx{display:inline-flex;align-items:baseline;gap:3px;font-family:var(--font-mono);font-size:var(--fs-2xs);
+.wx{display:inline-flex;align-items:center;gap:9px;font-family:var(--font-mono);font-size:var(--fs-xs);
   color:var(--text-dim);white-space:nowrap}
+.wx>span{display:inline-flex;align-items:center;gap:2px}
+.wx .mi{width:11px;height:11px;vertical-align:0}
 .wx-hi{font-weight:600;color:var(--text-dim)}
 .wx-lo{color:var(--text-muted)}
-.wx-sep{color:var(--text-muted);opacity:.5}
-.wx-pop{margin-left:3px;color:var(--accent-ab);opacity:.85}
+.wx-pop{color:var(--accent-ab);opacity:.9}
 .wx-est{opacity:.62;font-style:italic}
 .wx-est::before{content:'·';margin-right:2px;font-style:normal;opacity:.8}
-.day-left .wx{margin-top:2px}
 .wx-slot{min-width:0;white-space:nowrap}
 .season-row .wx{font-size:var(--fs-2xs)}
 
@@ -336,7 +356,7 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .season-row.is-today .season-date{color:var(--text)}
 .season-marks{display:flex;flex-wrap:wrap;align-items:baseline;gap:1px var(--sp-3);min-width:0}
 .season-hdr{margin-bottom:6px}
-.season-grid{--alm-stack-w:46px}
+.season-grid{--alm-stack-w:46px;--alm-lane-w:26px}
 .season-grid .week-section .week-hdr{margin-top:20px}
 /* Season carries two ribbons where Week carries one, so on a phone they are narrowed and pulled
    together — otherwise they take a third of the width and the day rows wrap into tall blocks. */
@@ -681,7 +701,7 @@ const PRI_ORDER={high:0,med:1,low:2,normal:3};
 // local browser time exactly as before — almanacTz must never leak into them.
 const ALM_TZ_DEFAULT='America/Los_Angeles';
 // terms/hou/moon apply to both tabs; branch and zodiac are the two halves of Season's merged pill.
-const ALM_LAYER_DEFAULT={terms:true,hou:true,moon:true,branch:true,zodiac:true,moonsign:true};
+const ALM_LAYER_DEFAULT={terms:true,hou:true,moon:true,branch:true,zodiac:true,moonsign:true,mercury:true};
 // Fallback zone list for engines without Intl.supportedValuesOf (Safari < 15.4).
 const ALM_TZ_FALLBACK=['America/Los_Angeles','America/Denver','America/Chicago','America/New_York',
   'America/Sao_Paulo','UTC','Europe/London','Europe/Paris','Europe/Berlin','Europe/Moscow',
@@ -917,7 +937,7 @@ function render(){
   const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
   const bottomNav=`<nav class="bottomnav">${slotBtn('bn-item')}<button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
   const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v9.8</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v9.9</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -947,7 +967,7 @@ if(sel.collapsedCount>0)h+=`<div style="margin-bottom:12px"><button class="expan
 // Ribbons are placed by explicit grid-row, so the run from the first to the last day of a term
 // is a single element even when week headers sit between those rows. Headers and day rows carry
 // an explicit grid-row too, so nothing is left to auto-placement alongside the spanning ribbons.
-const g=almGridPlan(sel.perWeek);
+const g=almGridPlan(sel.perWeek,'sprints');
 const fl=almFlanksHtml(g.alm,g.rowOf,'sprints');             // Week keeps only the 24 terms
 h+=`<div class="weeks-grid" style="grid-template-columns:${fl.cols};--alm-content-col:${fl.content}">`;
 sel.perWeek.forEach(s=>{h+=renderWeekSection(s.wk,s.days,g.alm,s.hdrRow)});
@@ -966,9 +986,9 @@ function almWeekSelection(){
 }
 
 // Assigns every header and day row its grid row, and computes the almanac once for the run.
-function almGridPlan(perWeek){
+function almGridPlan(perWeek,tab){
   const allDays=perWeek.reduce((a,s)=>a.concat(s.days),[]);
-  const alm=computeWeekAlmanac(allDays);
+  const alm=computeWeekAlmanac(allDays,tab);
   const rowOf={};
   let row=0;
   perWeek.forEach(s=>{s.hdrRow=++row;s.days.forEach(d=>{rowOf[d.date]=++row})});
@@ -1014,10 +1034,10 @@ function almNextDay(key){const d=parseDate(key);d.setDate(d.getDate()+1);return 
 
 // Markers (what flips) + per-day ambient state, computed once for the whole visible run of days.
 // Returns null whenever the almanac cannot be drawn, so callers just render nothing.
-function computeWeekAlmanac(days){
+function computeWeekAlmanac(days,tab){
   if(!almReady()||!days||!days.length)return null;
   const L=almLayers();
-  if(!L.terms&&!L.hou&&!L.moon&&!L.branch&&!L.zodiac&&!L.moonsign)return null;
+  if(!L.terms&&!L.hou&&!L.moon&&!L.branch&&!L.zodiac&&!L.moonsign&&!L.mercury)return null;
   const tz=almTz();
   try{
     const jd0=Almanac.localNoonJD(days[0].date,tz)-0.5;                    // local midnight, first day
@@ -1050,8 +1070,13 @@ function computeWeekAlmanac(days){
       let opens=false;                                                     // does a hou begin today?
       while(ci<crossings.length&&crossings[ci].key<=d.date){if(crossings[ci].key===d.date)opens=true;cur=crossings[ci].hou;ci++}
       const noon=Almanac.localNoonJD(d.date,tz);
-      const ms=(L.moonsign&&Almanac.moonLongitude)?Math.floor(Almanac.moonLongitude(noon)/30):null;
-      return{date:d.date,term:Math.floor(cur/3),hou:cur,houStart:opens,moonSign:ms}; // 3 hou to a term
+      const west=(tab==='season');
+      const ms=(west&&L.moonsign&&Almanac.moonLongitude)?Math.floor(Almanac.moonLongitude(noon)/30):null;
+      // Mercury: sign and direction in one key so a run breaks when EITHER changes — retrograde is
+      // a modifier on the sign, not a layer of its own.
+      const mk=(west&&L.mercury&&Almanac.mercuryLongitude)
+        ?Math.floor(Almanac.mercuryLongitude(noon)/30)*2+(Almanac.mercuryRetrograde(noon)?1:0):null;
+      return{date:d.date,term:Math.floor(cur/3),hou:cur,houStart:opens,moonSign:ms,merc:mk};
     });
     const byDate={};ambient.forEach(a=>{byDate[a.date]=a});
     return{markers,ambient,byDate};
@@ -1125,7 +1150,7 @@ function almDayFooterHtml(alm,dateKey){
    sign is the one layer read from its own longitude, at local noon like everything else. */
 const almBranchOfTerm=t=>Math.floor(t/2);                    // -> AlmanacData.BRANCHES
 const almZodOfTerm=t=>Math.floor(((((t-3)%24)+24)%24)/2);    // -> AlmanacData.ZODIAC
-const ALM_SUN='☉︎',ALM_MOON='☽︎';        // text presentation, never emoji
+const ALM_SUN='☉︎',ALM_MOON='☽︎',ALM_MERC='☿︎',ALM_RX='℞';   // text presentation, never emoji
 const ALM_LANES={
   branch:{get:a=>almBranchOfTerm(a.term),
     lbl:i=>{const b=AlmanacData.BRANCHES[i];return{tip:b.tc+' '+b.en+' · from '+b.term,
@@ -1135,10 +1160,13 @@ const ALM_LANES={
       html:`<span class="alm-tc">${t.tc}</span><span class="alm-en">${t.en}</span>`}}},
   zodiac:{get:a=>almZodOfTerm(a.term),
     lbl:i=>{const z=AlmanacData.ZODIAC[i];return{tip:'Sun in '+z.name+' · from '+z.term,
-      html:`<span class="alm-glyph">${ALM_SUN}</span><span class="alm-glyph">${z.glyph}</span><span class="alm-en">${z.name}</span>`}}},
+      html:`<span class="alm-glyph">${z.glyph}</span><span class="alm-en">${z.name}</span>`}}},
   moonsign:{get:a=>a.moonSign,
     lbl:i=>{const z=AlmanacData.ZODIAC[i];return{tip:'Moon in '+z.name,
-      html:`<span class="alm-glyph">${ALM_MOON}</span><span class="alm-glyph">${z.glyph}</span>`}}}
+      html:`<span class="alm-glyph">${z.glyph}</span>`}}},
+  mercury:{get:a=>a.merc,
+    lbl:v=>{const z=AlmanacData.ZODIAC[v>>1],rx=v&1;return{tip:'Mercury in '+z.name+(rx?' — retrograde':' — direct'),
+      html:`<span class="alm-glyph">${z.glyph}</span>`+(rx?`<span class="alm-rx">${ALM_RX}</span>`:'')}}}
 };
 
 // One layer's pills, as unbroken runs. `role` is pod (container), cap (nested) or solo.
@@ -1156,11 +1184,12 @@ function almRunsHtml(alm,rowOf,col,key,role,tab){
     let end=rowOf[r.endDate]+1;
     const next=runs[ri+1];
     if(next&&almNextDay(r.endDate)===next.startDate&&rowOf[next.startDate])end=rowOf[next.startDate];
-    // In the Season tab the term pill opens that term's reading. Nowhere else is it a control.
-    const link=(key==='terms'&&tab==='season');
-    const act=link?` onclick="almOpenTermLink(${r.value})" role="link" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();almOpenTermLink(${r.value})}"`:'';
-    const tip=n.tip+(link?' — open the guide for this term':'');
-    return`<div class="alm-pill ${key} ${role}${link?' alm-link':''}" style="grid-row:${r0}/${end};grid-column:${col}" title="${tip}"${act}><div class="alm-ribbon-inner"><div class="alm-ribbon-label">${n.html}</div></div></div>`;
+    // In the Season tab the term's Chinese text — and only that text — opens its reading. It is
+    // given no affordance at all: no cursor change, no hover state, no tooltip of its own.
+    let html=n.html;
+    if(key==='terms'&&tab==='season')
+      html=html.replace('<span class="alm-tc">',`<span class="alm-tc" onclick="event.stopPropagation();almOpenTermLink(${r.value})">`);
+    return`<div class="alm-pill ${key} ${role}" style="grid-row:${r0}/${end};grid-column:${col}" title="${n.tip}"><div class="alm-ribbon-inner"><div class="alm-ribbon-label">${html}</div></div></div>`;
   }).join('');
 }
 
@@ -1175,17 +1204,42 @@ function almStackHtml(alm,rowOf,col,containerKey,subKey,tab){
   return h;
 }
 
-/* Builds both flanks plus the grid template. A stack with every layer off takes no column at all
-   rather than leaving an empty gutter, so the content column index moves — it is published as
-   --alm-content-col for the row rules to follow. */
+/* Builds both flanks plus the grid template.
+
+   Right flank, Chinese: a nested container — 地支 holds its two 節氣, a genuine subset.
+   Left flank, western: the Moon is NOT a subset of the Sun, and Mercury is subset of neither, so
+   nesting would be a lie. They run instead as three parallel tracks of one strip, ordered slowest
+   to fastest outward-to-inward (☉ Sun, ☿ Mercury, ☽ Moon) to match the right flank's logic. Which
+   track is which is carried by POSITION plus a sticky glyph tag riding at the top of each track —
+   never by a glyph repeated on every pill, which is unreadable once the Moon changes sign every
+   two days. Retrograde is a modifier on Mercury's pills, not a track of its own.
+
+   A stack with every layer off takes no column at all rather than leaving an empty gutter, so the
+   content column index moves — it is published as --alm-content-col for the row rules to follow. */
+const ALM_WEST=[{key:'zodiac',glyph:ALM_SUN,cls:'sun'},
+                {key:'mercury',glyph:ALM_MERC,cls:'merc'},
+                {key:'moonsign',glyph:ALM_MOON,cls:'moon'}];
 function almFlanksHtml(alm,rowOf,tab){
   if(!alm)return{cols:'1fr',content:1,html:''};
-  const west=tab==='season'?almStackHtml(alm,rowOf,1,'zodiac','moonsign',tab):'';
-  const contentCol=west?2:1;
+  const L=almLayers();
+  let west='',lanes=0;
+  if(tab==='season'){
+    const on=ALM_WEST.filter(w=>L[w.key]);
+    on.forEach((w,i)=>{
+      const col=1+i;
+      const edge=on.length===1?'only':(i===0?'first':(i===on.length-1?'last':'mid'));
+      west+=almRunsHtml(alm,rowOf,col,w.key,'track '+w.cls+' '+edge,tab);
+      // The tag spans the whole column and is emitted after the pills, so its sticky glyph rides
+      // above them and keeps naming the track however far you scroll.
+      west+=`<div class="alm-lane-tag ${w.cls}" style="grid-column:${col};grid-row:1/-1" aria-hidden="true"><span class="alm-lane-glyph">${w.glyph}</span></div>`;
+      lanes++;
+    });
+  }
+  const contentCol=lanes+1;
   const east=tab==='season'
     ? almStackHtml(alm,rowOf,contentCol+1,'branch','terms',tab)
     : almStackHtml(alm,rowOf,contentCol+1,null,'terms',tab);
-  const cols=(west?'var(--alm-stack-w) ':'')+'1fr'+(east?' var(--alm-stack-w)':'');
+  const cols=(lanes?('var(--alm-lane-w) '.repeat(lanes)):'')+'1fr'+(east?' var(--alm-stack-w)':'');
   return{cols,content:contentCol,html:west+east};
 }
 
@@ -1319,12 +1373,17 @@ function wxStatusText(){
   if(c.normals)bits.push('averages loaded');
   return bits.join(' · ');
 }
+/* Marks come from the app's own engraved icon set: the existing chevron for the high, the same
+   chevron flipped for the low, and a new raindrop for precipitation. Anything under 10% is left
+   off entirely — a 3% chance is noise, not information. */
 function wxCellHtml(dateKey){
   const w=wxFor(dateKey);
   if(!w)return'';
-  const pop=w.pop==null?'':`<span class="wx-pop">${Math.round(w.pop)}%</span>`;
+  const pop=(w.pop!=null&&Math.round(w.pop)>=10)
+    ?`<span class="wx-pop"><span class="mi" style="--ic:var(--ic-drop)"></span>${Math.round(w.pop)}%</span>`:'';
   return`<span class="wx${w.est?' wx-est':''}" title="${w.est?'Typical for this date — average of the last three years, not a forecast':'Forecast'}">`
-    +`<span class="wx-hi">${Math.round(w.hi)}°</span><span class="wx-sep">/</span><span class="wx-lo">${Math.round(w.lo)}°</span>${pop}</span>`;
+    +`<span class="wx-hi"><span class="mi" style="--ic:var(--ic-up)"></span>${Math.round(w.hi)}°</span>`
+    +`<span class="wx-lo"><span class="mi mi-flip" style="--ic:var(--ic-up)"></span>${Math.round(w.lo)}°</span>${pop}</span>`;
 }
 
 /* ---- Season tab (v9.4) ----
@@ -1336,7 +1395,7 @@ function renderSeason(){
   let h=`<div class="life-header"><span class="life-title">Season</span><span class="legend-hint">節氣 · 候 · 月建 · sign · moon</span></div>`;
   if(!almReady())return h+`<div class="notes-box"><div class="notes-box-text" style="font-size:var(--fs-xs);color:var(--text-muted)">The almanac engine did not load, so there is nothing to show here. A hard refresh usually fixes it.</div></div>`;
   if(sel.collapsedCount>0)h+=`<div style="margin-bottom:12px"><button class="expand-week-btn" onclick="expandAllPastWeeks()" style="font-size:var(--fs-2xs);padding:3px 10px">▼ ${sel.collapsedCount} past week${sel.collapsedCount>1?'s':''} (show)</button></div>`;
-  const g=almGridPlan(sel.perWeek);
+  const g=almGridPlan(sel.perWeek,'season');
   const fl=almFlanksHtml(g.alm,g.rowOf,'season');
   h+=`<div class="weeks-grid season-grid" style="grid-template-columns:${fl.cols};--alm-content-col:${fl.content}">`;
   sel.perWeek.forEach(s=>{
@@ -1422,7 +1481,7 @@ sylChips.forEach(sc=>{const sylTime=sc.dueTime||'09:00';const fmtSylTime=((h,m)=
 tasks.forEach(t=>pills.push({type:'task',time:t.time||'',html:renderChip(t)}));
 pills.sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
 const pillsHtml=pills.map(p=>p.html).join('');
-h+=`<div class="day-row ${isT?'is-today':''} ${isAT?'alloc-target':''}" style="grid-row:${dayRow}" data-date="${day.date}" ondragover="event.preventDefault();this.classList.add('alloc-highlight')" ondrop="handleDrop(event,'${day.date}')" ondragleave="this.classList.remove('alloc-highlight')" ${isAT?`onclick="placeAllocated('${day.date}')"`:''}><div class="day-left"><span class="day-name">${fmtDate(day.dateObj)}</span>${wxCellHtml(day.date)}${canHide?`<button class="hide-day-btn" onclick="event.stopPropagation();hideDay('${day.date}')" title="Hide this day">hide</button>`:''}</div><div class="day-tasks-area" ondragover="handleChipDragOver(event)" ondrop="handleChipDrop(event,'${day.date}')" ondragleave="clearDropIndicators(this)">${pillsHtml}</div><div class="day-right"><button class="add-day-btn" onclick="event.stopPropagation();openAddTask('${day.date}')" title="Add">+</button></div><div class="day-note-row"><button class="day-note-btn" onclick="event.stopPropagation();toggleEl('dn-${day.date}')">${note?'<span class=\'mi\' style=\'--ic:var(--ic-pen)\'></span>':'+ note'}</button><textarea class="day-note-input" id="dn-${day.date}" style="display:${note?'block':'none'}" onclick="event.stopPropagation()" oninput="state.dayNotes['${day.date}']=this.value;scheduleSave()" placeholder="Notes...">${note}</textarea></div>${almDayFooterHtml(alm,day.date)}</div>`});
+h+=`<div class="day-row ${isT?'is-today':''} ${isAT?'alloc-target':''}" style="grid-row:${dayRow}" data-date="${day.date}" ondragover="event.preventDefault();this.classList.add('alloc-highlight')" ondrop="handleDrop(event,'${day.date}')" ondragleave="this.classList.remove('alloc-highlight')" ${isAT?`onclick="placeAllocated('${day.date}')"`:''}><div class="day-left"><span class="day-name">${fmtDate(day.dateObj)}</span>${canHide?`<button class="hide-day-btn" onclick="event.stopPropagation();hideDay('${day.date}')" title="Hide this day">hide</button>`:''}</div><div class="day-tasks-area" ondragover="handleChipDragOver(event)" ondrop="handleChipDrop(event,'${day.date}')" ondragleave="clearDropIndicators(this)">${pillsHtml}</div><div class="day-right"><button class="add-day-btn" onclick="event.stopPropagation();openAddTask('${day.date}')" title="Add">+</button></div><div class="day-note-row"><button class="day-note-btn" onclick="event.stopPropagation();toggleEl('dn-${day.date}')">${note?'<span class=\'mi\' style=\'--ic:var(--ic-pen)\'></span>':'+ note'}</button><textarea class="day-note-input" id="dn-${day.date}" style="display:${note?'block':'none'}" onclick="event.stopPropagation()" oninput="state.dayNotes['${day.date}']=this.value;scheduleSave()" placeholder="Notes...">${note}</textarea></div>${almDayFooterHtml(alm,day.date)}</div>`});
 h+='</div>';return h}
 
 function renderChip(t){const isLife=t.cat==='life'&&t.lifeSourceId;let acts='';
@@ -1605,11 +1664,11 @@ function renderSettings(){
   <input class="life-input" id="almTzFilter" value="${_almTzFilter.replace(/"/g,'&quot;')}" oninput="almTzFilterInput(this.value)" placeholder="Filter zones…" style="width:190px;margin-bottom:6px"/>
   <select class="life-select" id="almTzSelect" onchange="almSetTz(this.value)" style="width:260px;max-width:100%;display:block">${almTzOptionsHtml(_almTzFilter)}</select></div>
   <div class="settings-section"><label>Layers</label>
-  <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Solar terms, 候 and moon quarters appear in both the Week and Season tabs; the branch, Sun sign and Moon sign are Season-tab flanks only.</div>
-  <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:var(--fs-xs)">${[['terms','Solar terms 節氣'],['hou','Pentads 候'],['moon','Moon quarters'],['branch','Earthly branch 月建'],['zodiac','Sun sign'],['moonsign','Moon sign']].map(([k,lbl])=>`<label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox"${almLayers()[k]?' checked':''} onchange="almSetLayer('${k}',this.checked)"/> ${lbl}</label>`).join('')}</div></div></div>
+  <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Solar terms, 候 and moon quarters appear in both the Week and Season tabs; the branch and the ☉/☿/☽ tracks are Season-tab flanks only, and the weather reading is Season-tab only.</div>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:var(--fs-xs)">${[['terms','Solar terms 節氣'],['hou','Pentads 候'],['moon','Moon quarters'],['branch','Earthly branch 月建'],['zodiac','☉ Sun sign'],['mercury','☿ Mercury sign'],['moonsign','☽ Moon sign']].map(([k,lbl])=>`<label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox"${almLayers()[k]?' checked':''} onchange="almSetLayer('${k}',this.checked)"/> ${lbl}</label>`).join('')}</div></div></div>
   <div class="notes-box"><div class="notes-box-title">Weather</div>
   <div class="settings-section"><label>ZIP code</label>
-  <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">US ZIP for the daily high, low and chance of precipitation shown in the Week and Season day cells. The next 16 days are a live forecast; beyond that each day shows a typical value — the average of the last three years for that date, marked with a dot — rather than a forecast.</div>
+  <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">US ZIP for the daily high, low and chance of precipitation shown in the Season tab's day cells. The next 16 days are a live forecast; beyond that each day shows a typical value — the average of the last three years for that date, marked with a dot — rather than a forecast.</div>
   <input class="life-input" id="wxZipInput" type="text" inputmode="numeric" maxlength="5" value="${wxZip()}" onchange="wxSetZip(this.value)" style="width:110px"/>
   <button class="btn btn-quiet" onclick="wxRefresh(true)" style="margin-left:8px">Refresh now</button>
   <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-top:8px">${wxStatusText()}</div></div></div>

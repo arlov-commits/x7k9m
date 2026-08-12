@@ -1,5 +1,5 @@
 /* almanac.js — astronomical engine for solar terms, 72 hou, moon quarters, tropical zodiac.
- * v1.3 — pure functions, no DOM, no dependencies. Works in browser and Node.
+ * v1.4 — pure functions, no DOM, no dependencies. Works in browser and Node.
  * Algorithms: Meeus, Astronomical Algorithms 2nd ed. — ch.25 (solar position), ch.49 (moon phases).
  */
 (function (root) {
@@ -266,6 +266,87 @@
     return norm360(Lp + sum / 1e6 + dpsi);
   }
 
+  /* ---------- mercury (VSOP87D, truncated) ----------
+   * Added in v1.4 for the Mercury-sign layer. Heliocentric Mercury and Earth are differenced to
+   * a geocentric longitude, with one light-time iteration. Coefficients are in 1e-8 radians so
+   * they feed the same series() helper as Earth's above.
+   * There is no Mercury fixture, so test-almanac.js checks it structurally: the geocentric
+   * elongation from the Sun can never exceed ~28 degrees, retrograde must happen about three
+   * times a year, each stretch must last roughly three weeks, and successive stretches must be
+   * about a synodic period apart. A wrong or missing term breaks all four at once. */
+
+  var MeL0=[[440250710,0,0],[40989415,1.48302034,26087.90314157],[5046294,4.47785490,52175.80628315],
+[855347,1.16520322,78263.70942472],[165590,4.11969163,104351.61256630],[34562,0.77930768,130439.51570787],
+[7583,3.71348405,156527.41884945],[3560,1.51202,1109.37855],[1803,4.10333,5661.33220],
+[1726,0.35832,182615.32020],[1590,2.99510,25028.52121],[1365,4.59918,27197.28169],
+[1017,0.88031,31749.23519],[714,1.541,24978.525],[644,5.303,21535.950],[451,6.050,51116.424],
+[404,3.282,208703.325],[352,5.242,20426.571],[345,2.792,15874.618],[343,5.765,955.600],
+[339,5.863,25558.212],[325,1.337,53285.185],[273,2.495,529.691],[264,3.917,57837.138],
+[260,0.987,4551.953],[239,0.113,1059.382],[235,0.267,11322.664],[217,0.660,13521.751],
+[209,2.092,47623.853],[183,2.629,27043.503],[182,2.434,25661.305],[176,4.536,51066.428]];
+  var MeL1=[[2608790313686,0,0],[1131200,6.21874197,26087.90314157],[292242,3.04449356,52175.80628315],
+[75775,6.08568822,78263.70942472],[19677,2.80965112,104351.61256630],[5119,5.79432617,130439.51570787],
+[1342,2.78477392,156527.41884945],[354,5.7735,182615.3202],[104,2.452,1109.379],[92,4.55,208703.33]];
+  var MeL2=[[5333,4.9925,26087.9031],[2492,1.6822,52175.8063],[836,4.6284,78263.7094],
+[276,1.5949,104351.6126],[91,4.5566,130439.5157],[30,1.52,156527.42]];
+  var MeB0=[[11737529,1.98357499,26087.90314157],[2388077,5.03738960,52175.80628315],
+[1222840,3.14159265,0],[543252,1.79644364,78263.70942472],[129779,4.83232504,104351.61256630],
+[31867,1.58088496,130439.51570787],[7963,4.60972126,156527.41884945],[2014,1.35324,182615.32020],
+[514,4.3778,208703.3253],[209,2.0203,24978.5252],[208,4.9182,27197.2817],[132,5.9506,234791.1285],
+[121,5.6932,20426.5711],[100,4.2634,21535.9496]];
+  var MeB1=[[274646,3.95008450,26087.90314157],[99737,3.14159265,0],[33257,0.06527,52175.80628],
+[6019,4.0919,78263.70942],[1030,0.9200,104351.6126]];
+  var MeR0=[[39528272,0,0],[7834132,6.19233723,26087.90314157],[795526,2.95989690,52175.80628315],
+[121282,6.01064154,78263.70942472],[21922,2.77820094,104351.61256630],[4354,5.82894544,130439.51570787],
+[918,2.5921,156527.4188],[290,1.4239,25028.5212],[260,0.7857,27197.2817],[202,5.6470,182615.3202],
+[201,5.5926,31749.2352],[142,6.107,24978.525],[100,3.963,21535.950]];
+  var MeR1=[[217348,4.65617159,26087.90314157],[44142,1.42385543,52175.80628315],
+[10094,4.47466326,78263.70942472],[2433,1.24226681,104351.61256630],[1624,0,0],[604,4.293,130439.516],
+[153,1.061,156527.419],[39,4.11,182615.32]];
+  var MeR2=[[3118,3.0823,26087.9031],[1245,6.1518,52175.8063],[425,2.926,78263.709],
+[136,5.980,104351.613],[42,2.75,130439.52]];
+
+  function mercuryHelio(tau) {                               // heliocentric L, B (rad) and R (AU)
+    return {
+      L: (series(tau, MeL0) + series(tau, MeL1) * tau + series(tau, MeL2) * tau * tau) / 1e8,
+      B: (series(tau, MeB0) + series(tau, MeB1) * tau) / 1e8,
+      R: (series(tau, MeR0) + series(tau, MeR1) * tau + series(tau, MeR2) * tau * tau) / 1e8
+    };
+  }
+  function earthHelio(tau) {                                 // B is under an arcsecond: taken as 0
+    return {
+      L: (series(tau, L0) + series(tau, L1) * tau + series(tau, L2) * Math.pow(tau, 2)
+        + series(tau, L3) * Math.pow(tau, 3) + series(tau, L4) * Math.pow(tau, 4)) / 1e8,
+      R: (series(tau, R0) + series(tau, R1) * tau + series(tau, R2) * Math.pow(tau, 2)) / 1e8
+    };
+  }
+
+  function mercuryLongitude(jdUT) {                          // geocentric ecliptic longitude, deg
+    var jdTT = jdUT + deltaT(jdUT);
+    var E = earthHelio((jdTT - J2000) / 365250.0);
+    var ex = E.R * Math.cos(E.L), ey = E.R * Math.sin(E.L);
+    var t = jdTT, dx = 0, dy = 0;
+    for (var i = 0; i < 2; i++) {                            // one light-time iteration
+      var M = mercuryHelio((t - J2000) / 365250.0);
+      var cb = Math.cos(M.B);
+      dx = M.R * cb * Math.cos(M.L) - ex;
+      dy = M.R * cb * Math.sin(M.L) - ey;
+      var dz = M.R * Math.sin(M.B);
+      t = jdTT - Math.sqrt(dx * dx + dy * dy + dz * dz) * 0.0057755183;   // days of light travel
+    }
+    var T = (jdTT - J2000) / 36525.0;
+    var Om = 125.04452 - 1934.136261 * T, Ls = 280.4665 + 36000.7698 * T, Lm = 218.3165 + 481267.8813 * T;
+    var dpsi = (-17.20 * sin(Om) - 1.32 * sin(2 * Ls) - 0.23 * sin(2 * Lm) + 0.21 * sin(2 * Om)) / 3600;
+    return norm360(Math.atan2(dy, dx) * 180 / Math.PI + dpsi);
+  }
+
+  // Retrograde is simply a decreasing geocentric longitude; a one-day central difference is far
+  // coarser than the ~3 week stretches it has to resolve, so no station solving is needed.
+  function mercuryRetrograde(jdUT) {
+    var d = ((mercuryLongitude(jdUT + 0.5) - mercuryLongitude(jdUT - 0.5)) % 360 + 540) % 360 - 180;
+    return d < 0;
+  }
+
   /* ---------- timezone helpers ---------- */
 
   var _fmtCache = {};                                        // memoized Intl formatters
@@ -309,6 +390,7 @@
     longitudeCrossings: longitudeCrossings,
     moonPhaseJD: moonPhaseJD, moonQuartersInRange: moonQuartersInRange,
     moonLongitude: moonLongitude,
+    mercuryLongitude: mercuryLongitude, mercuryRetrograde: mercuryRetrograde,
     localDateKey: localDateKey, localNoonJD: localNoonJD, tzOffsetMs: tzOffsetMs,
     norm360: norm360
   };

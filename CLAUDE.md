@@ -3,9 +3,9 @@
 Operating instructions for Claude Code working in this repo. Read this before making changes.
 
 ## What this is
-A single-file academic planner PWA (`index.html`, vanilla HTML/CSS/JS, no build step) for one user. Tabs: Dashboard, Week (sprints), Syllabus, Tasks, Events, Notes, Season. Data persists to localStorage and mirrors to Supabase. Day cells also carry a weather reading (Open-Meteo, no API key): a 16-day forecast, then day-of-year averages from a 3-year archive beyond it. It is cached under its own localStorage key, never in `state`, and the network is never in the critical path — the cells render from cache and a refresh lands later. Hosted on Cloudflare Pages, auto-deploys from `main`.
+A single-file academic planner PWA (`index.html`, vanilla HTML/CSS/JS, no build step) for one user. Tabs: Dashboard, Week (sprints), Syllabus, Tasks, Events, Notes, Season. Data persists to localStorage and mirrors to Supabase. Season-tab day cells also carry a weather reading (Open-Meteo, no API key): a 16-day forecast, then day-of-year averages from a 3-year archive beyond it. It is cached under its own localStorage key, never in `state`, and the network is never in the critical path — the cells render from cache and a refresh lands later. Hosted on Cloudflare Pages, auto-deploys from `main`.
 
-The one exception to "single file" is the almanac (v9.0): `almanac.js` (engine) and `almanac-data.js` (name tables) load as separate scripts and are precached by `sw.js`. It drives the Season tab (solar terms, 候, moon quarters, earthly branch, Sun sign, Moon sign) and, in the Week tab, the solar-term pill plus moon quarters. `almanac.js` v1.3 adds the Moon's ecliptic longitude, checked by elongation against the moon-quarter fixtures rather than by a fixture of its own. Week and Season draw the same weeks and days on purpose — tapping the 節氣 ribbon in either one crosses to the other at the same scroll position, which only works while their rows correspond. They are verified against `almanac-fixtures.json` by `test-almanac.html` + `test-almanac.js` (serve the repo over HTTP and open the page; expect zero failures). `ALMANAC_SPEC.md` carries the provenance — read it before touching the data tables.
+The one exception to "single file" is the almanac (v9.0): `almanac.js` (engine) and `almanac-data.js` (name tables) load as separate scripts and are precached by `sw.js`. It drives the Season tab (solar terms, 候, moon quarters, earthly branch, Sun sign, Moon sign, Mercury sign with retrograde) and, in the Week tab, the solar-term pill plus moon quarters. `almanac.js` v1.3 adds the Moon's ecliptic longitude, checked by elongation against the moon-quarter fixtures rather than by a fixture of its own. Week and Season draw the same weeks and days on purpose — tapping the 節氣 ribbon in either one crosses to the other at the same scroll position, which only works while their rows correspond. They are verified against `almanac-fixtures.json` by `test-almanac.html` + `test-almanac.js` (serve the repo over HTTP and open the page; expect zero failures). `ALMANAC_SPEC.md` carries the provenance — read it before touching the data tables.
 
 ## Deploy workflow (NON-NEGOTIABLE)
 - **Never commit directly to `main`.** A live user depends on `main`.
@@ -16,7 +16,7 @@ The one exception to "single file" is the almanac (v9.0): `almanac.js` (engine) 
 
 ## Versioning
 - Version lives as an HTML comment on line 1: `<!-- Academic Planner vX.Y -->`, and in a visible `.version-label` in the header, and in the service worker `CACHE_NAME`.
-- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v9.8. All three locations must match.
+- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v9.9. All three locations must match.
 - Bumping the SW `CACHE_NAME` every change is required or installed devices serve stale code.
 
 ## Architecture rules (hard-won — do not violate)
