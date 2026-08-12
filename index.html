@@ -1,4 +1,4 @@
-<!-- Academic Planner v9.7 -->
+<!-- Academic Planner v9.8 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -228,11 +228,14 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
    hou name is worse than an uneven row. */
 /* grid-template-columns is written inline per tab: one ribbon column for Week, up to four for
    Season, and none at all when every ribbon layer is switched off. */
-.weeks-grid{display:grid;column-gap:var(--alm-col-gap);row-gap:0;--alm-col-gap:var(--sp-2);--alm-rib-w:30px;--alm-zb-w:29px}
+.weeks-grid{display:grid;column-gap:var(--alm-col-gap);row-gap:0;--alm-col-gap:var(--sp-2);--alm-stack-w:34px}
 .week-section{display:contents}
-.weeks-grid>.week-hdr,.weeks-grid>.day-row,.weeks-grid>.season-row{grid-column:1;min-width:0}
+/* Descendant, not child: .week-section is display:contents, so these are grid items but their
+   DOM parent is the section. A child combinator here silently matches nothing and the rows fall
+   to auto-placement, which lands them in the left flank's column. */
+.weeks-grid .week-hdr,.weeks-grid .day-row,.weeks-grid .season-row{grid-column:var(--alm-content-col,1);min-width:0}
 .week-section .week-hdr{margin-top:26px}
-.weeks-grid>.week-section:first-child .week-hdr{margin-top:0}
+.weeks-grid .week-section:first-child .week-hdr{margin-top:0}
 .day-almanac{grid-column:1/-1;display:flex;flex-direction:column;gap:2px;margin-top:5px;padding-top:5px;border-top:1px dotted var(--border)}
 .alm-mk{display:inline-flex;align-items:baseline;gap:6px;flex-wrap:wrap;background:0;border:0;padding:0;margin:0;text-align:left;font-family:var(--font-sans);color:var(--text-dim);cursor:default}
 .alm-tc{font-family:var(--font-serif);letter-spacing:.04em}
@@ -259,45 +262,73 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
    run must never stretch its day row to fit a vertical name. */
 /* Clipped with clip-path, NOT overflow:hidden: an overflow:hidden box is a scroll container, and
    the sticky label below would then stick to a box that never scrolls. clip-path only clips paint. */
-.alm-term-ribbon{position:relative;min-height:0;margin-bottom:5px;
-  background:var(--accent-bh-dim);border:1px solid var(--accent-bh-dim);border-radius:var(--r-pill);
+/* Nested stacks (v9.8). Container and sub-pills share a grid column and overlap by design:
+   the container paints first and the subs sit on top, inset, so the containment is literal.
+   A container is only ever as tall as the runs it holds, so no z-index games are needed —
+   DOM order alone puts the subs in front. */
+.alm-pill{position:relative;min-height:0;margin-bottom:5px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-pill);
   clip-path:inset(0 round var(--r-pill))}
-/* The 節氣 + 地支 band: two lanes pulled across the column gap by half a gap each so they meet on
-   a seam and read as one. Inner borders dropped so the seam is a single line, and only the outer
-   edges rounded — the branch lane visibly bridges the 中氣 where the term lane breaks. */
-.alm-term-ribbon.tb.west.paired{margin-right:calc(var(--alm-col-gap) / -2);border-right:0;
-  border-radius:var(--r-pill) 0 0 var(--r-pill);clip-path:inset(0 round var(--r-pill) 0 0 var(--r-pill))}
-.alm-term-ribbon.tb.east.paired{margin-left:calc(var(--alm-col-gap) / -2);border-left:0;
-  border-radius:0 var(--r-pill) var(--r-pill) 0;clip-path:inset(0 round 0 var(--r-pill) var(--r-pill) 0)}
-/* Branch lane: the character stacked like the other CJK labels, its animal in the serif face,
-   over a warmer fill than the term's so the two lanes stay legible as separate cycles. */
-.alm-term-ribbon.tb.east{background:var(--accent-cn-dim);border-color:var(--accent-cn-dim)}
-.alm-term-ribbon.tb.east .alm-ribbon-label{color:var(--text-dim)}
-.alm-term-ribbon.tb.east .alm-en{font-family:var(--font-serif);font-size:var(--fs-2xs);font-style:italic;letter-spacing:.02em}
-.alm-term-ribbon.tb.east .alm-tc{font-size:var(--fs-m);font-weight:700}
-/* Western sign: its own quiet pill, the glyph over a spaced, upright-reading name. */
-.alm-term-ribbon.zod{background:var(--surface2);border-color:var(--border)}
-.alm-term-ribbon.zod .alm-ribbon-label{color:var(--text-muted)}
-.alm-term-ribbon.zod .alm-en{font-size:var(--fs-2xs);letter-spacing:.09em;text-transform:uppercase}
-/* The term pill is a link in the Season tab only. */
-.alm-term-ribbon.alm-link{cursor:pointer}
-.alm-term-ribbon.alm-link:hover,.alm-term-ribbon.alm-link:focus-visible{background:var(--accent-bh);outline:0}
-.alm-term-ribbon.alm-link:hover .alm-ribbon-label,.alm-term-ribbon.alm-link:focus-visible .alm-ribbon-label{color:var(--bg)}
-.alm-ribbon-label .alm-glyph{writing-mode:horizontal-tb;font-size:var(--fs-m);line-height:1}
+.alm-pill.pod{background:var(--surface3);border-color:var(--surface3)}
+/* The label is absolutely positioned so a pill contributes NO intrinsic height: a one-day run
+   must never stretch its row to fit a vertical name. Clipped with clip-path rather than
+   overflow:hidden — an overflow:hidden box is a scroll container, and the sticky label below
+   would then stick to a box that never scrolls. */
 .alm-ribbon-inner{position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:center}
-/* A ribbon can run three weeks tall, so the name is sticky rather than centred once — otherwise
-   it scrolls out of view and a long stretch of ribbon reads as unlabelled. */
+/* A pill can run weeks tall, so the name is sticky rather than centred once. */
 .alm-ribbon-label{position:sticky;top:84px;display:flex;align-items:center;justify-content:center;
-  gap:6px;padding:10px 0;color:var(--accent-bh);writing-mode:vertical-rl;text-orientation:mixed}
+  gap:6px;padding:10px 0;writing-mode:vertical-rl;text-orientation:mixed}
 /* English rides the vertical-rl flow with text-orientation:mixed. The TC is stacked one character
    per line in horizontal-tb instead of leaning on text-orientation:upright — same upright column
    visually, but it does not depend on the CJK font shipping vertical metrics, which some engines
    lack (the glyphs then collapse to zero advance). */
-.alm-ribbon-label .alm-tc{writing-mode:horizontal-tb;font-size:var(--fs-m);font-weight:700;width:1em;word-break:break-all;line-height:1.15;text-align:center;letter-spacing:0}
+.alm-ribbon-label .alm-tc{writing-mode:horizontal-tb;font-size:var(--fs-m);font-weight:700;width:1em;
+  word-break:break-all;line-height:1.15;text-align:center;letter-spacing:0}
 .alm-ribbon-label .alm-en{font-size:var(--fs-2xs);white-space:nowrap;letter-spacing:.02em;opacity:.85}
+/* One glyph per span: paired symbols in a single span do not reliably wrap inside a 1em box,
+   so they get their own boxes and stack along the label's vertical flow. */
+.alm-ribbon-label .alm-glyph{writing-mode:horizontal-tb;font-size:var(--fs-s);line-height:1.05;text-align:center}
+/* Sub-pills are inset on the INNER side only, leaving a strip of the container showing along the
+   outer edge of the column — that strip is where the container's own name runs, otherwise the
+   subs would tile over it completely and the container would be invisible. */
+.alm-pill.cap{margin:3px 3px 8px;border-radius:var(--r-pill);clip-path:inset(0 round var(--r-pill))}
+.alm-pill.terms.cap{margin-right:22px}                 /* right column: container spine on the right */
+.alm-pill.moonsign.cap{margin-left:22px}               /* left column: container spine on the left  */
+.alm-pill.branch .alm-ribbon-inner{justify-content:flex-end}
+.alm-pill.zodiac .alm-ribbon-inner{justify-content:flex-start}
+.alm-pill.branch .alm-ribbon-label,.alm-pill.zodiac .alm-ribbon-label{padding-left:3px;padding-right:3px}
+.alm-pill.terms{background:var(--accent-bh-dim);border-color:var(--accent-bh-dim)}
+.alm-pill.terms .alm-ribbon-label{color:var(--accent-bh)}
+.alm-pill.branch .alm-ribbon-label{color:var(--text-dim)}
+.alm-pill.branch .alm-en{font-family:var(--font-serif);font-size:var(--fs-2xs);font-style:italic}
+.alm-pill.branch .alm-tc{font-size:var(--fs-m);font-weight:700}
+.alm-pill.zodiac .alm-ribbon-label{color:var(--text-dim)}
+.alm-pill.zodiac .alm-en{font-size:var(--fs-2xs);letter-spacing:.09em;text-transform:uppercase}
+.alm-pill.moonsign{background:var(--surface);border-color:var(--border)}
+.alm-pill.moonsign .alm-ribbon-label{color:var(--text-muted)}
+/* The term pill is a link in the Season tab only. */
+.alm-pill.alm-link{cursor:pointer}
+.alm-pill.alm-link:hover,.alm-pill.alm-link:focus-visible{background:var(--accent-bh);outline:0}
+.alm-pill.alm-link:hover .alm-ribbon-label,.alm-pill.alm-link:focus-visible .alm-ribbon-label{color:var(--bg)}
+
+/* Weather in the day cells (v9.8). Numbers use the mono face like every other figure in the app.
+   An estimate beyond the forecast horizon is marked with a leading dot and dimmed, so a typical
+   value never reads as a forecast. */
+.wx{display:inline-flex;align-items:baseline;gap:3px;font-family:var(--font-mono);font-size:var(--fs-2xs);
+  color:var(--text-dim);white-space:nowrap}
+.wx-hi{font-weight:600;color:var(--text-dim)}
+.wx-lo{color:var(--text-muted)}
+.wx-sep{color:var(--text-muted);opacity:.5}
+.wx-pop{margin-left:3px;color:var(--accent-ab);opacity:.85}
+.wx-est{opacity:.62;font-style:italic}
+.wx-est::before{content:'·';margin-right:2px;font-style:normal;opacity:.8}
+.day-left .wx{margin-top:2px}
+.wx-slot{min-width:0;white-space:nowrap}
+.season-row .wx{font-size:var(--fs-2xs)}
+
 /* Season rows (v9.4). No academic content means no chips, no note field and no add button, so
    the row collapses to a date plus that day's almanac laid out on one line. */
-.season-row{display:grid;grid-template-columns:88px 1fr;gap:var(--sp-2);align-items:baseline;
+.season-row{display:grid;grid-template-columns:88px auto 1fr;gap:var(--sp-2);align-items:baseline;
   margin-bottom:3px;padding:5px 10px;background:var(--surface);border-radius:var(--r-s);
   border-left:3px solid transparent}
 .season-row.is-today{border-left-color:var(--warning);background:var(--surface2)}
@@ -305,12 +336,24 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .season-row.is-today .season-date{color:var(--text)}
 .season-marks{display:flex;flex-wrap:wrap;align-items:baseline;gap:1px var(--sp-3);min-width:0}
 .season-hdr{margin-bottom:6px}
+.season-grid{--alm-stack-w:46px}
 .season-grid .week-section .week-hdr{margin-top:20px}
 /* Season carries two ribbons where Week carries one, so on a phone they are narrowed and pulled
    together — otherwise they take a third of the width and the day rows wrap into tall blocks. */
 @media(max-width:700px){
-  .season-row{grid-template-columns:68px 1fr;padding:5px 8px;gap:var(--sp-1)}
-  .season-grid{--alm-rib-w:26px;--alm-zb-w:25px;--alm-col-gap:5px}
+  /* Narrow: stack the date and its weather in the left column so the markers keep the width
+     they need, rather than three columns fighting over ~240px. */
+  .season-row{grid-template-columns:66px 1fr;padding:5px 8px;gap:0 var(--sp-2);align-items:start}
+  .season-row .season-date{grid-column:1;grid-row:1}
+  .season-row .wx-slot{grid-column:1;grid-row:2}
+  .season-row .season-marks{grid-column:2;grid-row:1/3;min-width:0}
+  /* Let the reading wrap inside the narrow left column instead of spilling over the markers. */
+  .season-row .wx-slot{white-space:normal}
+  .season-row .wx{flex-wrap:wrap;white-space:normal}
+  .weeks-grid{--alm-stack-w:30px;--alm-col-gap:5px}
+  .season-grid{--alm-stack-w:40px}       /* after .weeks-grid: same specificity, later wins */
+  .alm-pill.terms.cap{margin-right:18px}
+  .alm-pill.moonsign.cap{margin-left:18px}
 }
 
 /* Mobile carries the same almanac as the desktop (v9.3): the same ribbons, and both names on
@@ -615,7 +658,7 @@ const SYNC_COLLECTIONS=[
   {key:'deliverables',table:'deliverables'}
 ];
 // Data-meaningful singletons synced as one last-write-wins 'profile' row (SYNC_REFERENCE 1.7).
-const PROFILE_FIELDS=['semesterStart','maxFutureDate','catOrder','dayNotes','hiddenDays','almanacTz','almanacLayers'];
+const PROFILE_FIELDS=['semesterStart','maxFutureDate','catOrder','dayNotes','hiddenDays','almanacTz','almanacLayers','weatherZip'];
 const SB_HEADERS={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
 const SEED_FLAG=SKEY+'-perrecord-seeded';
 // Collision-resistant, client-generated, immutable record id (large Number; stored as text PK).
@@ -638,7 +681,7 @@ const PRI_ORDER={high:0,med:1,low:2,normal:3};
 // local browser time exactly as before — almanacTz must never leak into them.
 const ALM_TZ_DEFAULT='America/Los_Angeles';
 // terms/hou/moon apply to both tabs; branch and zodiac are the two halves of Season's merged pill.
-const ALM_LAYER_DEFAULT={terms:true,hou:true,moon:true,branch:true,zodiac:true};
+const ALM_LAYER_DEFAULT={terms:true,hou:true,moon:true,branch:true,zodiac:true,moonsign:true};
 // Fallback zone list for engines without Intl.supportedValuesOf (Safari < 15.4).
 const ALM_TZ_FALLBACK=['America/Los_Angeles','America/Denver','America/Chicago','America/New_York',
   'America/Sao_Paulo','UTC','Europe/London','Europe/Paris','Europe/Berlin','Europe/Moscow',
@@ -647,6 +690,13 @@ const ALM_TZ_FALLBACK=['America/Los_Angeles','America/Denver','America/Chicago',
 // Synced state can predate these keys; an undefined zone throws inside Intl.DateTimeFormat, so
 // every read goes through these accessors rather than touching state directly.
 function almTz(){const t=state.almanacTz;return(typeof t==='string'&&t)?t:ALM_TZ_DEFAULT}
+// ---- Weather settings (v9.8). Declared here so `state`'s defaults can reference them. ----
+const WX_KEY=SKEY+'-weather';
+const WX_ZIP_DEFAULT='95482';
+const WX_FRESH_MS=60*60*1000;              // re-fetch the forecast at most hourly
+const WX_NORMALS_MS=30*24*60*60*1000;      // normals shift very slowly
+function wxZip(){const z=(state.weatherZip||'').trim();return /^\d{5}$/.test(z)?z:WX_ZIP_DEFAULT}
+
 function almLayers(){return{...ALM_LAYER_DEFAULT,...(state.almanacLayers||{})}}
 function daysBetween(a,b){return Math.ceil((b-a)/864e5)}
 function fmtDate(d){return['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]+' '+(d.getMonth()+1)+'/'+d.getDate()}
@@ -728,7 +778,7 @@ function defaultSyllabus(){return[
 {id:5030,cat:'cn',type:'exam',title:'Chinese Classics Midterm Exam',detail:'',due:'2026-04-03',done:true}
 ]}
 
-let state={theme:'ember',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],nextId:4000,weekStartDay:6,semesterStart:'2026-01-17',maxFutureDate:'2026-05-30',weekSlot:'sprints',almanacTz:ALM_TZ_DEFAULT,almanacLayers:{...ALM_LAYER_DEFAULT}};
+let state={theme:'ember',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],nextId:4000,weekStartDay:6,semesterStart:'2026-01-17',maxFutureDate:'2026-05-30',weekSlot:'sprints',weatherZip:WX_ZIP_DEFAULT,almanacTz:ALM_TZ_DEFAULT,almanacLayers:{...ALM_LAYER_DEFAULT}};
 let saveTimer=null,lastSaveTime=null,saveStatus='saved';
 // localStorage is the source of truth: write there synchronously, then diff & queue per-record pushes.
 function persistLocal(){try{localStorage.setItem(SKEY,JSON.stringify(state));localStorage.setItem(SKEY+'-time',new Date().toISOString())}catch(e){throw e}}
@@ -867,7 +917,7 @@ function render(){
   const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
   const bottomNav=`<nav class="bottomnav">${slotBtn('bn-item')}<button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
   const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v9.7</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v9.8</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -898,10 +948,10 @@ if(sel.collapsedCount>0)h+=`<div style="margin-bottom:12px"><button class="expan
 // is a single element even when week headers sit between those rows. Headers and day rows carry
 // an explicit grid-row too, so nothing is left to auto-placement alongside the spanning ribbons.
 const g=almGridPlan(sel.perWeek);
-const rail=almRibbonsHtml(g.alm,g.rowOf,['term'],'sprints'); // Week keeps only the 24 terms
-h+=`<div class="weeks-grid" style="grid-template-columns:${almGridCols(rail)}">`;
+const fl=almFlanksHtml(g.alm,g.rowOf,'sprints');             // Week keeps only the 24 terms
+h+=`<div class="weeks-grid" style="grid-template-columns:${fl.cols};--alm-content-col:${fl.content}">`;
 sel.perWeek.forEach(s=>{h+=renderWeekSection(s.wk,s.days,g.alm,s.hdrRow)});
-h+=rail.html+`</div>`;
+h+=fl.html+`</div>`;
 return h}
 
 // Which weeks and days reach the screen. Week and Season share this so their rows correspond
@@ -924,7 +974,6 @@ function almGridPlan(perWeek){
   perWeek.forEach(s=>{s.hdrRow=++row;s.days.forEach(d=>{rowOf[d.date]=++row})});
   return{alm,rowOf,allDays};
 }
-function almGridCols(rail){return rail.vars.length?'1fr '+rail.vars.map(v=>`var(${v})`).join(' '):'1fr'}
 
 // The days of a week that actually reach the screen: manually hidden days and the not-yet-expanded
 // past days of the current week drop out.
@@ -968,7 +1017,7 @@ function almNextDay(key){const d=parseDate(key);d.setDate(d.getDate()+1);return 
 function computeWeekAlmanac(days){
   if(!almReady()||!days||!days.length)return null;
   const L=almLayers();
-  if(!L.terms&&!L.hou&&!L.moon)return null;
+  if(!L.terms&&!L.hou&&!L.moon&&!L.branch&&!L.zodiac&&!L.moonsign)return null;
   const tz=almTz();
   try{
     const jd0=Almanac.localNoonJD(days[0].date,tz)-0.5;                    // local midnight, first day
@@ -1000,7 +1049,9 @@ function computeWeekAlmanac(days){
     const ambient=days.map(d=>{
       let opens=false;                                                     // does a hou begin today?
       while(ci<crossings.length&&crossings[ci].key<=d.date){if(crossings[ci].key===d.date)opens=true;cur=crossings[ci].hou;ci++}
-      return{date:d.date,term:Math.floor(cur/3),hou:cur,houStart:opens};   // 3 hou to a term
+      const noon=Almanac.localNoonJD(d.date,tz);
+      const ms=(L.moonsign&&Almanac.moonLongitude)?Math.floor(Almanac.moonLongitude(noon)/30):null;
+      return{date:d.date,term:Math.floor(cur/3),hou:cur,houStart:opens,moonSign:ms}; // 3 hou to a term
     });
     const byDate={};ambient.forEach(a=>{byDate[a.date]=a});
     return{markers,ambient,byDate};
@@ -1057,75 +1108,223 @@ function almDayFooterHtml(alm,dateKey){
   return out.length?`<div class="day-almanac">${out.join('')}</div>`:'';
 }
 
-/* The running ribbons. Each is one element per unbroken run of days sharing a value, placed by
-   explicit grid-row: a run that crosses a week boundary spans the intervening week-header row, so
-   the ribbon stays continuous instead of restarting as a fresh pill in each week. A run also
-   breaks when the visible days are not calendar-consecutive (a collapsed week between two expanded
-   ones), since those days are adjacent in the grid but not in time.
+/* Two nested stacks flank the day rows (v9.8). Each is a container pill with sub-pills sitting
+   inside it, both placed in the SAME grid column and layered — container behind, subs inset on
+   top — so the containment is literal rather than implied by two adjacent lanes.
 
-   Sign, branch and season are all derived from the solar-term index rather than resampled from λ,
-   so every layer turns over on exactly the same day the term does. Boundaries: the branch month
-   turns at each 節 (every other term), the sign at each 中氣 (the terms in between), the season at
-   each of the 四立. test-almanac.js asserts these against the tables for all 24 terms. */
+     right, Chinese : 地支 branch month  contains  two 節氣 solar terms
+     left,  western : Sun sign           contains  the Moon signs it spans
+
+   Each pill is one unbroken run of days sharing a value, placed by explicit grid-row, so a run
+   spans any week-header rows it crosses and meets its successor exactly as it would mid-week.
+   A run still breaks when the visible days are not calendar-consecutive (a collapsed week between
+   two expanded ones), since those days are adjacent in the grid but not in time.
+
+   Branch and Sun sign are derived from the solar-term index rather than resampled, so they turn
+   over on the same day the term does — the branch at each 節, the sign at each 中氣. The Moon
+   sign is the one layer read from its own longitude, at local noon like everything else. */
 const almBranchOfTerm=t=>Math.floor(t/2);                    // -> AlmanacData.BRANCHES
 const almZodOfTerm=t=>Math.floor(((((t-3)%24)+24)%24)/2);    // -> AlmanacData.ZODIAC
-/* The 節氣 and the 地支 run as two lanes of one band (v9.7): each branch month is exactly two
-   solar terms, so the branch lane carries straight through the 中氣 where the term lane breaks,
-   and the pair reads as a containment — two term pills to every branch pill. They do break
-   together at each 節, where both genuinely turn over. The lanes are pulled across the column gap
-   so they meet on a seam rather than reading as two separate strips.
-   The western sign is its own column to the right; its boundaries are the 中氣, i.e. exactly the
-   term breaks the branch lane bridges. */
-const ALM_RIBBONS={
-  term:{layer:'terms',w:'--alm-rib-w',cls:'tb west',get:a=>a.term,
-        render:i=>{const t=AlmanacData.TERMS[i];return{tip:t.tc+' · '+t.en,
-          html:`<span class="alm-tc">${t.tc}</span><span class="alm-en">${t.en}</span>`}}},
-  branch:{layer:'branch',w:'--alm-zb-w',cls:'tb east',get:a=>almBranchOfTerm(a.term),
-        render:i=>{const b=AlmanacData.BRANCHES[i];return{tip:b.tc+' · '+b.en+' · from '+b.term,
-          html:`<span class="alm-tc">${b.tc}</span><span class="alm-en">${b.en}</span>`}}},
-  zodiac:{layer:'zodiac',w:'--alm-zb-w',cls:'zod',get:a=>almZodOfTerm(a.term),
-        render:i=>{const z=AlmanacData.ZODIAC[i];return{tip:z.name+' · from '+z.term,
-          html:`<span class="alm-glyph">${z.glyph}</span><span class="alm-en">${z.name}</span>`}}}
+const ALM_SUN='☉︎',ALM_MOON='☽︎';        // text presentation, never emoji
+const ALM_LANES={
+  branch:{get:a=>almBranchOfTerm(a.term),
+    lbl:i=>{const b=AlmanacData.BRANCHES[i];return{tip:b.tc+' '+b.en+' · from '+b.term,
+      html:`<span class="alm-tc">${b.tc}</span><span class="alm-en">${b.en}</span>`}}},
+  terms:{get:a=>a.term,
+    lbl:i=>{const t=AlmanacData.TERMS[i];return{tip:t.tc+' · '+t.en,
+      html:`<span class="alm-tc">${t.tc}</span><span class="alm-en">${t.en}</span>`}}},
+  zodiac:{get:a=>almZodOfTerm(a.term),
+    lbl:i=>{const z=AlmanacData.ZODIAC[i];return{tip:'Sun in '+z.name+' · from '+z.term,
+      html:`<span class="alm-glyph">${ALM_SUN}</span><span class="alm-glyph">${z.glyph}</span><span class="alm-en">${z.name}</span>`}}},
+  moonsign:{get:a=>a.moonSign,
+    lbl:i=>{const z=AlmanacData.ZODIAC[i];return{tip:'Moon in '+z.name,
+      html:`<span class="alm-glyph">${ALM_MOON}</span><span class="alm-glyph">${z.glyph}</span>`}}}
 };
-// Returns {html, vars} — vars drives the grid's column template, so a disabled layer takes no
-// column at all rather than leaving an empty gutter, and a media query can narrow every ribbon
-// on phones by redefining the width tokens.
-function almRibbonsHtml(alm,rowOf,keys,tab){
-  if(!alm)return{html:'',vars:[]};
-  const L=almLayers(),parts=[],vars=[];
-  const active=keys.filter(k=>L[ALM_RIBBONS[k].layer]);
-  const paired=active.includes('term')&&active.includes('branch');    // both lanes of the band on
-  active.forEach(key=>{
-    const spec=ALM_RIBBONS[key];
-    const runs=[];
-    alm.ambient.forEach(a=>{
-      const v=spec.get(a),last=runs[runs.length-1];
-      if(last&&last.value===v&&almNextDay(last.endDate)===a.date)last.endDate=a.date;
-      else runs.push({value:v,startDate:a.date,endDate:a.date});
-    });
-    const col=2+vars.length;
-    const html=runs.map((r,ri)=>{
-      const n=spec.render(r.value),r0=rowOf[r.startDate];
-      if(!r0||!rowOf[r.endDate])return'';
-      // Run to the row the NEXT run starts on, not to the last day of this one, so a ribbon whose
-      // term changes at a week boundary carries straight past the week-header row and meets its
-      // successor exactly as it would mid-week. Only when the next run is a calendar day later:
-      // a break across collapsed weeks must stay a break.
-      let end=rowOf[r.endDate]+1;
-      const next=runs[ri+1];
-      if(next&&almNextDay(r.endDate)===next.startDate&&rowOf[next.startDate])end=rowOf[next.startDate];
-      // In the Season tab the term pill opens that term's reading. Nowhere else is it a control:
-      // Week <-> Season is now the nav slot's job.
-      const link=(key==='term'&&tab==='season');
-      const act=link?` onclick="almOpenTermLink(${r.value})" role="link" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();almOpenTermLink(${r.value})}"`:'';
-      const tip=n.tip+(link?' — open the guide for this term':'');
-      const cls=spec.cls+(link?' alm-link':'')+(paired&&(key==='term'||key==='branch')?' paired':'');
-      return`<div class="alm-term-ribbon ${cls}" style="grid-row:${r0}/${end};grid-column:${col}" title="${tip}"${act}><div class="alm-ribbon-inner"><div class="alm-ribbon-label">${n.html}</div></div></div>`;
-    }).join('');
-    if(!html)return;
-    vars.push(spec.w);parts.push(html);
+
+// One layer's pills, as unbroken runs. `role` is pod (container), cap (nested) or solo.
+function almRunsHtml(alm,rowOf,col,key,role,tab){
+  const spec=ALM_LANES[key],runs=[];
+  alm.ambient.forEach(a=>{
+    const v=spec.get(a),last=runs[runs.length-1];
+    if(v==null)return;
+    if(last&&last.value===v&&almNextDay(last.endDate)===a.date)last.endDate=a.date;
+    else runs.push({value:v,startDate:a.date,endDate:a.date});
   });
-  return{html:parts.join(''),vars};
+  return runs.map((r,ri)=>{
+    const n=spec.lbl(r.value),r0=rowOf[r.startDate];
+    if(!r0||!rowOf[r.endDate])return'';
+    let end=rowOf[r.endDate]+1;
+    const next=runs[ri+1];
+    if(next&&almNextDay(r.endDate)===next.startDate&&rowOf[next.startDate])end=rowOf[next.startDate];
+    // In the Season tab the term pill opens that term's reading. Nowhere else is it a control.
+    const link=(key==='terms'&&tab==='season');
+    const act=link?` onclick="almOpenTermLink(${r.value})" role="link" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();almOpenTermLink(${r.value})}"`:'';
+    const tip=n.tip+(link?' — open the guide for this term':'');
+    return`<div class="alm-pill ${key} ${role}${link?' alm-link':''}" style="grid-row:${r0}/${end};grid-column:${col}" title="${tip}"${act}><div class="alm-ribbon-inner"><div class="alm-ribbon-label">${n.html}</div></div></div>`;
+  }).join('');
+}
+
+// A nested stack for one column: container first so the sub-pills paint over it.
+function almStackHtml(alm,rowOf,col,containerKey,subKey,tab){
+  const L=almLayers();
+  const hasC=containerKey&&L[containerKey],hasS=subKey&&L[subKey];
+  if(!hasC&&!hasS)return'';
+  let h='';
+  if(hasC)h+=almRunsHtml(alm,rowOf,col,containerKey,hasS?'pod':'solo',tab);
+  if(hasS)h+=almRunsHtml(alm,rowOf,col,subKey,hasC?'cap':'solo',tab);
+  return h;
+}
+
+/* Builds both flanks plus the grid template. A stack with every layer off takes no column at all
+   rather than leaving an empty gutter, so the content column index moves — it is published as
+   --alm-content-col for the row rules to follow. */
+function almFlanksHtml(alm,rowOf,tab){
+  if(!alm)return{cols:'1fr',content:1,html:''};
+  const west=tab==='season'?almStackHtml(alm,rowOf,1,'zodiac','moonsign',tab):'';
+  const contentCol=west?2:1;
+  const east=tab==='season'
+    ? almStackHtml(alm,rowOf,contentCol+1,'branch','terms',tab)
+    : almStackHtml(alm,rowOf,contentCol+1,null,'terms',tab);
+  const cols=(west?'var(--alm-stack-w) ':'')+'1fr'+(east?' var(--alm-stack-w)':'');
+  return{cols,content:contentCol,html:west+east};
+}
+
+/* ============================================================
+   WEATHER (v9.8) — daily high / low / precipitation chance in the day cells.
+
+   Open-Meteo, which needs no API key and sends CORS headers, so the browser can call it directly.
+   Two horizons:
+     · days 0-15   real forecast      (api.open-meteo.com/v1/forecast)
+     · beyond that day-of-year normal (archive-api.open-meteo.com/v1/archive, last 3 full years
+                                       averaged with a +/-3 day window; precipitation becomes the
+                                       share of those days that were wet, i.e. a climatological
+                                       chance rather than a forecast) — drawn in a quieter style
+                                       and labelled as an average, never as a forecast.
+
+   The network is never in the critical path: everything renders from a localStorage cache, a
+   refresh is fired in the background, and a failed fetch simply leaves the last good data in
+   place. The cache lives under its own key rather than in `state` so it never enters the sync
+   snapshot or the change-detection diff — only the ZIP itself is user data.
+   ============================================================ */
+let _wx=null,_wxBusy=false;
+function wxCache(){
+  if(_wx)return _wx;
+  try{_wx=JSON.parse(localStorage.getItem(WX_KEY)||'null')}catch(e){_wx=null}
+  return _wx||(_wx={});
+}
+function wxSave(){try{localStorage.setItem(WX_KEY,JSON.stringify(_wx))}catch(e){}}
+
+// ZIP -> coordinates. Open-Meteo's geocoder indexes postcodes; zippopotam is the fallback.
+async function wxGeocode(zip){
+  try{
+    const r=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${zip}&count=1&country=US&language=en&format=json`);
+    if(r.ok){const d=await r.json();const p=d&&d.results&&d.results[0];
+      if(p)return{lat:p.latitude,lon:p.longitude,place:p.name+(p.admin1?', '+p.admin1:'')}}
+  }catch(e){}
+  try{
+    const r=await fetch(`https://api.zippopotam.us/us/${zip}`);
+    if(r.ok){const d=await r.json();const p=d&&d.places&&d.places[0];
+      if(p)return{lat:+p.latitude,lon:+p.longitude,place:p['place name']+', '+p['state abbreviation']}}
+  }catch(e){}
+  return null;
+}
+
+async function wxRefresh(force){
+  if(_wxBusy||!navigator.onLine)return;
+  const zip=wxZip(),c=wxCache(),now=Date.now();
+  const stale=force||c.zip!==zip||!c.days||(now-(c.fetchedAt||0))>WX_FRESH_MS;
+  const normalsStale=force||c.zip!==zip||!c.normals||(now-(c.normalsAt||0))>WX_NORMALS_MS;
+  if(!stale&&!normalsStale)return;
+  _wxBusy=true;
+  try{
+    if(c.zip!==zip||!c.lat){
+      const g=await wxGeocode(zip);
+      if(!g){_wxBusy=false;return}
+      _wx={zip,lat:g.lat,lon:g.lon,place:g.place};      // new place: drop the old readings
+    }
+    const{lat,lon}=_wx;
+    if(stale){
+      const u=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`
+        +`&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max`
+        +`&temperature_unit=fahrenheit&timezone=auto&forecast_days=16`;
+      const r=await fetch(u);
+      if(r.ok){
+        const d=(await r.json()).daily||{},days={};
+        (d.time||[]).forEach((t,i)=>{days[t]={hi:d.temperature_2m_max[i],lo:d.temperature_2m_min[i],pop:d.precipitation_probability_max[i]}});
+        if(Object.keys(days).length){_wx.days=days;_wx.fetchedAt=Date.now()}
+      }
+    }
+    if(normalsStale){
+      const y=new Date().getFullYear()-1;                // last three COMPLETE years
+      const u=`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}`
+        +`&start_date=${y-2}-01-01&end_date=${y}-12-31`
+        +`&daily=temperature_2m_max,temperature_2m_min,precipitation_sum`
+        +`&temperature_unit=fahrenheit&timezone=auto`;
+      const r=await fetch(u);
+      if(r.ok){
+        const d=(await r.json()).daily||{},bins={};
+        (d.time||[]).forEach((t,i)=>{
+          const hi=d.temperature_2m_max[i],lo=d.temperature_2m_min[i],pr=d.precipitation_sum[i];
+          if(hi==null||lo==null)return;
+          const md=t.slice(5);
+          (bins[md]||(bins[md]=[])).push([hi,lo,pr>=0.2?1:0]);   // 0.2mm ~ a measurable day
+        });
+        const keys=Object.keys(bins);
+        if(keys.length>300){
+          const normals={};
+          keys.forEach(md=>{
+            const win=[];                                 // +/- 3 days smooths the sample
+            for(let o=-3;o<=3;o++){
+              const dt=new Date(Date.UTC(2001,+md.slice(0,2)-1,+md.slice(3)+o));
+              const k=String(dt.getUTCMonth()+1).padStart(2,'0')+'-'+String(dt.getUTCDate()).padStart(2,'0');
+              if(bins[k])win.push(...bins[k]);
+            }
+            if(!win.length)return;
+            const n=win.length;
+            normals[md]={hi:win.reduce((s,x)=>s+x[0],0)/n,lo:win.reduce((s,x)=>s+x[1],0)/n,
+                         pop:win.reduce((s,x)=>s+x[2],0)/n*100};
+          });
+          _wx.normals=normals;_wx.normalsAt=Date.now();
+        }
+      }
+    }
+    wxSave();safeRender();
+  }catch(e){/* offline or rate-limited: the cache stands */}
+  _wxBusy=false;
+}
+
+// Reading for one day: the forecast if it reaches, otherwise the day-of-year normal.
+function wxFor(dateKey){
+  const c=wxCache();
+  if(c.zip!==wxZip())return null;                        // cache belongs to a different ZIP
+  const f=c.days&&c.days[dateKey];
+  if(f&&f.hi!=null)return{hi:f.hi,lo:f.lo,pop:f.pop,est:false};
+  const n=c.normals&&c.normals[dateKey.slice(5)];
+  if(n)return{hi:n.hi,lo:n.lo,pop:n.pop,est:true};
+  return null;
+}
+function wxSetZip(v){
+  const z=(v||'').trim();
+  if(!/^\d{5}$/.test(z)){safeRender();return}          // ignore junk, put the old value back
+  if(z===wxZip())return;
+  state.weatherZip=z;render();scheduleSave();wxRefresh(true);
+}
+function wxStatusText(){
+  const c=wxCache();
+  if(c.zip!==wxZip())return 'Looking up '+wxZip()+'…';
+  const bits=[];
+  if(c.place)bits.push(c.place);
+  if(c.fetchedAt)bits.push('forecast updated '+new Date(c.fetchedAt).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}));
+  else bits.push('no forecast yet');
+  if(c.normals)bits.push('averages loaded');
+  return bits.join(' · ');
+}
+function wxCellHtml(dateKey){
+  const w=wxFor(dateKey);
+  if(!w)return'';
+  const pop=w.pop==null?'':`<span class="wx-pop">${Math.round(w.pop)}%</span>`;
+  return`<span class="wx${w.est?' wx-est':''}" title="${w.est?'Typical for this date — average of the last three years, not a forecast':'Forecast'}">`
+    +`<span class="wx-hi">${Math.round(w.hi)}°</span><span class="wx-sep">/</span><span class="wx-lo">${Math.round(w.lo)}°</span>${pop}</span>`;
 }
 
 /* ---- Season tab (v9.4) ----
@@ -1138,18 +1337,18 @@ function renderSeason(){
   if(!almReady())return h+`<div class="notes-box"><div class="notes-box-text" style="font-size:var(--fs-xs);color:var(--text-muted)">The almanac engine did not load, so there is nothing to show here. A hard refresh usually fixes it.</div></div>`;
   if(sel.collapsedCount>0)h+=`<div style="margin-bottom:12px"><button class="expand-week-btn" onclick="expandAllPastWeeks()" style="font-size:var(--fs-2xs);padding:3px 10px">▼ ${sel.collapsedCount} past week${sel.collapsedCount>1?'s':''} (show)</button></div>`;
   const g=almGridPlan(sel.perWeek);
-  const rail=almRibbonsHtml(g.alm,g.rowOf,['term','branch','zodiac'],'season');
-  h+=`<div class="weeks-grid season-grid" style="grid-template-columns:${almGridCols(rail)}">`;
+  const fl=almFlanksHtml(g.alm,g.rowOf,'season');
+  h+=`<div class="weeks-grid season-grid" style="grid-template-columns:${fl.cols};--alm-content-col:${fl.content}">`;
   sel.perWeek.forEach(s=>{
     h+=`<div class="week-section"><div class="week-hdr season-hdr" style="grid-row:${s.hdrRow}"><span class="week-hdr-title">Week ${s.wk.num}</span><span class="week-hdr-dates">${fmtDateShort(s.wk.start)} → ${fmtDateShort(s.wk.end)}</span></div>`;
     s.days.forEach((day,di)=>{
       const isT=sameDay(day.dateObj,TODAY);
       const marks=almDayMarkers(g.alm,day.date,{term:true,hou:true,moon:true});
-      h+=`<div class="season-row ${isT?'is-today':''}" style="grid-row:${s.hdrRow+1+di}" data-date="${day.date}"><span class="season-date">${fmtDate(day.dateObj)}</span><span class="season-marks">${marks.join('')}</span></div>`;
+      h+=`<div class="season-row ${isT?'is-today':''}" style="grid-row:${s.hdrRow+1+di}" data-date="${day.date}"><span class="season-date">${fmtDate(day.dateObj)}</span><span class="wx-slot">${wxCellHtml(day.date)}</span><span class="season-marks">${marks.join('')}</span></div>`;
     });
     h+='</div>';
   });
-  h+=rail.html+`</div>`;
+  h+=fl.html+`</div>`;
   return h;
 }
 
@@ -1223,7 +1422,7 @@ sylChips.forEach(sc=>{const sylTime=sc.dueTime||'09:00';const fmtSylTime=((h,m)=
 tasks.forEach(t=>pills.push({type:'task',time:t.time||'',html:renderChip(t)}));
 pills.sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
 const pillsHtml=pills.map(p=>p.html).join('');
-h+=`<div class="day-row ${isT?'is-today':''} ${isAT?'alloc-target':''}" style="grid-row:${dayRow}" data-date="${day.date}" ondragover="event.preventDefault();this.classList.add('alloc-highlight')" ondrop="handleDrop(event,'${day.date}')" ondragleave="this.classList.remove('alloc-highlight')" ${isAT?`onclick="placeAllocated('${day.date}')"`:''}><div class="day-left"><span class="day-name">${fmtDate(day.dateObj)}</span>${canHide?`<button class="hide-day-btn" onclick="event.stopPropagation();hideDay('${day.date}')" title="Hide this day">hide</button>`:''}</div><div class="day-tasks-area" ondragover="handleChipDragOver(event)" ondrop="handleChipDrop(event,'${day.date}')" ondragleave="clearDropIndicators(this)">${pillsHtml}</div><div class="day-right"><button class="add-day-btn" onclick="event.stopPropagation();openAddTask('${day.date}')" title="Add">+</button></div><div class="day-note-row"><button class="day-note-btn" onclick="event.stopPropagation();toggleEl('dn-${day.date}')">${note?'<span class=\'mi\' style=\'--ic:var(--ic-pen)\'></span>':'+ note'}</button><textarea class="day-note-input" id="dn-${day.date}" style="display:${note?'block':'none'}" onclick="event.stopPropagation()" oninput="state.dayNotes['${day.date}']=this.value;scheduleSave()" placeholder="Notes...">${note}</textarea></div>${almDayFooterHtml(alm,day.date)}</div>`});
+h+=`<div class="day-row ${isT?'is-today':''} ${isAT?'alloc-target':''}" style="grid-row:${dayRow}" data-date="${day.date}" ondragover="event.preventDefault();this.classList.add('alloc-highlight')" ondrop="handleDrop(event,'${day.date}')" ondragleave="this.classList.remove('alloc-highlight')" ${isAT?`onclick="placeAllocated('${day.date}')"`:''}><div class="day-left"><span class="day-name">${fmtDate(day.dateObj)}</span>${wxCellHtml(day.date)}${canHide?`<button class="hide-day-btn" onclick="event.stopPropagation();hideDay('${day.date}')" title="Hide this day">hide</button>`:''}</div><div class="day-tasks-area" ondragover="handleChipDragOver(event)" ondrop="handleChipDrop(event,'${day.date}')" ondragleave="clearDropIndicators(this)">${pillsHtml}</div><div class="day-right"><button class="add-day-btn" onclick="event.stopPropagation();openAddTask('${day.date}')" title="Add">+</button></div><div class="day-note-row"><button class="day-note-btn" onclick="event.stopPropagation();toggleEl('dn-${day.date}')">${note?'<span class=\'mi\' style=\'--ic:var(--ic-pen)\'></span>':'+ note'}</button><textarea class="day-note-input" id="dn-${day.date}" style="display:${note?'block':'none'}" onclick="event.stopPropagation()" oninput="state.dayNotes['${day.date}']=this.value;scheduleSave()" placeholder="Notes...">${note}</textarea></div>${almDayFooterHtml(alm,day.date)}</div>`});
 h+='</div>';return h}
 
 function renderChip(t){const isLife=t.cat==='life'&&t.lifeSourceId;let acts='';
@@ -1406,8 +1605,14 @@ function renderSettings(){
   <input class="life-input" id="almTzFilter" value="${_almTzFilter.replace(/"/g,'&quot;')}" oninput="almTzFilterInput(this.value)" placeholder="Filter zones…" style="width:190px;margin-bottom:6px"/>
   <select class="life-select" id="almTzSelect" onchange="almSetTz(this.value)" style="width:260px;max-width:100%;display:block">${almTzOptionsHtml(_almTzFilter)}</select></div>
   <div class="settings-section"><label>Layers</label>
-  <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Solar terms, 候 and moon quarters appear in both the Week and Season tabs; the branch and sign share one ribbon in the Season tab only.</div>
-  <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:var(--fs-xs)">${[['terms','Solar terms 節氣'],['hou','Pentads 候'],['moon','Moon quarters'],['branch','Earthly branch 月建'],['zodiac','Zodiac sign']].map(([k,lbl])=>`<label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox"${almLayers()[k]?' checked':''} onchange="almSetLayer('${k}',this.checked)"/> ${lbl}</label>`).join('')}</div></div></div>
+  <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Solar terms, 候 and moon quarters appear in both the Week and Season tabs; the branch, Sun sign and Moon sign are Season-tab flanks only.</div>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:var(--fs-xs)">${[['terms','Solar terms 節氣'],['hou','Pentads 候'],['moon','Moon quarters'],['branch','Earthly branch 月建'],['zodiac','Sun sign'],['moonsign','Moon sign']].map(([k,lbl])=>`<label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox"${almLayers()[k]?' checked':''} onchange="almSetLayer('${k}',this.checked)"/> ${lbl}</label>`).join('')}</div></div></div>
+  <div class="notes-box"><div class="notes-box-title">Weather</div>
+  <div class="settings-section"><label>ZIP code</label>
+  <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">US ZIP for the daily high, low and chance of precipitation shown in the Week and Season day cells. The next 16 days are a live forecast; beyond that each day shows a typical value — the average of the last three years for that date, marked with a dot — rather than a forecast.</div>
+  <input class="life-input" id="wxZipInput" type="text" inputmode="numeric" maxlength="5" value="${wxZip()}" onchange="wxSetZip(this.value)" style="width:110px"/>
+  <button class="btn btn-quiet" onclick="wxRefresh(true)" style="margin-left:8px">Refresh now</button>
+  <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-top:8px">${wxStatusText()}</div></div></div>
   <div class="notes-box"><div class="notes-box-title">Backup &amp; Restore</div>
   <div class="settings-section"><label>Restore from backup</label>
   <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Import a previously exported JSON backup file. This replaces your current data.</div>
@@ -1857,7 +2062,10 @@ function bumpOverdueTasks(){const todayStr=isoDate(TODAY);let changed=false;cons
 function migrateEventTasks(){const evtTasks=state.tasks.filter(t=>t.cat==='events');if(!evtTasks.length)return;if(!state.events)state.events=[];evtTasks.forEach(t=>{const exists=(state.events||[]).some(e=>e.name===t.name&&e.date===t.date);if(!exists){state.events.push({id:genId(),name:t.name,date:t.date,endDate:'',startTime:t.time||'',endTime:'',location:'',allDay:false})}});state.tasks=state.tasks.filter(t=>t.cat!=='events');scheduleSave()}
 async function init(){await loadState();bumpOverdueTasks();migrateEventTasks();render();handleUrlAction();updateConn(navigator.onLine?'online':'offline');startSync();
   setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine)syncPullAndMerge(false)},30000);
-  window.addEventListener('online',()=>{updateConn('online');setTimeout(()=>{flushQueue().then(()=>syncPullAndMerge(false))},500)});
+  window.addEventListener('online',()=>{updateConn('online');setTimeout(()=>{flushQueue().then(()=>syncPullAndMerge(false))},500);wxRefresh()});
+  wxRefresh();                                    // background: renders from cache until it lands
+  setInterval(()=>wxRefresh(),20*60*1000);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')wxRefresh()});
   window.addEventListener('offline',()=>updateConn('offline'));
   window.addEventListener('pagehide',flushQueueBeacon);
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushQueueBeacon();else if(document.visibilityState==='visible'&&navigator.onLine){flushQueue().then(()=>syncPullAndMerge(false))}});

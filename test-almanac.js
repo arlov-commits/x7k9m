@@ -71,6 +71,24 @@
     }
   }
 
+  /* The Moon's longitude has no fixture of its own, so it is checked by elongation: at a new moon
+     the Moon and Sun share a longitude, at first quarter they are 90 degrees apart, and so on.
+     Run against the 152 independently generated quarter instants this pins Almanac.moonLongitude
+     to the same ground truth as everything else. Tolerance is 0.1 degrees — about 11 minutes of
+     lunar motion, tight enough that a wrong or missing periodic term shows up immediately, loose
+     enough not to trip over the small definitional difference between phase conventions. */
+  function checkMoonLongitude(g, rows) {
+    if (!rows || !rows.length) { note(g, false, 'no moon fixtures supplied'); return; }
+    var WANT = { 'new': 0, first_quarter: 90, full: 180, last_quarter: 270 };
+    rows.forEach(function (f) {
+      var jd = A.jdFromDate(new Date(f.utc));
+      var d = ((A.moonLongitude(jd) - A.solarLongitude(jd) - WANT[f.phase]) % 360 + 540) % 360 - 180;
+      var deg = Math.abs(d);
+      note(g, deg < 0.1, f.utc + ' ' + f.phase + ': elongation off by ' + deg.toFixed(4) +
+        ' deg (' + (deg / 13.176 * 1440).toFixed(1) + ' min of lunar motion)', deg / 13.176 * 1440);
+    });
+  }
+
   function checkTables(g) {
     note(g, D.HOU.length === 72, 'HOU.length = ' + D.HOU.length + ', want 72');
     note(g, D.TERMS.length === 24, 'TERMS.length = ' + D.TERMS.length + ', want 24');
@@ -165,6 +183,10 @@
 
     g = group('Moon quarters');
     checkMoon(g, fixtures.moon_quarters, tz);
+    groups.push(g);
+
+    g = group('Moon longitude (by elongation)');
+    checkMoonLongitude(g, fixtures.moon_quarters);
     groups.push(g);
 
     g = group('Name tables & index math');

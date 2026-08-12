@@ -1,5 +1,5 @@
 /* almanac.js — astronomical engine for solar terms, 72 hou, moon quarters, tropical zodiac.
- * v1.0 — pure functions, no DOM, no dependencies. Works in browser and Node.
+ * v1.3 — pure functions, no DOM, no dependencies. Works in browser and Node.
  * Algorithms: Meeus, Astronomical Algorithms 2nd ed. — ch.25 (solar position), ch.49 (moon phases).
  */
 (function (root) {
@@ -215,6 +215,57 @@
     return out;
   }
 
+  /* ---------- moon position (Meeus ch.47) ----------
+   * Added in v1.3 for the Moon-sign layer. Independent of the ch.49 phase routine above, which
+   * is left untouched. Truncated Sigma-l: the terms kept are large enough that the residual is
+   * far below the accuracy a day-granular sign assignment needs. Verified in test-almanac.js by
+   * elongation: at every fixture new/first/full/last quarter the Moon's longitude minus the Sun's
+   * must equal 0/90/180/270 degrees, which checks this against 152 independently generated
+   * instants without needing a lunar-longitude fixture of its own. */
+
+  var ML = [                                                 // D, M, M', F, coeff(1e-6 deg)
+    [0,0,1,0,6288774],[2,0,-1,0,1274027],[2,0,0,0,658314],[0,0,2,0,213618],
+    [0,1,0,0,-185116],[0,0,0,2,-114332],[2,0,-2,0,58793],[2,-1,-1,0,57066],
+    [2,0,1,0,53322],[2,-1,0,0,45758],[0,1,-1,0,-40923],[1,0,0,0,-34720],
+    [0,1,1,0,-30383],[2,0,0,-2,15327],[0,0,1,2,-12528],[0,0,1,-2,10980],
+    [4,0,-1,0,10675],[0,0,3,0,10034],[4,0,-2,0,8548],[2,1,-1,0,-7888],
+    [2,1,0,0,-6766],[1,0,-1,0,-5163],[1,1,0,0,4987],[2,-1,1,0,4036],
+    [2,0,2,0,3994],[4,0,0,0,3861],[2,0,-3,0,3665],[0,1,-2,0,-2689],
+    [2,0,-1,2,-2602],[2,-1,-2,0,2390],[1,0,1,0,-2348],[2,-2,0,0,2236],
+    [0,1,2,0,-2120],[0,2,0,0,-2069],[2,-2,-1,0,2048],[2,0,1,-2,-1773],
+    [2,0,0,2,-1595],[4,-1,-1,0,1215],[0,0,2,2,-1110],[3,0,-1,0,-892],
+    [2,1,1,0,-810],[4,-1,-2,0,759],[0,2,-1,0,-713],[2,2,-1,0,-700],
+    [2,1,-2,0,691],[2,-1,0,-2,596],[4,0,1,0,549],[0,0,4,0,537],
+    [4,-1,0,0,520],[1,0,-2,0,-487],[2,1,0,-2,-399],[0,0,2,-2,-381],
+    [1,1,1,0,351],[3,0,-2,0,-340],[4,0,-3,0,330],[2,-1,2,0,327],
+    [0,2,1,0,-323],[1,1,-1,0,299],[2,0,3,0,294]
+  ];
+
+  function moonLongitude(jdUT) {                             // apparent geocentric lambda, degrees
+    var jde = jdUT + deltaT(jdUT);                           // UT -> TT
+    var T = (jde - J2000) / 36525.0;                         // Julian centuries TT
+    var T2 = T * T, T3 = T2 * T, T4 = T3 * T;
+    var Lp = 218.3164477 + 481267.88123421 * T - 0.0015786 * T2 + T3 / 538841 - T4 / 65194000;
+    var D  = 297.8501921 + 445267.1114034 * T - 0.0018819 * T2 + T3 / 545868 - T4 / 113065000;
+    var M  = 357.5291092 + 35999.0502909 * T - 0.0001536 * T2 + T3 / 24490000;
+    var Mp = 134.9633964 + 477198.8675055 * T + 0.0087414 * T2 + T3 / 69699 - T4 / 14712000;
+    var F  = 93.2720950 + 483202.0175233 * T - 0.0036539 * T2 - T3 / 3526000 + T4 / 863310000;
+    var E  = 1 - 0.002516 * T - 0.0000074 * T2;              // eccentricity of Earth's orbit
+    var sum = 0;
+    for (var i = 0; i < ML.length; i++) {
+      var r = ML[i], mAbs = Math.abs(r[1]);
+      var e = mAbs === 1 ? E : (mAbs === 2 ? E * E : 1);     // terms in M scale with E
+      sum += r[4] * e * sin(r[0] * D + r[1] * M + r[2] * Mp + r[3] * F);
+    }
+    var A1 = 119.75 + 131.849 * T, A2 = 53.09 + 479264.290 * T;
+    sum += 3958 * sin(A1) + 1962 * sin(Lp - F) + 318 * sin(A2);   // additive corrections
+    var Om = 125.04452 - 1934.136261 * T;                    // nutation in longitude, matching the
+    var Ls = 280.4665 + 36000.7698 * T;                      // convention used for the Sun above
+    var Lm = 218.3165 + 481267.8813 * T;
+    var dpsi = (-17.20 * sin(Om) - 1.32 * sin(2 * Ls) - 0.23 * sin(2 * Lm) + 0.21 * sin(2 * Om)) / 3600;
+    return norm360(Lp + sum / 1e6 + dpsi);
+  }
+
   /* ---------- timezone helpers ---------- */
 
   var _fmtCache = {};                                        // memoized Intl formatters
@@ -257,6 +308,7 @@
     solarLongitude: solarLongitudeUT, solveSolarLongitude: solveSolarLongitude,
     longitudeCrossings: longitudeCrossings,
     moonPhaseJD: moonPhaseJD, moonQuartersInRange: moonQuartersInRange,
+    moonLongitude: moonLongitude,
     localDateKey: localDateKey, localNoonJD: localNoonJD, tzOffsetMs: tzOffsetMs,
     norm360: norm360
   };
