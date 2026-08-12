@@ -1,7 +1,8 @@
 /* almanac-data.js — name tables for solar terms, 72 hou, tropical zodiac, moon phases.
- * v1.2 — data only, no logic. Traditional Chinese throughout.
+ * v1.3 — data only, no logic. Traditional Chinese throughout.
  * v1.1 adds BRANCHES (地支 solar months) and SEASONS, both keyed off the solar-term index.
  * v1.2 adds TERM_LINKS — further reading per solar term, same index as TERMS.
+ * v1.3 adds MOON_MID — the four phases between the quarters, for the Season tab.
  * 72 hou follow the CHINESE list of 吳澄《月令七十二候集解》; variants noted in ALMANAC_SPEC.md.
  * NOT the Japanese 七十二候, which is a different list — Japan rewrote it in 1685 for its own
  * climate. The clearest tell is 立秋: Chinese 涼風至 / 白露降 / 寒蟬鳴, Japanese 涼風至 / 寒蝉鳴 /
@@ -194,7 +195,30 @@
            '<path d="M8 1.5A6.5 6.5 0 0 0 8 14.5Z" fill="currentColor"/></svg>' }
   ];
 
-  root.AlmanacData = { TERMS: TERMS, HOU: HOU, ZODIAC: ZODIAC, MOON: MOON,
+  /* The four phases BETWEEN the quarters, for the Season tab's day-by-day reading. Index matches
+     Almanac elongation quadrant: 0 waxing crescent, 1 waxing gibbous, 2 waning gibbous,
+     3 waning crescent. Same 16x16 currentColor construction as MOON: an outer limb arc plus a
+     terminator ellipse that bulges toward the lit side for a crescent and away for a gibbous. */
+  var MOON_MID = [
+    { key: 'waxing_crescent', en: 'Waxing Crescent', tc: '蛾眉月',
+      svg: '<svg viewBox="0 0 16 16" width="1em" height="1em" aria-hidden="true">' +
+           '<circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.2"/>' +
+           '<path d="M8 1.5A6.5 6.5 0 0 1 8 14.5A3.2 6.5 0 0 1 8 1.5Z" fill="currentColor"/></svg>' },
+    { key: 'waxing_gibbous', en: 'Waxing Gibbous', tc: '盈凸月',
+      svg: '<svg viewBox="0 0 16 16" width="1em" height="1em" aria-hidden="true">' +
+           '<circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.2"/>' +
+           '<path d="M8 1.5A6.5 6.5 0 0 1 8 14.5A3.2 6.5 0 0 0 8 1.5Z" fill="currentColor"/></svg>' },
+    { key: 'waning_gibbous', en: 'Waning Gibbous', tc: '虧凸月',
+      svg: '<svg viewBox="0 0 16 16" width="1em" height="1em" aria-hidden="true">' +
+           '<circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.2"/>' +
+           '<path d="M8 1.5A6.5 6.5 0 0 0 8 14.5A3.2 6.5 0 0 1 8 1.5Z" fill="currentColor"/></svg>' },
+    { key: 'waning_crescent', en: 'Waning Crescent', tc: '殘月',
+      svg: '<svg viewBox="0 0 16 16" width="1em" height="1em" aria-hidden="true">' +
+           '<circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.2"/>' +
+           '<path d="M8 1.5A6.5 6.5 0 0 0 8 14.5A3.2 6.5 0 0 0 8 1.5Z" fill="currentColor"/></svg>' }
+  ];
+
+  root.AlmanacData = { TERMS: TERMS, HOU: HOU, ZODIAC: ZODIAC, MOON: MOON, MOON_MID: MOON_MID,
                        BRANCHES: BRANCHES, SEASONS: SEASONS, TERM_LINKS: TERM_LINKS };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 

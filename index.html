@@ -1,4 +1,4 @@
-<!-- Academic Planner v10.0 -->
+<!-- Academic Planner v10.1 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -309,6 +309,18 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .alm-pill.zodiac .alm-ribbon-label{color:var(--text-dim)}
 .alm-pill.zodiac .alm-en{font-size:var(--fs-2xs);letter-spacing:.09em;text-transform:uppercase}
 .alm-pill.moonsign{background:var(--surface);border-color:var(--border)}
+/* Moon runs are one to three days, so a sticky label has nothing to travel over and centring it
+   left the glyph floating against the tall Sun and Mercury pills beside it. Pin it to the top of
+   its own pill instead, giving the track an even rhythm down the column. */
+.alm-pill.moonsign .alm-ribbon-inner{justify-content:flex-start}
+.alm-pill.moonsign .alm-ribbon-label{position:static}
+/* Set by almFitLabels() when the name cannot fit the pill without being clipped. */
+.alm-pill.no-name .alm-en{display:none}
+.alm-pill.tight .alm-ribbon-label{padding:4px 0}
+/* Phase between the quarters: the same reading, one step quieter than a quarter event. */
+.alm-mk.phase{color:var(--text-muted)}
+.alm-mk.phase .alm-en{font-size:var(--fs-xs);font-weight:500;color:var(--text-muted)}
+.alm-mk.phase .alm-moon-ico{opacity:.7}
 .alm-pill.moonsign .alm-ribbon-label{color:var(--text-muted)}
 /* Western flank: three parallel tracks of one strip, pulled together over the column gaps so they
    meet on seams. Only the outer edges of the strip are rounded. Each track is told apart by its
@@ -940,7 +952,7 @@ function render(){
   const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
   const bottomNav=`<nav class="bottomnav">${slotBtn('bn-item')}<button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
   const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v10.0</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v10.1</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -1074,12 +1086,17 @@ function computeWeekAlmanac(days,tab){
       while(ci<crossings.length&&crossings[ci].key<=d.date){if(crossings[ci].key===d.date)opens=true;cur=crossings[ci].hou;ci++}
       const noon=Almanac.localNoonJD(d.date,tz);
       const west=(tab==='season');
-      const ms=(west&&L.moonsign&&Almanac.moonLongitude)?Math.floor(Almanac.moonLongitude(noon)/30):null;
+      const mlon=(west&&(L.moonsign||L.moon)&&Almanac.moonLongitude)?Almanac.moonLongitude(noon):null;
+      const ms=(L.moonsign&&mlon!=null)?Math.floor(mlon/30):null;
       // Mercury: sign and direction in one key so a run breaks when EITHER changes — retrograde is
       // a modifier on the sign, not a layer of its own.
       const mk=(west&&L.mercury&&Almanac.mercuryLongitude)
         ?Math.floor(Almanac.mercuryLongitude(noon)/30)*2+(Almanac.mercuryRetrograde(noon)?1:0):null;
-      return{date:d.date,term:Math.floor(cur/3),hou:cur,houStart:opens,moonSign:ms,merc:mk};
+      // Elongation quadrant gives the phase between the quarters: 0-90 waxing crescent, 90-180
+      // waxing gibbous, 180-270 waning gibbous, 270-360 waning crescent.
+      const ph=(L.moon&&mlon!=null)
+        ?Math.floor(((mlon-Almanac.solarLongitude(noon))%360+360)%360/90):null;
+      return{date:d.date,term:Math.floor(cur/3),hou:cur,houStart:opens,moonSign:ms,merc:mk,phase:ph};
     });
     const byDate={};ambient.forEach(a=>{byDate[a.date]=a});
     return{markers,ambient,byDate};
@@ -1116,7 +1133,7 @@ function almMarkerHtml(m){
   const open='<span class="alm-mk '+m.kind+(m.start?' hou-start':'')+'">'; // both names, every width
   if(m.kind==='term'){const t=D.TERMS[m.index];return open+`<span class="alm-en">${t.en}</span><span class="alm-tc">${t.tc}</span></span>`}
   if(m.kind==='hou'){const x=D.HOU[m.index];return open+`<span class="alm-en">${x.en}</span><span class="alm-tc">${x.tc}</span></span>`}
-  const mo=D.MOON[m.index];                                // inline SVG, currentColor — no emoji
+  const mo=(m.kind==='phase'?D.MOON_MID:D.MOON)[m.index];  // inline SVG, currentColor — no emoji
   return open+`<span class="alm-moon-ico">${mo.svg}</span><span class="alm-en">${mo.en}</span></span>`;
 }
 
@@ -1127,12 +1144,16 @@ function almDayMarkers(alm,dateKey,opts){
   const L=almLayers(),marks=alm.markers[dateKey]||[],a=alm.byDate[dateKey],out=[];
   if(opts.term)marks.forEach(m=>{if(m.kind==='term')out.push(almMarkerHtml(m))});
   if(opts.hou&&L.hou&&a)out.push(almMarkerHtml({kind:'hou',index:a.hou,start:a.houStart}));
+  const hadQuarter=marks.some(m=>m.kind==='moon');
   if(opts.moon)marks.forEach(m=>{if(m.kind==='moon')out.push(almMarkerHtml(m))});
+  // Between the quarters the Season tab still names the phase; the Week tab shows only the
+  // quarters themselves, which are the events worth planning around.
+  if(opts.phase&&L.moon&&a&&a.phase!=null&&!hadQuarter)out.push(almMarkerHtml({kind:'phase',index:a.phase}));
   return out;
 }
 // Week-tab footer band. Emits nothing on days where nothing falls, so most rows are untouched.
 function almDayFooterHtml(alm,dateKey){
-  const out=almDayMarkers(alm,dateKey,{term:false,hou:false,moon:true});
+  const out=almDayMarkers(alm,dateKey,{term:false,hou:false,moon:true,phase:false});
   return out.length?`<div class="day-almanac">${out.join('')}</div>`:'';
 }
 
@@ -1156,21 +1177,23 @@ const almZodOfTerm=t=>Math.floor(((((t-3)%24)+24)%24)/2);    // -> AlmanacData.Z
 const ALM_SUN='☉︎',ALM_MOON='☽︎',ALM_MERC='☿︎',ALM_RX='℞';   // text presentation, never emoji
 const ALM_LANES={
   branch:{get:a=>almBranchOfTerm(a.term),
-    lbl:i=>{const b=AlmanacData.BRANCHES[i];return{tip:b.tc+' '+b.en+' · from '+b.term,
+    lbl:i=>{const b=AlmanacData.BRANCHES[i];return{tip:'',
       html:`<span class="alm-tc">${b.tc}</span><span class="alm-en">${b.en}</span>`}}},
   terms:{get:a=>a.term,
-    lbl:i=>{const t=AlmanacData.TERMS[i];return{tip:t.tc+' · '+t.en,
+    lbl:i=>{const t=AlmanacData.TERMS[i];return{tip:'',
       html:`<span class="alm-tc">${t.tc}</span><span class="alm-en">${t.en}</span>`}}},
   zodiac:{get:a=>almZodOfTerm(a.term),
-    lbl:i=>{const z=AlmanacData.ZODIAC[i];return{tip:'Sun in '+z.name+' · from '+z.term,
+    lbl:i=>{const z=AlmanacData.ZODIAC[i];return{tip:'',
       html:`<span class="alm-glyph">${z.glyph}</span><span class="alm-en">${z.name}</span>`}}},
-  // Neither of these tracks has room for a name, so the sign itself carries the tooltip.
+  // The Moon is the only track that carries a tooltip — the others spell their own name out, so a
+  // tooltip would only repeat what is already on the pill. Its name is printed too, but a Moon run
+  // is often a single day, so almFitLabels() drops it again wherever it would be clipped.
   moonsign:{get:a=>a.moonSign,
-    lbl:i=>{const z=AlmanacData.ZODIAC[i],t='Moon in '+z.name;return{tip:t,
-      html:`<span class="alm-glyph" title="${t}">${z.glyph}</span>`}}},
+    lbl:i=>{const z=AlmanacData.ZODIAC[i];return{tip:ALM_MOON+' '+z.name,
+      html:`<span class="alm-glyph">${z.glyph}</span><span class="alm-en">${z.name}</span>`}}},
   mercury:{get:a=>a.merc,
-    lbl:v=>{const z=AlmanacData.ZODIAC[v>>1],rx=v&1,t='Mercury in '+z.name+(rx?' — retrograde':' — direct');
-      return{tip:t,html:`<span class="alm-glyph" title="${t}">${z.glyph}</span>`+(rx?`<span class="alm-rx" title="${t}">${ALM_RX}</span>`:'')}}}
+    lbl:v=>{const z=AlmanacData.ZODIAC[v>>1],rx=v&1;return{tip:'',
+      html:`<span class="alm-glyph">${z.glyph}</span>`+(rx?`<span class="alm-rx">${ALM_RX}</span>`:'')+`<span class="alm-en">${z.name}</span>`}}}
 };
 
 // One layer's pills, as unbroken runs. `role` is pod (container), cap (nested) or solo.
@@ -1193,7 +1216,7 @@ function almRunsHtml(alm,rowOf,col,key,role,tab){
     let html=n.html;
     if(key==='terms'&&tab==='season')
       html=html.replace('<span class="alm-tc">',`<span class="alm-tc" onclick="event.stopPropagation();almOpenTermLink(${r.value})">`);
-    return`<div class="alm-pill ${key} ${role}" style="grid-row:${r0}/${end};grid-column:${col}" title="${n.tip}"><div class="alm-ribbon-inner"><div class="alm-ribbon-label">${html}</div></div></div>`;
+    return`<div class="alm-pill ${key} ${role}" style="grid-row:${r0}/${end};grid-column:${col}"${n.tip?` title="${n.tip}"`:''}><div class="alm-ribbon-inner"><div class="alm-ribbon-label">${html}</div></div></div>`;
   }).join('');
 }
 
@@ -1406,7 +1429,7 @@ function renderSeason(){
     h+=`<div class="week-section"><div class="week-hdr season-hdr" style="grid-row:${s.hdrRow}"><span class="week-hdr-title">Week ${s.wk.num}</span><span class="week-hdr-dates">${fmtDateShort(s.wk.start)} → ${fmtDateShort(s.wk.end)}</span></div>`;
     s.days.forEach((day,di)=>{
       const isT=sameDay(day.dateObj,TODAY);
-      const marks=almDayMarkers(g.alm,day.date,{term:true,hou:true,moon:true});
+      const marks=almDayMarkers(g.alm,day.date,{term:true,hou:true,moon:true,phase:true});
       h+=`<div class="season-row ${isT?'is-today':''}" style="grid-row:${s.hdrRow+1+di}" data-date="${day.date}"><span class="season-date">${fmtDate(day.dateObj)}</span><span class="wx-slot">${wxCellHtml(day.date)}</span><span class="season-marks">${marks.join('')}</span></div>`;
     });
     h+='</div>';
@@ -1414,6 +1437,25 @@ function renderSeason(){
   h+=fl.html+`</div>`;
   return h;
 }
+
+/* Names on the western tracks are printed optimistically and trimmed here, because whether one
+   fits depends on how many day rows its run happens to span — a Moon sign can hold one day or
+   three. Reads every measurement before writing any class, so the two passes cost one layout
+   each rather than one per pill. Nothing else in the app depends on the result, so a missed run
+   is cosmetic only. */
+function almFitLabels(){
+  const pills=[...document.querySelectorAll('.alm-pill.track')];
+  if(!pills.length)return;
+  const rows=pills.map(p=>({p,l:p.querySelector('.alm-ribbon-label')})).filter(r=>r.l);
+  rows.forEach(r=>r.p.classList.remove('no-name','tight'));
+  const m1=rows.map(r=>[r,r.l.scrollHeight,r.p.clientHeight]);              // one layout
+  m1.forEach(([r,lh,ph])=>{if(lh>ph)r.p.classList.add('no-name')});
+  const left=rows.filter(r=>r.p.classList.contains('no-name'));
+  const m2=left.map(r=>[r,r.l.scrollHeight,r.p.clientHeight]);              // one more
+  m2.forEach(([r,lh,ph])=>{if(lh>ph)r.p.classList.add('tight')});
+}
+let _fitTimer=null;
+window.addEventListener('resize',()=>{clearTimeout(_fitTimer);_fitTimer=setTimeout(almFitLabels,150)});
 
 // Opens a solar term's reading. External site, so noopener/noreferrer and a fresh tab.
 function almOpenTermLink(i){
