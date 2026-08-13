@@ -1,4 +1,4 @@
-<!-- Academic Planner v10.4 -->
+<!-- Academic Planner v10.5 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -306,13 +306,14 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .alm-pill.zodiac .alm-ribbon-label{color:var(--text-dim)}
 .alm-pill.zodiac .alm-en{font-size:var(--fs-2xs);letter-spacing:.09em;text-transform:uppercase}
 .alm-pill.moonsign{background:var(--surface);border-color:var(--border)}
-/* Moon runs are one to three days, so a sticky label has nothing to travel over and centring it
-   left the glyph floating against the tall Sun and Mercury pills beside it. Pin it to the top of
-   its own pill instead, giving the track an even rhythm down the column.
-   Top alignment comes from align-items on .alm-ribbon-inner, NOT from justify-content: that box
-   is a row-direction flexbox, so justify-content is its HORIZONTAL axis and setting it to
-   flex-start pushes the label off-centre against the pill's left border. */
-.alm-pill.moonsign .alm-ribbon-label{position:static}
+/* The Moon track had `position:static` here from v10.1 to v10.3, which made it the one lane whose
+   label did not ride down with the scroll like every other pill's — it sat at the top of its run
+   and slid away. It is sticky again, exactly like the other five. A Moon run is short, so its
+   label has less distance to travel than the Sun's, but that is the run length talking, not a
+   difference in behaviour.
+   Horizontal centring is a separate matter and comes from justify-content on .alm-ribbon-inner:
+   that box is a row-direction flexbox, so justify-content is its HORIZONTAL axis, and setting it
+   to flex-start (the v10.1 bug) pushed the label off-centre against the pill's left border. */
 /* Set by almFitLabels() when the name cannot fit the pill without being clipped. */
 .alm-pill.no-name .alm-en{display:none}
 .alm-pill.tight .alm-ribbon-label{padding:4px 0}
@@ -380,15 +381,18 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .season-row .wx{font-size:var(--fs-2xs)}
 
 /* ---- Season rows (v9.4; recomposed v10.3) ----
-   Only two things are centred, and they are the two the cell is anchored on: the date and the
-   forecast under it. Everything else is placed AROUND that spine rather than stacked on it, so
-   the eye has somewhere to rest instead of scanning a column of centred fragments.
+   A centred column with two corners (v10.5). The corners carry the badges; the centre line
+   carries everything that is read as a statement about the day.
 
      top-left corner  : the moon, now nearly all icon
-     centre           : date, then forecast
      top-right corner : `today`, the one row that needs calling out
-     below, left      : the solar openings, then the event chips — both left-aligned, because
-                        they are lists of things and a list reads off a straight edge.
+     centre line      : date, forecast, the solar openings, then the event chips
+
+   v10.4 left-aligned the two lower bands on the theory that a list reads off a straight edge.
+   In a cell this narrow they are one or two items, not a list, and the ragged left edge under a
+   centred date read as a mistake rather than as structure. Only a chip's OWN text stays
+   left-aligned, because a two-line event title set ragged-centre inside its own ground does look
+   wrong.
 
    The corners are cells of a three-column head, not absolute boxes: the head then takes the
    height of whichever corner is tallest and the date stays optically centred against it, which
@@ -413,10 +417,11 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 
 /* The solar openings. A 候 or a 節氣 turning over is the one thing the flanks cannot show — they
    carry the running state, not the moment it changes — so the opening day still says so here, and
-   only the opening day. Left-aligned under the centred spine. */
-.season-opens{display:flex;flex-direction:column;align-items:flex-start;gap:1px;
+   only the opening day. Centred with the rest of the body: these are one or two short statements,
+   not a list, so there is no straight edge worth aligning them to. */
+.season-opens{display:flex;flex-direction:column;align-items:center;gap:1px;
   min-width:0;margin-top:2px}
-.season-opens .alm-mk{justify-content:flex-start;text-align:left}
+.season-opens .alm-mk{justify-content:center;text-align:center}
 
 /* The moon, stated once for every reckoning that agrees, and stripped to almost pure icon
    (v10.3). `shared` marks a reading more than one tradition holds, so it carries a shade more
@@ -439,11 +444,13 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 /* Events. These are the only things in the cell that are appointments, so they get a chip: a
    tinted ground in the publishing tradition's own colour, its emblem, and text at the cell's
    largest size. Nothing else in the Season row is chipped, so an event is unmistakable. */
-.season-events{display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;
+.season-events{display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;
   min-width:0;margin-top:6px;padding-top:7px;border-top:1px solid var(--border)}
 .cal-evt{display:inline-flex;align-items:baseline;gap:7px;max-width:100%;min-width:0;
   padding:4px 11px 5px;border-radius:var(--r-s);font-size:var(--fs-s);font-weight:600;
   line-height:1.35;text-align:left}
+/* The chip is centred in the cell, but its own text stays left-aligned: a two-line event title
+   set ragged-centre inside its own ground reads worse than one with a straight edge. */
 .cal-evt-name{min-width:0}
 .cal-emblem{display:inline-flex;align-items:center;flex-shrink:0;transform:translateY(2px)}
 .cal-emblem .mi{width:15px;height:15px;vertical-align:0}
@@ -1039,7 +1046,7 @@ function render(){
   const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
   const bottomNav=`<nav class="bottomnav">${slotBtn('bn-item')}<button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
   const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v10.4</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v10.5</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}

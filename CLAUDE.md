@@ -9,7 +9,7 @@ The exceptions to "single file" are the almanac (v9.0) and the monastery calenda
 
 `calendars-data.js` (v10.2) holds the Abhayagiri and DRBA observance calendars as published, and is **generated** — run `node tools/build-calendars.js` over `calendars/source/*.csv` and commit both; never hand-edit it. Season tab only. Abhayagiri's "Alms Round" and its matching "<N> Moon Observance Day" are one occasion; the generator drops both and records the phase as `p`, so a date carrying a `p` **is** a Wan Phra day.
 
-The Season day cell (v10.4) centres exactly two things — the date and the forecast under it — and places everything else around that spine: the moon in the **top-left corner**, `today` in the **top-right**, and two left-aligned bands below (the solar openings, then the event chips, divided by a rule drawn only when there are events). Nothing but an event is chipped, which is what makes an event unmistakable. Centring every line was the v10.3 mistake — a column of centred fragments gives the eye nowhere to rest.
+The Season day cell (v10.5) is a **centred column with two corners**. The corners carry the two badges — the moon top-left, `today` top-right — and everything on the centre line is centred: the date, the forecast, the solar openings, and the event chips, the last divided off by a rule drawn only when there are events. Only an event chip's own text stays left-aligned, since a two-line title set ragged-centre inside its own ground reads worse than one with a straight edge. Nothing but an event is chipped, which is what makes an event unmistakable.
 
 The moon is stated **once for all three reckonings**, not once per layer: agreeing sources group onto a single reading. Attribution is by **emblem only** — a stupa or a dharmachakra beside the icon; the source is never written out, and local is never labelled at all because local is the default. A phase is **named** only when it is a local quarter: the intermediate phases read fine from the icon and would otherwise put prose on four days out of five. The full sentence survives as the `title`. The three reckonings — local astronomical, Thai, Chinese — routinely disagree by a day and are deliberately **not** reconciled. Only the local layer is drawn between the quarters (waxing crescent and so on); the monasteries publish new/quarter/full and nothing else, so the intermediate phases are never attributed to them and never group.
 
@@ -22,7 +22,7 @@ The moon is stated **once for all three reckonings**, not once per layer: agreei
 
 ## Versioning
 - Version lives as an HTML comment on line 1: `<!-- Academic Planner vX.Y -->`, and in a visible `.version-label` in the header, and in the service worker `CACHE_NAME`.
-- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v10.4. All three locations must match.
+- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v10.5. All three locations must match.
 - Bumping the SW `CACHE_NAME` every change is required or installed devices serve stale code.
 
 ## Architecture rules (hard-won — do not violate)
