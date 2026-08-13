@@ -59,10 +59,9 @@ dates.forEach(key=>{
     if(kind==='New'){phase=PH.New;lastMajor='New'}
     else if(kind==='Full'){phase=PH.Full;lastMajor='Full'}
     else phase=(lastMajor==='Full')?PH.Last:PH.First;
-    const name=kind==='Half'
-      ?((phase===PH.First?'First':'Last')+' Quarter Wan Phra')
-      :(kind+' Moon Wan Phra');
-    events.push(name);
+    // The phase alone marks the observance: `p` present means this is a Wan Phra day. The app
+    // names the phase once, in the shared moon reading, so storing "New Moon Wan Phra" here would
+    // only make the day cell say "New Moon" twice.
   }else if(alms.length){
     events.push(alms[0]);                       // never happens in this data; kept for safety
   }
@@ -121,9 +120,10 @@ const out=`/* calendars-data.js — the Abhayagiri and DRBA observance calendars
  *
  * Abhayagiri: the CSV lists "Alms Round in Ukiah and Redwood Valley" and the matching
  * "<N> Moon Observance Day" as two rows on the same date, every time (32 of 32 in this export).
- * They are one occasion, so they are collapsed into a single "<N> Wan Phra" row here. A Half Moon
- * is resolved to First or Last Quarter from its place in the sequence, which runs
- * New -> Half -> Full -> Half with no breaks.
+ * They are one occasion. Both are dropped from \`e\` and recorded as \`p\` instead: a date with a
+ * \`p\` IS a Wan Phra observance day, and the app names the phase once in the shared moon reading
+ * rather than repeating it in the observance's own title. A Half Moon is resolved to First or Last
+ * Quarter from its place in the sequence, which runs New -> Half -> Full -> Half with no breaks.
  * \`p\` indexes AlmanacData.MOON (0 new, 1 first quarter, 2 full, 3 last quarter).
  * \`u\` appears only where the source URL is not the derivable per-date monastery page.
  *

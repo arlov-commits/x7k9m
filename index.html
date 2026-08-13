@@ -1,4 +1,4 @@
-<!-- Academic Planner v10.2 -->
+<!-- Academic Planner v10.3 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -390,33 +390,46 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .season-row.is-today{border-left-color:var(--warning);border-right-color:var(--warning);background:var(--surface2)}
 .season-date{font-family:var(--font-serif);font-weight:600;font-size:var(--fs-s);color:var(--text-dim);white-space:nowrap}
 .season-row.is-today .season-date{color:var(--text);font-weight:700}
-.season-layers{display:flex;flex-direction:column;align-items:center;gap:3px;width:100%;min-width:0}
+/* ---- The two bands (v10.2) ----
+   A day carries two different kinds of thing, and listing them together is what made the cell
+   unreadable. The STATE band is ambient — weather, solar term, 候, moon — small and quiet, true
+   of the whole day. The EVENTS band is appointments, and is set to be read first: bigger, higher
+   contrast, one chip per line. The rule between them is drawn only when there are events. */
+.season-state{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;min-width:0}
+.season-solar{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:center;
+  gap:1px var(--sp-3);min-width:0}
+.season-solar .alm-mk{justify-content:center;text-align:center}
 
-/* One line per reckoning (v10.2), each led by the emblem that says whose it is. The emblem sits
-   inside the centred line rather than in a gutter: the whole cell is centred, and a left-hand
-   emblem column would pull every line back off the axis. Emblem and reading are siblings of ONE
-   flex box, so they wrap together and the emblem is never stranded on a line by itself. */
-.cal-line{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:center;
-  gap:2px var(--sp-3);width:100%;min-width:0}
-.cal-emblem{display:inline-flex;align-items:center;flex-shrink:0;color:var(--text-muted);
-  transform:translateY(2px)}
+/* The moon, stated once for every reckoning that agrees. `shared` marks a reading more than one
+   tradition holds — it is the corroborated one, so it carries a touch more weight than a lone
+   reading, and `moon-who` names exactly who is grouped. */
+.moon-row{display:inline-flex;flex-wrap:wrap;align-items:baseline;justify-content:center;
+  gap:2px var(--sp-2);font-size:var(--fs-xs);font-weight:600;color:var(--text-dim)}
+.moon-row .alm-moon-ico{color:inherit;opacity:.9;transform:translateY(2px)}
+.moon-row.mid{font-weight:500;color:var(--text-muted)}
+.moon-row.mid .alm-moon-ico{opacity:.7}
+.moon-row.shared{color:var(--text)}
+.moon-who{font-size:var(--fs-2xs);font-weight:500;font-style:italic;color:var(--text-muted);
+  letter-spacing:.02em}
+.moon-who::before{content:'— ';font-style:normal}
+
+/* Events. These are the only things in the cell that are appointments, so they get a chip: a
+   tinted ground in the publishing tradition's own colour, its emblem, and text at the cell's
+   largest size. Nothing else in the Season row is chipped, so an event is unmistakable. */
+.season-events{display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;
+  min-width:0;margin-top:6px;padding-top:7px;border-top:1px solid var(--border)}
+.cal-evt{display:inline-flex;align-items:baseline;gap:7px;max-width:100%;min-width:0;
+  padding:4px 11px 5px;border-radius:var(--r-s);font-size:var(--fs-s);font-weight:600;
+  line-height:1.35;text-align:left}
+.cal-evt-name{min-width:0}
+.cal-emblem{display:inline-flex;align-items:center;flex-shrink:0;transform:translateY(2px)}
 .cal-emblem .mi{width:15px;height:15px;vertical-align:0}
-.cal-line.abh .cal-emblem{color:var(--accent-ab)}
-.cal-line.drba .cal-emblem{color:var(--accent-cn)}
-/* The Chinese lunar date is the DRBA calendar's answer to "what day is it", so it is set like a
-   date — serif, in the layer's own colour — rather than like one more event. */
-.cal-lunar{font-family:var(--font-serif);font-size:var(--fs-s);font-weight:700;
-  color:var(--accent-cn);letter-spacing:.06em;white-space:nowrap}
-/* A published observance: the moon icon plus its name, carrying the same weight as a local
-   quarter marker so the three lines can be read against each other. */
-.cal-obs{display:inline-flex;align-items:baseline;gap:5px;font-size:var(--fs-xs);font-weight:600}
-.cal-line.abh .cal-obs{color:var(--accent-ab)}
-.cal-line.drba .cal-obs{color:var(--accent-cn)}
-.cal-obs .alm-moon-ico{color:inherit;opacity:1}
-.cal-evt{font-size:var(--fs-2xs);color:var(--text-muted);line-height:1.35}
-/* The day-cell markers keep their own English-then-Chinese order, but centre with everything
-   else here rather than hanging off a left edge that no longer exists. */
-.cal-line .alm-mk{justify-content:center;text-align:center}
+.cal-evt.abh{background:var(--accent-ab-dim,var(--surface2));color:var(--accent-ab)}
+.cal-evt.drba{background:var(--accent-cn-dim,var(--surface2));color:var(--accent-cn)}
+/* The Wan Phra observance is the moon's own occasion rather than a scheduled gathering, so it is
+   outlined instead of filled — present and legible, but not competing with a talk or a festival. */
+.cal-evt.obs{background:0;box-shadow:inset 0 0 0 1px currentColor;padding:3px 10px 4px;
+  font-size:var(--fs-xs);letter-spacing:.05em;text-transform:uppercase}
 .season-hdr{margin-bottom:6px}
 .season-grid{--alm-stack-w:46px;--alm-lane-w:28px}
 .season-grid .week-section .week-hdr{margin-top:20px}
@@ -999,7 +1012,7 @@ function render(){
   const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
   const bottomNav=`<nav class="bottomnav">${slotBtn('bn-item')}<button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
   const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v10.2</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v10.3</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -1461,16 +1474,29 @@ function wxCellHtml(dateKey){
 }
 
 /* ============================================================
-   MONASTERY CALENDARS (v10.2) — two published calendars as further daily layers.
+   MONASTERY CALENDARS (v10.2) — two published calendars over the local almanac.
 
    Abhayagiri keeps the Thai forest tradition's lunar calendar, DRBA the Chinese one, and the
    app's own engine computes the local astronomical moon. That is three reckonings of the same
-   sky, and they routinely disagree: a quarter can fall on one date locally, the next date at
-   Abhayagiri and a third at DRBA. NOTHING here reconciles them. Each layer gets its own line
-   under its own emblem and states its own reading, so a disagreement reads as three traditions
-   rather than as a bug. The local layer is also the only one shown between the quarters — the
-   monasteries publish new/quarter/full and nothing else, so inventing a waxing gibbous for them
-   would be putting words in their mouth.
+   sky, and they routinely disagree by a day. NOTHING here reconciles them.
+
+   The day cell is split into two bands rather than listed as one run of text (v10.2), because it
+   carries two different KINDS of thing and mixing them is what made it unreadable:
+
+     · the day's STATE — weather, solar term, 候, and the moon. Quiet, small, ambient. It is true
+       of the whole day and you read it at a glance or not at all.
+     · what HAPPENS — observances, talks, festivals. Loud, chipped, one per line. These are
+       appointments, and they are the reason to look at the row at all.
+
+   A rule divides them, and it is only drawn on days that actually have events.
+
+   The moon is stated ONCE for all three reckonings instead of once per layer. Agreeing sources
+   are grouped onto a single reading and named beside it ("New Moon — local, Abhayagiri, DRBA");
+   when they disagree the day simply shows two or three readings, each with its own sources. The
+   attribution is dropped entirely on days where only one source speaks, which is most days, since
+   naming a lone source tells you nothing. Only the local layer is drawn between the quarters —
+   the monasteries publish new/quarter/full and nothing else, so a waxing gibbous is never put in
+   their mouths, and an intermediate phase is therefore never grouped.
 
    Both are static published tables in calendars-data.js, not user data: they never enter `state`,
    never sync, and are precached by the service worker alongside the almanac. Season tab only.
@@ -1489,22 +1515,66 @@ function calRec(src,dateKey){
 }
 const calEsc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-// A published moon phase, drawn with the same icons as the local layer so the three lines can be
-// compared at a glance. Always AlmanacData.MOON — never MOON_MID, see the header note.
-function calMoonHtml(p,label){
-  const mo=AlmanacData.MOON[p];
+/* The day's moon, gathered from every reckoning that names one and grouped by what they say.
+   Returns [{phase, mid, who:[label,…]}] in source order, local first. `mid` marks an intermediate
+   phase, which only the local engine reports and which therefore never groups. */
+function calMoonReadings(alm,dateKey){
+  const L=almLayers(),out=[];
+  const add=(phase,mid,who)=>{
+    const hit=out.find(r=>r.phase===phase&&r.mid===mid);
+    if(hit)hit.who.push(who);else out.push({phase,mid,who:[who]});
+  };
+  if(L.moon&&alm){
+    const q=(alm.markers[dateKey]||[]).filter(m=>m.kind==='moon');
+    const a=alm.byDate[dateKey];
+    if(q.length)q.forEach(m=>add(m.index,false,'local'));
+    else if(a&&a.phase!=null)add(a.phase,true,'local');
+  }
+  ['abhayagiri','drba'].forEach(src=>{
+    if(!L[src])return;
+    const r=calRec(src,dateKey);
+    if(r&&r.p!=null)add(r.p,false,CAL_SRC[src].name);
+  });
+  return out;
+}
+/* One moon reading. The attribution rides along only when more than one reckoning spoke that day,
+   so an ordinary waxing-crescent Tuesday stays a bare phase name. */
+function calMoonRowHtml(r,attribute){
+  const mo=(r.mid?AlmanacData.MOON_MID:AlmanacData.MOON)[r.phase];
   if(!mo)return'';
-  return`<span class="cal-obs"><span class="alm-moon-ico">${mo.svg}</span><span class="cal-obs-name">${calEsc(label||mo.en)}</span></span>`;
+  const who=attribute?`<span class="moon-who">${calEsc(r.who.join(' · '))}</span>`:'';
+  return`<div class="moon-row${r.mid?' mid':''}${r.who.length>1?' shared':''}">`
+    +`<span class="alm-moon-ico">${mo.svg}</span><span class="moon-name">${calEsc(mo.en)}</span>${who}</div>`;
 }
-// One layer's line: the emblem that says whose reckoning this is, then that day's reading. The
-// emblem is a SIBLING of the reading, not a wrapper around it — nesting a second flex box here
-// made the reading claim the full line width and pushed the emblem onto a line of its own.
-function calLineHtml(cls,icon,name,body){
-  if(!body)return'';
-  return`<div class="cal-line ${cls}"><span class="cal-emblem" title="${calEsc(name)}" aria-label="${calEsc(name)}">`
-    +`<span class="mi" style="--ic:var(--ic-${icon})"></span></span>${body}</div>`;
+function calMoonBlockHtml(alm,dateKey){
+  const rs=calMoonReadings(alm,dateKey);
+  if(!rs.length)return'';
+  // Attribute only when the day is actually contested or corroborated — i.e. more than one
+  // reckoning had something to say about it.
+  const sources=rs.reduce((n,r)=>n+r.who.length,0);
+  return rs.map(r=>calMoonRowHtml(r,sources>1)).join('');
 }
-const calEvtHtml=e=>`<span class="cal-evt">${calEsc(e)}</span>`;
+
+/* What happens on the day, as chips. A chip carries the emblem of whoever published it, so the
+   event and its source are one object instead of an emblem governing a line. */
+function calEventChips(dateKey){
+  const L=almLayers(),out=[];
+  ['abhayagiri','drba'].forEach(src=>{
+    if(!L[src])return;
+    const r=calRec(src,dateKey);
+    if(!r)return;
+    const s=CAL_SRC[src];
+    const chip=(txt,extra)=>`<div class="cal-evt ${s.cls}${extra||''}">`
+      +`<span class="cal-emblem" title="${calEsc(s.name)}" aria-label="${calEsc(s.name)}">`
+      +`<span class="mi" style="--ic:var(--ic-${s.icon})"></span></span>`
+      +`<span class="cal-evt-name">${calEsc(txt)}</span></div>`;
+    // A `p` on an Abhayagiri day IS the observance. The phase itself is already named in the moon
+    // block above, so the chip says only what kind of occasion it is.
+    if(src==='abhayagiri'&&r.p!=null)out.push(chip('Wan Phra',' obs'));
+    (r.e||[]).forEach(e=>out.push(chip(e)));
+  });
+  return out;
+}
 
 // How far each published table actually reaches. Shown in settings so a stretch of empty days is
 // legible as "the export ends here", not as a broken layer.
@@ -1513,35 +1583,6 @@ function calCoverageText(){
   const f=k=>{const r=CalendarData.range&&CalendarData.range[k];
     return r?fmtDateShort(parseDate(r.start))+'/'+parseDate(r.start).getFullYear()%100+' → '+fmtDateShort(parseDate(r.end))+'/'+parseDate(r.end).getFullYear()%100:'—'};
   return`Published tables, not computed: Abhayagiri covers ${f('abhayagiri')}, DRBA covers ${f('drba')}. Days beyond those show nothing for that layer.`;
-}
-
-/* Abhayagiri. The observance and its alms round were folded into one "Wan Phra" row when the
-   table was generated, so it is already the first event on the days that have one; the phase
-   rides on it rather than being stated twice. */
-function calAbhayagiriHtml(dateKey){
-  if(!almLayers().abhayagiri)return'';
-  const r=calRec('abhayagiri',dateKey);
-  if(!r||!r.e||!r.e.length)return'';
-  const parts=r.e.map((e,i)=>(i===0&&r.p!=null)?calMoonHtml(r.p,e):calEvtHtml(e));
-  const s=CAL_SRC.abhayagiri;
-  return calLineHtml(s.cls,s.icon,s.name,parts.join(''));
-}
-/* DRBA. Every exported day carries a lunar date, so this line is present on nearly every row —
-   it is the Chinese calendar's answer to "what day is it", and leads the line for that reason. */
-function calDrbaHtml(dateKey){
-  if(!almLayers().drba)return'';
-  const r=calRec('drba',dateKey);
-  if(!r)return'';
-  const parts=[];
-  if(r.d){
-    const tip=(r.mn?'Lunar month '+r.mn+', day '+(r.dn||'?'):'Lunar day '+(r.dn||'?'));
-    parts.push(`<span class="cal-lunar" title="${calEsc(tip)}">${calEsc((r.m||'')+r.d)}</span>`);
-  }
-  if(r.p!=null)parts.push(calMoonHtml(r.p));
-  (r.e||[]).forEach(e=>parts.push(calEvtHtml(e)));
-  if(!parts.length)return'';
-  const s=CAL_SRC.drba;
-  return calLineHtml(s.cls,s.icon,s.name,parts.join(''));
 }
 
 /* ---- Season tab (v9.4, recomposed v10.2) ----
@@ -1562,15 +1603,19 @@ function renderSeason(){
     h+=`<div class="week-section"><div class="week-hdr season-hdr" style="grid-row:${s.hdrRow}"><span class="week-hdr-title">Week ${s.wk.num}</span><span class="week-hdr-dates">${fmtDateShort(s.wk.start)} → ${fmtDateShort(s.wk.end)}</span></div>`;
     s.days.forEach((day,di)=>{
       const isT=sameDay(day.dateObj,TODAY);
-      const marks=almDayMarkers(g.alm,day.date,{term:true,hou:true,moon:true,phase:true});
-      // Local first, then the two monastery layers — slowest-changing reckoning to fastest, and
-      // the order the three moon readings are most naturally compared in.
-      const local=marks.length?calLineHtml('local','pin','Local',marks.join('')):'';
+      // The moon is drawn by the shared reading below, not as a per-layer marker, so it is asked
+      // for here only as the solar layers.
+      const marks=almDayMarkers(g.alm,day.date,{term:true,hou:true,moon:false,phase:false});
       const wx=wxCellHtml(day.date);
+      const state_=(wx?`<div class="wx-slot">${wx}</div>`:'')
+        +(marks.length?`<div class="season-solar">${marks.join('')}</div>`:'')
+        +calMoonBlockHtml(g.alm,day.date);
+      const evts=calEventChips(day.date);
       h+=`<div class="season-row ${isT?'is-today':''}" style="grid-row:${s.hdrRow+1+di}" data-date="${day.date}">`
         +`<div class="season-date">${fmtDate(day.dateObj)}</div>`
-        +(wx?`<div class="wx-slot">${wx}</div>`:'')
-        +`<div class="season-layers">${local}${calAbhayagiriHtml(day.date)}${calDrbaHtml(day.date)}</div></div>`;
+        +(state_?`<div class="season-state">${state_}</div>`:'')
+        +(evts.length?`<div class="season-events">${evts.join('')}</div>`:'')
+        +`</div>`;
     });
     h+='</div>';
   });
@@ -1850,7 +1895,7 @@ function renderSettings(){
   <input class="life-input" id="almTzFilter" value="${_almTzFilter.replace(/"/g,'&quot;')}" oninput="almTzFilterInput(this.value)" placeholder="Filter zones…" style="width:190px;margin-bottom:6px"/>
   <select class="life-select" id="almTzSelect" onchange="almSetTz(this.value)" style="width:260px;max-width:100%;display:block">${almTzOptionsHtml(_almTzFilter)}</select></div>
   <div class="settings-section"><label>Layers</label>
-  <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Solar terms, 候 and moon quarters appear in both the Week and Season tabs; the branch, the ☉/☿/☽ tracks, the two monastery calendars and the weather reading are all Season-tab only.</div>
+  <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Solar terms, 候 and moon quarters appear in both the Week and Season tabs; the branch, the ☉/☿/☽ tracks, the two monastery calendars and the weather reading are all Season-tab only. In Season the moon is stated once for every reckoning that agrees, and named beside the reading whenever more than one of them speaks.</div>
   <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:var(--fs-xs)">${[['terms','Solar terms 節氣'],['hou','Pentads 候'],['moon','Moon quarters'],['branch','Earthly branch 月建'],['zodiac','☉ Sun sign'],['mercury','☿ Mercury sign'],['moonsign','☽ Moon sign'],['abhayagiri','Abhayagiri calendar'],['drba','DRBA calendar']].map(([k,lbl])=>`<label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox"${almLayers()[k]?' checked':''} onchange="almSetLayer('${k}',this.checked)"/> ${lbl}</label>`).join('')}</div>
   <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-top:8px">${calCoverageText()}</div></div></div>
   <div class="notes-box"><div class="notes-box-title">Weather</div>

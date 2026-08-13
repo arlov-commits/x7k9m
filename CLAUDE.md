@@ -7,7 +7,11 @@ A single-file academic planner PWA (`index.html`, vanilla HTML/CSS/JS, no build 
 
 The exceptions to "single file" are the almanac (v9.0) and the monastery calendars (v10.2): `almanac.js` (engine), `almanac-data.js` (name tables) and `calendars-data.js` (published calendar tables) load as separate scripts and are precached by `sw.js`. It drives the Season tab (solar terms, 候, moon quarters, earthly branch, Sun sign, Moon sign, Mercury sign with retrograde) and, in the Week tab, the solar-term pill plus moon quarters. `almanac.js` v1.3 adds the Moon's ecliptic longitude, checked by elongation against the moon-quarter fixtures rather than by a fixture of its own. Week and Season draw the same weeks and days on purpose — tapping the 節氣 ribbon in either one crosses to the other at the same scroll position, which only works while their rows correspond. They are verified against `almanac-fixtures.json` by `test-almanac.html` + `test-almanac.js` (serve the repo over HTTP and open the page; expect zero failures). `ALMANAC_SPEC.md` carries the provenance — read it before touching the data tables.
 
-`calendars-data.js` (v10.2) holds the Abhayagiri and DRBA observance calendars as published, and is **generated** — run `node tools/build-calendars.js` over `calendars/source/*.csv` and commit both; never hand-edit it. They are Season-tab only, one line per reckoning under its own emblem (stupa for Abhayagiri, dharmachakra for DRBA), stacked under the local layer. The three moon reckonings — local astronomical, Thai, Chinese — routinely disagree by a day and are deliberately **not** reconciled. Only the local layer is drawn between the quarters (waxing crescent and so on); the monasteries publish new/quarter/full and nothing else, so the intermediate phases are never attributed to them. Abhayagiri's "Alms Round" and its matching "<N> Moon Observance Day" are one occasion and are collapsed into a single "<N> Wan Phra" row by the generator.
+`calendars-data.js` (v10.2) holds the Abhayagiri and DRBA observance calendars as published, and is **generated** — run `node tools/build-calendars.js` over `calendars/source/*.csv` and commit both; never hand-edit it. Season tab only. Abhayagiri's "Alms Round" and its matching "<N> Moon Observance Day" are one occasion; the generator drops both and records the phase as `p`, so a date carrying a `p` **is** a Wan Phra day.
+
+The Season day cell is split into two bands (v10.3), because it carries two kinds of thing and mixing them made it unreadable: **state** (weather, 節氣, 候, moon — small, quiet, true of the whole day) above a rule, and **events** (observances, talks, festivals — chipped, in the publishing tradition's colour, at the cell's largest size) below it. The rule is drawn only on days that have events. Nothing but an event is chipped, which is what makes an event unmistakable.
+
+The moon is stated **once for all three reckonings**, not once per layer: agreeing sources are grouped onto a single reading and named beside it ("New Moon — local, Abhayagiri, DRBA"), and a day where they disagree simply shows two or three readings. The attribution is suppressed when only one source spoke, which is most days. The three reckonings — local astronomical, Thai, Chinese — routinely disagree by a day and are deliberately **not** reconciled. Only the local layer is drawn between the quarters (waxing crescent and so on); the monasteries publish new/quarter/full and nothing else, so the intermediate phases are never attributed to them and never group.
 
 ## Deploy workflow (NON-NEGOTIABLE)
 - **Never commit directly to `main`.** A live user depends on `main`.
@@ -18,7 +22,7 @@ The exceptions to "single file" are the almanac (v9.0) and the monastery calenda
 
 ## Versioning
 - Version lives as an HTML comment on line 1: `<!-- Academic Planner vX.Y -->`, and in a visible `.version-label` in the header, and in the service worker `CACHE_NAME`.
-- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v10.2. All three locations must match.
+- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v10.3. All three locations must match.
 - Bumping the SW `CACHE_NAME` every change is required or installed devices serve stale code.
 
 ## Architecture rules (hard-won — do not violate)
