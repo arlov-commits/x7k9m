@@ -1,4 +1,4 @@
-<!-- Academic Planner v10.1 -->
+<!-- Academic Planner v10.7 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -64,6 +64,13 @@
   /* Week tab (v9.4): a calendar with one week-row picked out. The moon it used to carry moved
      to the Season tab, which is where the lunar and solar cycles now live. */
   --ic-drop:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.2c3.4 4.1 5.4 7.1 5.4 9.6a5.4 5.4 0 0 1-10.8 0c0-2.5 2-5.5 5.4-9.6z'/%3E%3C/svg%3E");
+  /* Emblems for the two monastery calendar layers (v10.2): a stupa for Abhayagiri, a dharma
+     wheel for DRBA. Same engraved construction as the rest of the set — 24x24, stroked, no fill. */
+  --ic-stupa:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 20.6h14'/%3E%3Cpath d='M6.8 20.6v-1.7h10.4v1.7'/%3E%3Cpath d='M7.2 18.9a4.8 4.8 0 0 1 9.6 0'/%3E%3Crect x='10.4' y='11.7' width='3.2' height='2.4'/%3E%3Cpath d='M12 11.7V8.4'/%3E%3Cpath d='M10.7 10.6h2.6M11 9.4h2'/%3E%3Ccircle cx='12' cy='7.1' r='1.1'/%3E%3C/svg%3E");
+  /* A dharmachakra, deliberately NOT the --nv-wheel used by the Settings nav item: that one is a
+     thin rim with spokes running all the way out to it. This has a heavy rim and spokes that stop
+     well short of it, so the two never read as the same mark. */
+  --ic-wheel:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9' stroke-width='2.4'/%3E%3Ccircle cx='12' cy='12' r='2.3' stroke-width='1.6'/%3E%3Cpath stroke-width='1.6' d='M12 9.7V5.4M12 14.3v4.3M9.7 12H5.4M14.3 12h4.3M13.6 10.4l3-3M10.4 10.4l-3-3M10.4 13.6l-3 3M13.6 13.6l3 3'/%3E%3C/svg%3E");
   --nv-calendar:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.2' y='5.2' width='17.6' height='15.6' rx='2.2'/%3E%3Cpath d='M3.2 9.8h17.6'/%3E%3Cpath d='M8.2 3.1v3.8M15.8 3.1v3.8'/%3E%3Crect x='6.3' y='12.6' width='11.4' height='3.3' rx='1.3' fill='black' stroke='none'/%3E%3C/svg%3E");
 }
 .t{font-family:var(--font-mono);font-size:var(--fs-2xs);font-weight:500;opacity:.75}
@@ -263,14 +270,11 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
    run must never stretch its day row to fit a vertical name. */
 /* Clipped with clip-path, NOT overflow:hidden: an overflow:hidden box is a scroll container, and
    the sticky label below would then stick to a box that never scrolls. clip-path only clips paint. */
-/* Nested stacks (v9.8). Container and sub-pills share a grid column and overlap by design:
-   the container paints first and the subs sit on top, inset, so the containment is literal.
-   A container is only ever as tall as the runs it holds, so no z-index games are needed —
-   DOM order alone puts the subs in front. */
+/* Both flanks are parallel track strips (v10.3); the nested container/sub-pill construction that
+   lived here through v10.2 is gone, along with its pod and cap roles. */
 .alm-pill{position:relative;min-height:0;margin-bottom:5px;
   background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-m);
   clip-path:inset(0 round var(--r-m))}
-.alm-pill.pod{background:var(--surface3);border-color:var(--surface3)}
 /* The label is absolutely positioned so a pill contributes NO intrinsic height: a one-day run
    must never stretch its row to fit a vertical name. Clipped with clip-path rather than
    overflow:hidden — an overflow:hidden box is a scroll container, and the sticky label below
@@ -292,15 +296,8 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 /* One glyph per span: paired symbols in a single span do not reliably wrap inside a 1em box,
    so they get their own boxes and stack along the label's vertical flow. */
 .alm-ribbon-label .alm-glyph{writing-mode:horizontal-tb;font-size:var(--fs-s);line-height:1.05;text-align:center}
-/* Sub-pills are inset on the INNER side only, leaving a strip of the container showing along the
-   outer edge of the column — that strip is where the container's own name runs, otherwise the
-   subs would tile over it completely and the container would be invisible. */
-.alm-pill.cap{margin:3px 3px 8px;border-radius:var(--r-m);clip-path:inset(0 round var(--r-m))}
-.alm-pill.terms.cap{margin-right:22px}                 /* right column: container spine on the right */
-.alm-pill.moonsign.cap{margin-left:22px}               /* left column: container spine on the left  */
-.alm-pill.branch .alm-ribbon-inner{justify-content:flex-end}
-.alm-pill.zodiac .alm-ribbon-inner{justify-content:flex-start}
-.alm-pill.branch .alm-ribbon-label,.alm-pill.zodiac .alm-ribbon-label{padding-left:3px;padding-right:3px}
+/* The nested pod/cap layout was retired in v10.3 — both flanks are parallel track strips now, so
+   there is no container needing a spine left showing along the column edge. */
 .alm-pill.terms{background:var(--accent-bh-dim);border-color:var(--accent-bh-dim)}
 .alm-pill.terms .alm-ribbon-label{color:var(--accent-bh)}
 .alm-pill.branch .alm-ribbon-label{color:var(--text-dim)}
@@ -309,11 +306,14 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .alm-pill.zodiac .alm-ribbon-label{color:var(--text-dim)}
 .alm-pill.zodiac .alm-en{font-size:var(--fs-2xs);letter-spacing:.09em;text-transform:uppercase}
 .alm-pill.moonsign{background:var(--surface);border-color:var(--border)}
-/* Moon runs are one to three days, so a sticky label has nothing to travel over and centring it
-   left the glyph floating against the tall Sun and Mercury pills beside it. Pin it to the top of
-   its own pill instead, giving the track an even rhythm down the column. */
-.alm-pill.moonsign .alm-ribbon-inner{justify-content:flex-start}
-.alm-pill.moonsign .alm-ribbon-label{position:static}
+/* The Moon track had `position:static` here from v10.1 to v10.3, which made it the one lane whose
+   label did not ride down with the scroll like every other pill's — it sat at the top of its run
+   and slid away. It is sticky again, exactly like the other five. A Moon run is short, so its
+   label has less distance to travel than the Sun's, but that is the run length talking, not a
+   difference in behaviour.
+   Horizontal centring is a separate matter and comes from justify-content on .alm-ribbon-inner:
+   that box is a row-direction flexbox, so justify-content is its HORIZONTAL axis, and setting it
+   to flex-start (the v10.1 bug) pushed the label off-centre against the pill's left border. */
 /* Set by almFitLabels() when the name cannot fit the pill without being clipped. */
 .alm-pill.no-name .alm-en{display:none}
 .alm-pill.tight .alm-ribbon-label{padding:4px 0}
@@ -322,21 +322,40 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .alm-mk.phase .alm-en{font-size:var(--fs-xs);font-weight:500;color:var(--text-muted)}
 .alm-mk.phase .alm-moon-ico{opacity:.7}
 .alm-pill.moonsign .alm-ribbon-label{color:var(--text-muted)}
-/* Western flank: three parallel tracks of one strip, pulled together over the column gaps so they
+/* Both flanks: three parallel tracks of one strip, pulled together over the column gaps so they
    meet on seams. Only the outer edges of the strip are rounded. Each track is told apart by its
-   position, its fill, and the sticky glyph tag below — never by a glyph repeated on every pill. */
+   position, its fill, and the sticky glyph tag below — never by a glyph repeated on every pill.
+   A track's label is always centred: it must sit an equal distance from both of its borders. */
+.alm-pill.track .alm-ribbon-inner{justify-content:center}
+.alm-pill.track .alm-ribbon-label{padding-left:0;padding-right:0}
 .alm-pill.track{border-color:var(--border)}
-.alm-pill.track.first{margin-right:calc(var(--alm-col-gap) / -2);border-right:0;
+/* Seam edges are made TRANSPARENT rather than removed. Dropping a border shortens the content box
+   on that side only, which pushes the centred label a border-width off the pill's visual middle —
+   the asymmetry that made the ☽ glyph look badly padded. A transparent border keeps the box
+   symmetric and still reads as seamless, since the background paints under it. */
+.alm-pill.track.first{margin-right:calc(var(--alm-col-gap) / -2);border-right-color:transparent;
   border-radius:var(--r-m) 0 0 var(--r-m);clip-path:inset(0 round var(--r-m) 0 0 var(--r-m))}
 .alm-pill.track.mid{margin-left:calc(var(--alm-col-gap) / -2);margin-right:calc(var(--alm-col-gap) / -2);
-  border-left:0;border-right:0;border-radius:0;clip-path:none}
-.alm-pill.track.last{margin-left:calc(var(--alm-col-gap) / -2);border-left:0;
+  border-left-color:transparent;border-right-color:transparent;border-radius:0;clip-path:none}
+.alm-pill.track.last{margin-left:calc(var(--alm-col-gap) / -2);border-left-color:transparent;
   border-radius:0 var(--r-m) var(--r-m) 0;clip-path:inset(0 round 0 var(--r-m) var(--r-m) 0)}
-.alm-pill.track.sun{background:var(--surface3)}
-.alm-pill.track.merc{background:var(--surface2)}
-.alm-pill.track.moon{background:var(--surface)}
+/* The tonal ramp runs the same way on both flanks: the slowest layer is the deepest fill on the
+   outside, lightening inward to the fastest. That ramp is the mirror — a track's shade tells you
+   its rate of change, on whichever side of the day cell you are reading.
+     west  ☉ sun -> ☿ mercury -> ☽ moon
+     east  建 branch -> 節 term -> 候 pentad                                                     */
+.alm-pill.track.sun,.alm-pill.track.branch{background:var(--surface3)}
+.alm-pill.track.merc,.alm-pill.track.term{background:var(--surface2)}
+.alm-pill.track.moon,.alm-pill.track.hou{background:var(--surface)}
 .alm-pill.track .alm-ribbon-label{color:var(--text-dim)}
+/* Three classes, so these beat the .alm-pill.terms accent fill that the Week ribbon still uses. */
+.alm-pill.track.term{border-color:var(--border)}
+.alm-pill.track.term .alm-ribbon-label{color:var(--accent-bh)}
 .alm-pill.track.sun .alm-en{font-size:var(--fs-2xs);letter-spacing:.09em;text-transform:uppercase}
+/* The two flanks' innermost tracks carry the most text per pixel, so their names are set a shade
+   smaller than the outer ones rather than being dropped by almFitLabels() more often. */
+.alm-pill.track.hou .alm-en,.alm-pill.track.moon .alm-en{font-size:var(--fs-2xs)}
+.alm-pill.track.branch .alm-en{font-family:var(--font-serif);font-style:italic}
 /* Retrograde is a modifier on Mercury's own pills: the ℞ plus a lighter, recessed fill. */
 .alm-rx{writing-mode:horizontal-tb;font-family:var(--font-serif);font-size:var(--fs-s);font-weight:700;
   line-height:1;color:var(--danger)}
@@ -361,34 +380,125 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .wx-slot{min-width:0;white-space:nowrap}
 .season-row .wx{font-size:var(--fs-2xs)}
 
-/* Season rows (v9.4). No academic content means no chips, no note field and no add button, so
-   the row collapses to a date plus that day's almanac laid out on one line. */
-.season-row{display:grid;grid-template-columns:88px auto 1fr;gap:var(--sp-2);align-items:baseline;
-  margin-bottom:3px;padding:5px 10px;background:var(--surface);border-radius:var(--r-s);
-  border-left:3px solid transparent}
-.season-row.is-today{border-left-color:var(--warning);background:var(--surface2)}
-.season-date{font-family:var(--font-serif);font-weight:600;font-size:var(--fs-s);color:var(--text-dim);white-space:nowrap}
-.season-row.is-today .season-date{color:var(--text)}
-.season-marks{display:flex;flex-wrap:wrap;align-items:baseline;gap:1px var(--sp-3);min-width:0}
+/* ---- Season rows (v9.4; recomposed v10.3) ----
+   A centred column with two corners (v10.5). The corners carry the badges; the centre line
+   carries everything that is read as a statement about the day.
+
+     top-left corner  : the moon, now nearly all icon
+     top-right corner : `today`, the one row that needs calling out
+     centre line      : date, forecast, the solar openings, then the event chips
+
+   v10.4 left-aligned the two lower bands on the theory that a list reads off a straight edge.
+   In a cell this narrow they are one or two items, not a list, and the ragged left edge under a
+   centred date read as a mistake rather than as structure. Only a chip's OWN text stays
+   left-aligned, because a two-line event title set ragged-centre inside its own ground does look
+   wrong.
+
+   The corners are cells of a three-column head, not absolute boxes: the head then takes the
+   height of whichever corner is tallest and the date stays optically centred against it, which
+   absolute positioning would not survive on a phone. The side columns are `1fr` and equal, so the
+   date sits on the true centre line however lopsided the corners are. */
+/* margin-bottom, not the grid's row-gap, sets the space between day cells: the grid keeps
+   row-gap:0 so a flank run stays one seamless pill across the rows it spans, while each day cell
+   carries its own trailing gap. Bumped to 14px (v10.7) so one day is easier to tell from the
+   next; the flank tracks grow with the taller grid rows and stay continuous. */
+.season-row{display:flex;flex-direction:column;align-items:stretch;gap:3px;
+  margin-bottom:14px;padding:8px 12px;background:var(--surface);border-radius:var(--r-s);
+  border-left:3px solid transparent;border-right:3px solid transparent}
+.season-row.is-today{border-left-color:var(--warning);border-right-color:var(--warning);background:var(--surface2)}
+.season-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;
+  gap:var(--sp-2);min-width:0}
+.season-corner{display:flex;flex-direction:column;gap:2px;min-width:0}
+.season-corner.right{align-items:flex-end}
+.season-date{font-family:var(--font-serif);font-weight:600;font-size:var(--fs-s);
+  color:var(--text-dim);white-space:nowrap;text-align:center;padding-top:1px}
+.season-row.is-today .season-date{color:var(--text);font-weight:700}
+.today-tag{font-size:var(--fs-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--warning);white-space:nowrap}
+/* The forecast keeps the centre line under the date. */
+.wx-slot{min-width:0}
+.season-row .wx-slot{display:flex;justify-content:center}
+
+/* The solar openings. A 候 or a 節氣 turning over is the one thing the flanks cannot show — they
+   carry the running state, not the moment it changes — so the opening day still says so here, and
+   only the opening day. Centred with the rest of the body: these are one or two short statements,
+   not a list, so there is no straight edge worth aligning them to. */
+.season-opens{display:flex;flex-direction:column;align-items:center;gap:1px;
+  min-width:0;margin-top:2px}
+.season-opens .alm-mk{justify-content:center;text-align:center}
+
+/* The moon, stated once for every reckoning that agrees, and stripped to almost pure icon
+   (v10.3). `shared` marks a reading more than one tradition holds, so it carries a shade more
+   weight than a lone one. The emblems ARE the attribution — see calMoonRowHtml. */
+.moon-cluster{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0}
+.moon-row{display:inline-flex;flex-wrap:wrap;align-items:center;gap:1px var(--sp-1);
+  font-size:var(--fs-2xs);font-weight:600;line-height:1.2;color:var(--text-dim)}
+/* Only a local quarter is ever named. In a corner this narrow the name may take two lines on a
+   phone; that is why it is set tight and centred rather than left to straggle. */
+.moon-name{text-align:left}
+.moon-row .alm-moon-ico{color:inherit;opacity:.9}
+.moon-row .cal-emblem{transform:none}
+.moon-row .cal-emblem .mi{width:13px;height:13px}
+.moon-row .cal-emblem.abh{color:var(--accent-ab)}
+.moon-row .cal-emblem.drba{color:var(--accent-cn)}
+.moon-row.mid{font-weight:500;color:var(--text-muted)}
+.moon-row.mid .alm-moon-ico{opacity:.7}
+.moon-row.shared{color:var(--text)}
+
+/* Events. These are the only things in the cell that are appointments, so they get a chip: a
+   tinted ground in the publishing tradition's own colour, its emblem, and text at the cell's
+   largest size. Nothing else in the Season row is chipped, so an event is unmistakable. */
+.season-events{display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;
+  min-width:0;margin-top:6px;padding-top:7px;border-top:1px solid var(--border)}
+.cal-evt{display:inline-flex;align-items:baseline;gap:7px;max-width:100%;min-width:0;
+  padding:4px 11px 5px;border-radius:var(--r-s);font-size:var(--fs-s);font-weight:600;
+  line-height:1.35;text-align:left}
+/* The chip is centred in the cell, but its own text stays left-aligned: a two-line event title
+   set ragged-centre inside its own ground reads worse than one with a straight edge. */
+.cal-evt-name{min-width:0}
+.cal-emblem{display:inline-flex;align-items:center;flex-shrink:0;transform:translateY(2px)}
+.cal-emblem .mi{width:15px;height:15px;vertical-align:0}
+.cal-evt.abh{background:var(--accent-ab-dim,var(--surface2));color:var(--accent-ab)}
+.cal-evt.drba{background:var(--accent-cn-dim,var(--surface2));color:var(--accent-cn)}
+/* The Wan Phra observance is the moon's own occasion rather than a scheduled gathering, so it is
+   outlined instead of filled — present and legible, but not competing with a talk or a festival. */
+.cal-evt.obs{background:0;box-shadow:inset 0 0 0 1px currentColor;padding:3px 10px 4px;
+  font-size:var(--fs-xs);letter-spacing:.05em;text-transform:uppercase}
+/* Which 72 候 list is running, named at the top of the tab. The classical list gets a quieter,
+   neutral treatment; the local one is tinted, because it is the default and the claim it makes —
+   these are the phenomena HERE — is the more particular of the two. */
+.hou-src{display:inline-flex;align-items:center;gap:5px;padding:2px 9px 3px;border-radius:var(--r-pill);
+  font-size:var(--fs-2xs);font-weight:600;letter-spacing:.04em;white-space:nowrap;
+  background:var(--surface2);color:var(--text-muted);border:1px solid var(--border)}
+.hou-src.ukiah{background:var(--accent-wh-dim,var(--surface2));color:var(--accent-wh);border-color:transparent}
+.hou-src-tc{font-family:var(--font-serif);font-size:var(--fs-xs);font-weight:700}
+/* The 候 pill is the only track meant to look tappable — its description is the point of the list. */
+.alm-pill.hou.track{cursor:pointer}
+.alm-pill.hou.track:hover{border-color:var(--accent-wh)}
+.hou-pop-tc{display:block;font-family:var(--font-serif);font-size:var(--fs-xl);font-weight:700;letter-spacing:.06em}
+.hou-pop-en{display:block;font-family:var(--font-sans);font-size:var(--fs-s);font-weight:500;
+  color:var(--text-dim);margin-top:3px;line-height:1.3}
+.hou-pop-src{font-size:var(--fs-2xs);color:var(--text-muted);letter-spacing:.04em}
 .season-hdr{margin-bottom:6px}
-.season-grid{--alm-stack-w:46px;--alm-lane-w:28px}
+/* Season now carries SIX lanes, three a side, so a lane has to be narrower than it was when the
+   right flank was one wide stack. --alm-stack-w survives only for the Week tab's lone ribbon. */
+.season-grid{--alm-lane-w:26px}
 .season-grid .week-section .week-hdr{margin-top:20px}
-/* Season carries two ribbons where Week carries one, so on a phone they are narrowed and pulled
-   together — otherwise they take a third of the width and the day rows wrap into tall blocks. */
 @media(max-width:700px){
-  /* Narrow: stack the date and its weather in the left column so the markers keep the width
-     they need, rather than three columns fighting over ~240px. */
-  .season-row{grid-template-columns:66px 1fr;padding:5px 8px;gap:0 var(--sp-2);align-items:start}
-  .season-row .season-date{grid-column:1;grid-row:1}
-  .season-row .wx-slot{grid-column:1;grid-row:2}
-  .season-row .season-marks{grid-column:2;grid-row:1/3;min-width:0}
-  /* Let the reading wrap inside the narrow left column instead of spilling over the markers. */
+  /* The composition is the same at every width; a phone gets a narrower panel and more wrapping.
+     Six lanes plus gaps is the one thing that genuinely has to shrink — at 360px they would
+     otherwise take more than half the row. */
+  .season-row{padding:7px 9px}
   .season-row .wx-slot{white-space:normal}
-  .season-row .wx{flex-wrap:wrap;white-space:normal}
+  .season-row .wx{flex-wrap:wrap;justify-content:center;white-space:normal}
   .weeks-grid{--alm-stack-w:30px;--alm-col-gap:5px}
-  .season-grid{--alm-stack-w:40px}       /* after .weeks-grid: same specificity, later wins */
-  .alm-pill.terms.cap{margin-right:18px}
-  .alm-pill.moonsign.cap{margin-left:18px}
+  .season-grid{--alm-lane-w:21px;--alm-col-gap:4px}   /* after .weeks-grid: later rule wins */
+  /* A 1em TC box at --fs-m is ~17px and would not fit a 21px lane once the border is counted. */
+  .season-grid .alm-ribbon-label .alm-tc{font-size:var(--fs-s)}
+}
+@media(max-width:380px){
+  .season-grid{--alm-lane-w:19px;--alm-col-gap:3px}
+  .season-grid .alm-ribbon-label .alm-tc{font-size:var(--fs-xs)}
 }
 
 /* Mobile carries the same almanac as the desktop (v9.3): the same ribbons, and both names on
@@ -668,6 +778,7 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 <div class="modal-overlay" id="evtModal"><div class="modal"><button class="modal-x" onclick="this.closest('.modal-overlay').classList.remove('open')" aria-label="Close"><span class="mi" style="--ic:var(--ic-x)"></span></button><h3 id="evtModalTitle">Edit Event</h3><label>Name</label><input id="eName" type="text"/><label>Start Date</label><input id="eDate" type="date" onchange="edStartChange('eDate','eEndDate')"/><label>Start Time</label><input id="eStart" type="time"/><label>End Date (for multi-day)</label><input id="eEndDate" type="date" onfocus="edEndFocus('eDate','eEndDate')" onchange="edEndChange('eEndDate')"/><label>End Time</label><input id="eEnd" type="time"/><label>Location</label><input id="eLoc" type="text"/><div style="margin-top:8px"><label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="eAllDay"/> All day event</label></div><div class="modal-btns"><button class="btn btn-danger" id="eDel">Delete</button><button class="btn btn-quiet" id="eCanc">Cancel</button><button class="btn btn-primary" id="eSave">Save</button></div></div></div>
 <!-- Syllabus quick-view popup (read-only view of a syllabus record by id) -->
 <div class="pop-scrim" id="sylPop" onclick="if(event.target.id==='sylPop')closeSylPop()"><div class="pop" id="sylPopPanel" role="dialog" aria-label="Syllabus entry"></div></div>
+<div class="pop-scrim" id="houPop" onclick="if(event.target.id==='houPop')closeHouPop()"><div class="pop" id="houPopPanel" role="dialog" aria-label="Pentad"></div></div>
 
 <!-- Almanac: name tables first, then the engine (data has no dependencies, engine has none either,
      but the app script below reads both). Both are in the sw.js precache list — if they are ever
@@ -675,6 +786,7 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
      silently renders nothing. Verified against almanac-fixtures.json by test-almanac.html. -->
 <script src="almanac-data.js"></script>
 <script src="almanac.js"></script>
+<script src="calendars-data.js"></script>
 
 <script>
 const SKEY='sprint-planner-v3';
@@ -693,7 +805,7 @@ const SYNC_COLLECTIONS=[
   {key:'deliverables',table:'deliverables'}
 ];
 // Data-meaningful singletons synced as one last-write-wins 'profile' row (SYNC_REFERENCE 1.7).
-const PROFILE_FIELDS=['semesterStart','maxFutureDate','catOrder','dayNotes','hiddenDays','almanacTz','almanacLayers','weatherZip'];
+const PROFILE_FIELDS=['semesterStart','maxFutureDate','catOrder','dayNotes','hiddenDays','almanacTz','almanacLayers','weatherZip','houList'];
 const SB_HEADERS={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
 const SEED_FLAG=SKEY+'-perrecord-seeded';
 // Collision-resistant, client-generated, immutable record id (large Number; stored as text PK).
@@ -716,12 +828,28 @@ const PRI_ORDER={high:0,med:1,low:2,normal:3};
 // local browser time exactly as before — almanacTz must never leak into them.
 const ALM_TZ_DEFAULT='America/Los_Angeles';
 // terms/hou/moon apply to both tabs; branch and zodiac are the two halves of Season's merged pill.
-const ALM_LAYER_DEFAULT={terms:true,hou:true,moon:true,branch:true,zodiac:true,moonsign:true,mercury:true};
+// abhayagiri/drba are the two monastery calendars, Season only, like the weather.
+const ALM_LAYER_DEFAULT={terms:true,hou:true,moon:true,branch:true,zodiac:true,moonsign:true,mercury:true,
+                         abhayagiri:true,drba:true};
 // Fallback zone list for engines without Intl.supportedValuesOf (Safari < 15.4).
 const ALM_TZ_FALLBACK=['America/Los_Angeles','America/Denver','America/Chicago','America/New_York',
   'America/Sao_Paulo','UTC','Europe/London','Europe/Paris','Europe/Berlin','Europe/Moscow',
   'Asia/Jerusalem','Asia/Kolkata','Asia/Bangkok','Asia/Shanghai','Asia/Hong_Kong','Asia/Taipei',
   'Asia/Tokyo','Asia/Seoul','Australia/Sydney','Pacific/Auckland'];
+/* Which 72 候 list names the pentads. The Ukiah Valley list is the DEFAULT: this planner is used
+   in one place, and a phenological calendar is only worth anything where its phenomena happen.
+   The classical Chinese list stays selectable and is still what the fixtures verify — the two are
+   interchangeable slot for slot, both starting at 立春 and running in 5° steps, so switching
+   changes only the names, never a date. */
+const ALM_HOU_DEFAULT='ukiah';
+function almHouList(){return state.houList==='chinese'?'chinese':ALM_HOU_DEFAULT}
+function almHouTable(){
+  const D=(typeof AlmanacData!=='undefined')?AlmanacData:null;
+  if(!D)return null;
+  return(almHouList()==='ukiah'&&D.HOU_UKIAH)?D.HOU_UKIAH:D.HOU;
+}
+const ALM_HOU_LABEL={ukiah:'Ukiah Valley',chinese:'Classical Chinese'};
+function almSetHouList(v){state.houList=(v==='chinese')?'chinese':'ukiah';render();scheduleSave()}
 // Synced state can predate these keys; an undefined zone throws inside Intl.DateTimeFormat, so
 // every read goes through these accessors rather than touching state directly.
 function almTz(){const t=state.almanacTz;return(typeof t==='string'&&t)?t:ALM_TZ_DEFAULT}
@@ -813,7 +941,7 @@ function defaultSyllabus(){return[
 {id:5030,cat:'cn',type:'exam',title:'Chinese Classics Midterm Exam',detail:'',due:'2026-04-03',done:true}
 ]}
 
-let state={theme:'ember',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],nextId:4000,weekStartDay:6,semesterStart:'2026-01-17',maxFutureDate:'2026-05-30',weekSlot:'sprints',weatherZip:WX_ZIP_DEFAULT,almanacTz:ALM_TZ_DEFAULT,almanacLayers:{...ALM_LAYER_DEFAULT}};
+let state={theme:'ember',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],nextId:4000,weekStartDay:6,semesterStart:'2026-01-17',maxFutureDate:'2026-05-30',weekSlot:'sprints',weatherZip:WX_ZIP_DEFAULT,almanacTz:ALM_TZ_DEFAULT,houList:ALM_HOU_DEFAULT,almanacLayers:{...ALM_LAYER_DEFAULT}};
 let saveTimer=null,lastSaveTime=null,saveStatus='saved';
 // localStorage is the source of truth: write there synchronously, then diff & queue per-record pushes.
 function persistLocal(){try{localStorage.setItem(SKEY,JSON.stringify(state));localStorage.setItem(SKEY+'-time',new Date().toISOString())}catch(e){throw e}}
@@ -952,7 +1080,7 @@ function render(){
   const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
   const bottomNav=`<nav class="bottomnav">${slotBtn('bn-item')}<button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
   const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v10.1</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v10.7</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -1132,18 +1260,21 @@ function almMarkerHtml(m){
   const D=AlmanacData;
   const open='<span class="alm-mk '+m.kind+(m.start?' hou-start':'')+'">'; // both names, every width
   if(m.kind==='term'){const t=D.TERMS[m.index];return open+`<span class="alm-en">${t.en}</span><span class="alm-tc">${t.tc}</span></span>`}
-  if(m.kind==='hou'){const x=D.HOU[m.index];return open+`<span class="alm-en">${x.en}</span><span class="alm-tc">${x.tc}</span></span>`}
+  if(m.kind==='hou'){const x=almHouTable()[m.index];return open+`<span class="alm-en">${x.en}</span><span class="alm-tc">${x.tc}</span></span>`}
   const mo=(m.kind==='phase'?D.MOON_MID:D.MOON)[m.index];  // inline SVG, currentColor — no emoji
   return open+`<span class="alm-moon-ico">${mo.svg}</span><span class="alm-en">${mo.en}</span></span>`;
 }
 
 // The markers for one day, as a list. `opts` picks which layers this tab shows: the Week tab is
-// academic and carries only the moon, while Season carries the term flip, the hou and the moon.
+// academic and carries only the moon, while Season carries the two solar openings and the moon.
+// `opts.hou` is the day a 候 OPENS, not every day of it (v10.3) — the running state moved to its
+// own vertical lane, so repeating the name in all five day cells was saying it four times too
+// often. Both solar layers are therefore now only ever drawn on the day they turn over.
 function almDayMarkers(alm,dateKey,opts){
   if(!alm)return[];
   const L=almLayers(),marks=alm.markers[dateKey]||[],a=alm.byDate[dateKey],out=[];
   if(opts.term)marks.forEach(m=>{if(m.kind==='term')out.push(almMarkerHtml(m))});
-  if(opts.hou&&L.hou&&a)out.push(almMarkerHtml({kind:'hou',index:a.hou,start:a.houStart}));
+  if(opts.hou&&L.hou&&a&&a.houStart)out.push(almMarkerHtml({kind:'hou',index:a.hou,start:true}));
   const hadQuarter=marks.some(m=>m.kind==='moon');
   if(opts.moon)marks.forEach(m=>{if(m.kind==='moon')out.push(almMarkerHtml(m))});
   // Between the quarters the Season tab still names the phase; the Week tab shows only the
@@ -1193,7 +1324,16 @@ const ALM_LANES={
       html:`<span class="alm-glyph">${z.glyph}</span><span class="alm-en">${z.name}</span>`}}},
   mercury:{get:a=>a.merc,
     lbl:v=>{const z=AlmanacData.ZODIAC[v>>1],rx=v&1;return{tip:'',
-      html:`<span class="alm-glyph">${z.glyph}</span>`+(rx?`<span class="alm-rx">${ALM_RX}</span>`:'')+`<span class="alm-en">${z.name}</span>`}}}
+      html:`<span class="alm-glyph">${z.glyph}</span>`+(rx?`<span class="alm-rx">${ALM_RX}</span>`:'')+`<span class="alm-en">${z.name}</span>`}}},
+  // 候 is the fastest Chinese layer, the mirror of ☽ on the western side. A pentad name runs up to
+  // eight characters in the classical list (天氣上升地氣下降), so the English is printed after it and
+  // almFitLabels() takes it away again on any run too short to hold it — the same treatment the
+  // Moon sign gets. The pill carries its full description: as a title for hover, and behind a tap
+  // for touch, since a title attribute is unreachable without a pointer.
+  hou:{get:a=>a.hou,
+    lbl:i=>{const x=almHouTable()[i];return{
+      tip:x.tc+' — '+x.en+(x.desc?'\n\n'+x.desc:''),
+      html:`<span class="alm-tc">${x.tc}</span><span class="alm-en">${x.en}</span>`}}}
 };
 
 // One layer's pills, as unbroken runs. `role` is pod (container), cap (nested) or solo.
@@ -1216,57 +1356,71 @@ function almRunsHtml(alm,rowOf,col,key,role,tab){
     let html=n.html;
     if(key==='terms'&&tab==='season')
       html=html.replace('<span class="alm-tc">',`<span class="alm-tc" onclick="event.stopPropagation();almOpenTermLink(${r.value})">`);
-    return`<div class="alm-pill ${key} ${role}" style="grid-row:${r0}/${end};grid-column:${col}"${n.tip?` title="${n.tip}"`:''}><div class="alm-ribbon-inner"><div class="alm-ribbon-label">${html}</div></div></div>`;
+    // The 候 pill is the one that IS meant to look tappable: its description is the point of the
+    // list, and a hover title alone would hide it from every phone.
+    const act=(key==='hou'&&tab==='season')
+      ?` onclick="event.stopPropagation();almOpenHouPop(${r.value})" role="button" tabindex="0"`:'';
+    return`<div class="alm-pill ${key} ${role}" style="grid-row:${r0}/${end};grid-column:${col}"${n.tip?` title="${calEsc(n.tip)}"`:''}${act}><div class="alm-ribbon-inner"><div class="alm-ribbon-label">${html}</div></div></div>`;
   }).join('');
-}
-
-// A nested stack for one column: container first so the sub-pills paint over it.
-function almStackHtml(alm,rowOf,col,containerKey,subKey,tab){
-  const L=almLayers();
-  const hasC=containerKey&&L[containerKey],hasS=subKey&&L[subKey];
-  if(!hasC&&!hasS)return'';
-  let h='';
-  if(hasC)h+=almRunsHtml(alm,rowOf,col,containerKey,hasS?'pod':'solo',tab);
-  if(hasS)h+=almRunsHtml(alm,rowOf,col,subKey,hasC?'cap':'solo',tab);
-  return h;
 }
 
 /* Builds both flanks plus the grid template.
 
-   Right flank, Chinese: a nested container — 地支 holds its two 節氣, a genuine subset.
-   Left flank, western: the Moon is NOT a subset of the Sun, and Mercury is subset of neither, so
-   nesting would be a lie. They run instead as three parallel tracks of one strip, ordered slowest
-   to fastest outward-to-inward (☉ Sun, ☿ Mercury, ☽ Moon) to match the right flank's logic. Which
-   track is which is carried by POSITION plus a sticky glyph tag riding at the top of each track —
-   never by a glyph repeated on every pill, which is unreadable once the Moon changes sign every
-   two days. Retrograde is a modifier on Mercury's pills, not a track of its own.
+   The two flanks MIRROR each other (v10.3). Each is a strip of three parallel tracks running
+   coarsest on the outside to fastest on the inside, so the two sides read as the same instrument
+   pointed at two traditions, and a given distance from the day cell means the same rate of change
+   on either side:
 
-   A stack with every layer off takes no column at all rather than leaving an empty gutter, so the
+     left,  western : ☉ Sun sign  ·  ☿ Mercury  ·  ☽ Moon sign        (~30d · weeks · ~2.5d)
+     right, Chinese : 候 pentad   ·  節 solar term  ·  建 branch month  (5d · 15d · ~60d)
+
+   The right flank used to nest 節氣 inside 地支 as a literal subset. That was true but it made the
+   two sides look like different kinds of object, and it left the 候 with nowhere to live except
+   repeated in every day cell. Parallel tracks on both sides costs the subset relationship — which
+   is still exactly recoverable, two terms to a branch — and buys a symmetry that reads instantly.
+
+   Which track is which is carried by POSITION plus a sticky glyph tag riding at the top of each
+   one, never by a glyph repeated on every pill. Retrograde stays a modifier on Mercury's pills.
+
+   A flank with every layer off takes no column at all rather than leaving an empty gutter, so the
    content column index moves — it is published as --alm-content-col for the row rules to follow. */
 const ALM_WEST=[{key:'zodiac',glyph:ALM_SUN,cls:'sun'},
                 {key:'mercury',glyph:ALM_MERC,cls:'merc'},
                 {key:'moonsign',glyph:ALM_MOON,cls:'moon'}];
+// Innermost first, so the fastest layer sits against the day cell on both sides.
+const ALM_EAST=[{key:'hou',glyph:'候',cls:'hou'},
+                {key:'terms',glyph:'節',cls:'term'},
+                {key:'branch',glyph:'建',cls:'branch'}];
+// One flank: its tracks in column order, each with the sticky tag that names it. The tag is
+// emitted after its pills so it floats above them however far you scroll.
+function almTrackStripHtml(alm,rowOf,firstCol,lanes,tab){
+  let h='';
+  lanes.forEach((w,i)=>{
+    const col=firstCol+i;
+    const edge=lanes.length===1?'only':(i===0?'first':(i===lanes.length-1?'last':'mid'));
+    h+=almRunsHtml(alm,rowOf,col,w.key,'track '+w.cls+' '+edge,tab);
+    h+=`<div class="alm-lane-tag ${w.cls}" style="grid-column:${col};grid-row:1/-1" aria-hidden="true"><span class="alm-lane-glyph">${w.glyph}</span></div>`;
+  });
+  return h;
+}
 function almFlanksHtml(alm,rowOf,tab){
   if(!alm)return{cols:'1fr',content:1,html:''};
   const L=almLayers();
-  let west='',lanes=0;
-  if(tab==='season'){
-    const on=ALM_WEST.filter(w=>L[w.key]);
-    on.forEach((w,i)=>{
-      const col=1+i;
-      const edge=on.length===1?'only':(i===0?'first':(i===on.length-1?'last':'mid'));
-      west+=almRunsHtml(alm,rowOf,col,w.key,'track '+w.cls+' '+edge,tab);
-      // The tag spans the whole column and is emitted after the pills, so its sticky glyph rides
-      // above them and keeps naming the track however far you scroll.
-      west+=`<div class="alm-lane-tag ${w.cls}" style="grid-column:${col};grid-row:1/-1" aria-hidden="true"><span class="alm-lane-glyph">${w.glyph}</span></div>`;
-      lanes++;
-    });
-  }
+  const westOn=(tab==='season')?ALM_WEST.filter(w=>L[w.key]):[];
+  const west=almTrackStripHtml(alm,rowOf,1,westOn,tab);
+  const lanes=westOn.length;
   const contentCol=lanes+1;
-  const east=tab==='season'
-    ? almStackHtml(alm,rowOf,contentCol+1,'branch','terms',tab)
-    : almStackHtml(alm,rowOf,contentCol+1,null,'terms',tab);
-  const cols=(lanes?('var(--alm-lane-w) '.repeat(lanes)):'')+'1fr'+(east?' var(--alm-stack-w)':'');
+  // Week keeps a single 節氣 ribbon; Season gets the full mirrored strip.
+  const eastOn=(tab==='season')?ALM_EAST.filter(w=>L[w.key]):(L.terms?[{key:'terms',glyph:'節',cls:'term'}]:[]);
+  const east=(tab==='season')
+    ? almTrackStripHtml(alm,rowOf,contentCol+1,eastOn,tab)
+    : (eastOn.length?almRunsHtml(alm,rowOf,contentCol+1,'terms','solo',tab):'');
+  // Season's east lanes are the same width as its west lanes — that equality IS the mirror. Week's
+  // lone ribbon keeps the wider single-stack width it was designed at.
+  const eastCols=(tab==='season')
+    ? 'var(--alm-lane-w) '.repeat(eastOn.length)
+    : (east?'var(--alm-stack-w)':'');
+  const cols=(lanes?('var(--alm-lane-w) '.repeat(lanes)):'')+'1fr'+(eastCols?' '+eastCols.trim():'');
   return{cols,content:contentCol,html:west+east};
 }
 
@@ -1413,13 +1567,141 @@ function wxCellHtml(dateKey){
     +`<span class="wx-lo"><span class="mi mi-flip" style="--ic:var(--ic-up)"></span>${Math.round(w.lo)}°</span>${pop}</span>`;
 }
 
-/* ---- Season tab (v9.4) ----
+/* ============================================================
+   MONASTERY CALENDARS (v10.2) — two published calendars over the local almanac.
+
+   Abhayagiri keeps the Thai forest tradition's lunar calendar, DRBA the Chinese one, and the
+   app's own engine computes the local astronomical moon. That is three reckonings of the same
+   sky, and they routinely disagree by a day. NOTHING here reconciles them.
+
+   The day cell is split into two bands rather than listed as one run of text (v10.2), because it
+   carries two different KINDS of thing and mixing them is what made it unreadable:
+
+     · the day's STATE — weather, solar term, 候, and the moon. Quiet, small, ambient. It is true
+       of the whole day and you read it at a glance or not at all.
+     · what HAPPENS — observances, talks, festivals. Loud, chipped, one per line. These are
+       appointments, and they are the reason to look at the row at all.
+
+   A rule divides them, and it is only drawn on days that actually have events.
+
+   The moon is stated ONCE for all three reckonings instead of once per layer. Agreeing sources
+   are grouped onto a single reading and named beside it ("New Moon — local, Abhayagiri, DRBA");
+   when they disagree the day simply shows two or three readings, each with its own sources. The
+   attribution is dropped entirely on days where only one source speaks, which is most days, since
+   naming a lone source tells you nothing. Only the local layer is drawn between the quarters —
+   the monasteries publish new/quarter/full and nothing else, so a waxing gibbous is never put in
+   their mouths, and an intermediate phase is therefore never grouped.
+
+   Both are static published tables in calendars-data.js, not user data: they never enter `state`,
+   never sync, and are precached by the service worker alongside the almanac. Season tab only.
+   ============================================================ */
+const CAL_SRC={
+  abhayagiri:{table:'ABHAYAGIRI',cls:'abh',icon:'stupa',name:'Abhayagiri'},
+  drba:{table:'DRBA',cls:'drba',icon:'wheel',name:'DRBA'}
+};
+function calReady(){return typeof CalendarData!=='undefined'&&!!CalendarData}
+// A day's published entry, or null — outside a calendar's exported range every day is null and
+// the layer simply draws nothing rather than implying the calendar is empty that day.
+function calRec(src,dateKey){
+  if(!calReady())return null;
+  const t=CalendarData[CAL_SRC[src].table];
+  return(t&&t[dateKey])||null;
+}
+const calEsc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+/* The day's moon, gathered from every reckoning that names one and grouped by what they say.
+   Returns [{phase, mid, who:['local'|'abhayagiri'|'drba',…]}] in source order, local first.
+   `mid` marks an intermediate phase, which only the local engine reports and so never groups. */
+function calMoonReadings(alm,dateKey){
+  const L=almLayers(),out=[];
+  const add=(phase,mid,who)=>{
+    const hit=out.find(r=>r.phase===phase&&r.mid===mid);
+    if(hit)hit.who.push(who);else out.push({phase,mid,who:[who]});
+  };
+  if(L.moon&&alm){
+    const q=(alm.markers[dateKey]||[]).filter(m=>m.kind==='moon');
+    const a=alm.byDate[dateKey];
+    if(q.length)q.forEach(m=>add(m.index,false,'local'));
+    else if(a&&a.phase!=null)add(a.phase,true,'local');
+  }
+  ['abhayagiri','drba'].forEach(src=>{
+    if(!L[src])return;
+    const r=calRec(src,dateKey);
+    if(r&&r.p!=null)add(r.p,false,src);
+  });
+  return out;
+}
+/* One moon reading, kept as terse as it can be and still be unambiguous (v10.3):
+
+     · the phase icon always — it is the reading, and it is legible on its own
+     · the phase NAME only for a local quarter. Local is the default and is never labelled, so a
+       written name means "here"; the intermediate phases read fine from the icon alone and would
+       otherwise put a line of prose on four days out of five.
+     · a stupa/dharmachakra emblem for each monastery holding this reading. That is the whole
+       attribution — writing "Abhayagiri · DRBA" out was the noisiest thing in the cell.
+
+   The full sentence survives as the title, so nothing is lost to someone who stops to look. */
+function calMoonRowHtml(r){
+  const mo=(r.mid?AlmanacData.MOON_MID:AlmanacData.MOON)[r.phase];
+  if(!mo)return'';
+  const local=r.who.includes('local');
+  const name=(local&&!r.mid)?`<span class="moon-name">${calEsc(mo.en)}</span>`:'';
+  const badges=r.who.filter(w=>w!=='local').map(w=>{const s=CAL_SRC[w];
+    return`<span class="cal-emblem ${s.cls}"><span class="mi" style="--ic:var(--ic-${s.icon})"></span></span>`}).join('');
+  const who=r.who.map(w=>w==='local'?'local':CAL_SRC[w].name).join(', ');
+  return`<div class="moon-row${r.mid?' mid':''}${r.who.length>1?' shared':''}" title="${calEsc(mo.en+' — '+who)}">`
+    +`<span class="alm-moon-ico">${mo.svg}</span>${name}${badges}</div>`;
+}
+function calMoonBlockHtml(alm,dateKey){
+  const rs=calMoonReadings(alm,dateKey);
+  if(!rs.length)return'';
+  return`<div class="moon-cluster">${rs.map(calMoonRowHtml).join('')}</div>`;
+}
+
+/* What happens on the day, as chips. A chip carries the emblem of whoever published it, so the
+   event and its source are one object instead of an emblem governing a line. */
+function calEventChips(dateKey){
+  const L=almLayers(),out=[];
+  ['abhayagiri','drba'].forEach(src=>{
+    if(!L[src])return;
+    const r=calRec(src,dateKey);
+    if(!r)return;
+    const s=CAL_SRC[src];
+    const chip=(txt,extra)=>`<div class="cal-evt ${s.cls}${extra||''}">`
+      +`<span class="cal-emblem" title="${calEsc(s.name)}" aria-label="${calEsc(s.name)}">`
+      +`<span class="mi" style="--ic:var(--ic-${s.icon})"></span></span>`
+      +`<span class="cal-evt-name">${calEsc(txt)}</span></div>`;
+    // A `p` on an Abhayagiri day IS the observance. The phase itself is already named in the moon
+    // block above, so the chip says only what kind of occasion it is.
+    if(src==='abhayagiri'&&r.p!=null)out.push(chip('Wan Phra',' obs'));
+    (r.e||[]).forEach(e=>out.push(chip(e)));
+  });
+  return out;
+}
+
+// How far each published table actually reaches. Shown in settings so a stretch of empty days is
+// legible as "the export ends here", not as a broken layer.
+function calCoverageText(){
+  if(!calReady())return'The monastery calendars did not load.';
+  const f=k=>{const r=CalendarData.range&&CalendarData.range[k];
+    return r?fmtDateShort(parseDate(r.start))+'/'+parseDate(r.start).getFullYear()%100+' → '+fmtDateShort(parseDate(r.end))+'/'+parseDate(r.end).getFullYear()%100:'—'};
+  return`Published tables, not computed: Abhayagiri covers ${f('abhayagiri')}, DRBA covers ${f('drba')}. Days beyond those show nothing for that layer.`;
+}
+
+/* ---- Season tab (v9.4, recomposed v10.2) ----
    The same weeks and the same days as the Week tab, so the two views stay row-for-row aligned,
-   but with no academic content: each row is just the date and that day's almanac, which lets the
-   cell be a fraction of the height. Ribbons: term, branch, sign, season. */
+   but with no academic content. The Week tab's left-aligned day cell was dropped in v10.2: with a
+   vertical flank on each side, the cell is a panel between two rules, and a centred stack sits in
+   it far better than a ragged left edge. Every line is centred on the same axis — the date, the
+   weather, then one line per reckoning (local, Abhayagiri, DRBA), each under its own emblem. */
 function renderSeason(){
   const sel=almWeekSelection();
-  let h=`<div class="life-header"><span class="life-title">Season</span><span class="legend-hint">節氣 · 候 · 月建 · sign · moon</span></div>`;
+  // Which 72 候 list is in force is stated at the top, because the two say very different things
+  // about the same five days and there is no way to tell them apart from a single pentad.
+  const hl=almHouList();
+  let h=`<div class="life-header"><span class="life-title">Season</span><span class="legend-hint">節氣 · 候 · 月建 · sign · moon</span>`
+    +`<span class="hou-src ${hl}" title="Which 72 候 list names the pentads. Change it in Settings → Almanac.">`
+    +`<span class="hou-src-tc">候</span>${hl==='ukiah'?'NorCal · Ukiah Valley':'Classical Chinese'}</span></div>`;
   if(!almReady())return h+`<div class="notes-box"><div class="notes-box-text" style="font-size:var(--fs-xs);color:var(--text-muted)">The almanac engine did not load, so there is nothing to show here. A hard refresh usually fixes it.</div></div>`;
   if(sel.collapsedCount>0)h+=`<div style="margin-bottom:12px"><button class="expand-week-btn" onclick="expandAllPastWeeks()" style="font-size:var(--fs-2xs);padding:3px 10px">▼ ${sel.collapsedCount} past week${sel.collapsedCount>1?'s':''} (show)</button></div>`;
   const g=almGridPlan(sel.perWeek,'season');
@@ -1429,8 +1711,24 @@ function renderSeason(){
     h+=`<div class="week-section"><div class="week-hdr season-hdr" style="grid-row:${s.hdrRow}"><span class="week-hdr-title">Week ${s.wk.num}</span><span class="week-hdr-dates">${fmtDateShort(s.wk.start)} → ${fmtDateShort(s.wk.end)}</span></div>`;
     s.days.forEach((day,di)=>{
       const isT=sameDay(day.dateObj,TODAY);
-      const marks=almDayMarkers(g.alm,day.date,{term:true,hou:true,moon:true,phase:true});
-      h+=`<div class="season-row ${isT?'is-today':''}" style="grid-row:${s.hdrRow+1+di}" data-date="${day.date}"><span class="season-date">${fmtDate(day.dateObj)}</span><span class="wx-slot">${wxCellHtml(day.date)}</span><span class="season-marks">${marks.join('')}</span></div>`;
+      // Only the two solar OPENINGS reach the cell now; the running state lives in the flanks.
+      const marks=almDayMarkers(g.alm,day.date,{term:true,hou:true,moon:false,phase:false});
+      const wx=wxCellHtml(day.date);
+      const evts=calEventChips(day.date);
+      // Centred spine: the date, and under it the forecast. Everything else is placed around it —
+      // the moon rides the top-left corner, `today` the top-right, and the two left-aligned bands
+      // hang below. See the .season-row rules for why the corners are a three-column head rather
+      // than absolute positioning.
+      h+=`<div class="season-row ${isT?'is-today':''}" style="grid-row:${s.hdrRow+1+di}" data-date="${day.date}">`
+        +`<div class="season-head">`
+          +`<div class="season-corner left">${calMoonBlockHtml(g.alm,day.date)}</div>`
+          +`<div class="season-date">${fmtDate(day.dateObj)}</div>`
+          +`<div class="season-corner right">${isT?'<span class="today-tag">today</span>':''}</div>`
+        +`</div>`
+        +(wx?`<div class="wx-slot">${wx}</div>`:'')
+        +(marks.length?`<div class="season-opens">${marks.join('')}</div>`:'')
+        +(evts.length?`<div class="season-events">${evts.join('')}</div>`:'')
+        +`</div>`;
     });
     h+='</div>';
   });
@@ -1456,6 +1754,27 @@ function almFitLabels(){
 }
 let _fitTimer=null;
 window.addEventListener('resize',()=>{clearTimeout(_fitTimer);_fitTimer=setTimeout(almFitLabels,150)});
+
+/* A 候's own description. The pill carries it as a title for hover, but a title is unreachable on
+   a touch screen, so tapping the pill opens it here. Reuses the syllabus popup's furniture rather
+   than inventing a second card. Names the list it came from, since the two lists say very
+   different things about the same five days. */
+function almOpenHouPop(i){
+  const t=almHouTable();const x=t&&t[i];
+  if(!x)return;
+  const term=AlmanacData.TERMS[Math.floor(i/3)];
+  const deg=(315+i*5)%360;
+  const beat=['初候','次候','末候'][i%3];
+  document.getElementById('houPopPanel').innerHTML=
+    `<div class="pop-head"><div class="pop-title"><span class="hou-pop-tc">${x.tc}</span><span class="hou-pop-en">${x.en}</span></div>`
+    +`<button class="pop-x" onclick="closeHouPop()" aria-label="Close"><span class="mi" style="--ic:var(--ic-x)"></span></button></div>`
+    +`<div class="pop-meta"><span class="pop-tag" style="background:var(--accent-bh-dim);color:var(--accent-bh)">${term.tc} ${beat}</span>`
+    +`<span class="pop-due">${deg}° · ${term.en}</span></div>`
+    +`<div class="pop-detail">${x.desc||'No description for this pentad.'}</div>`
+    +`<div class="pop-actions"><span class="hou-pop-src">72候 · ${ALM_HOU_LABEL[almHouList()]}</span></div>`;
+  document.getElementById('houPop').classList.add('open');
+}
+function closeHouPop(){const e=document.getElementById('houPop');if(e)e.classList.remove('open')}
 
 // Opens a solar term's reading. External site, so noopener/noreferrer and a fresh tab.
 function almOpenTermLink(i){
@@ -1709,9 +2028,16 @@ function renderSettings(){
   <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Places solar terms, 候 and moon quarters on the right day. This zone is used for the almanac only — tasks, events, countdowns and week boundaries keep using your device's local time. DST is handled automatically.</div>
   <input class="life-input" id="almTzFilter" value="${_almTzFilter.replace(/"/g,'&quot;')}" oninput="almTzFilterInput(this.value)" placeholder="Filter zones…" style="width:190px;margin-bottom:6px"/>
   <select class="life-select" id="almTzSelect" onchange="almSetTz(this.value)" style="width:260px;max-width:100%;display:block">${almTzOptionsHtml(_almTzFilter)}</select></div>
+  <div class="settings-section"><label>72 候 list</label>
+  <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Which names the pentads carry. The Ukiah Valley list is a local phenological calendar for 95482 — what is actually happening here in each five-day period, which is close to the inverse of the North China climate the classical list describes. Both use the identical astronomical frame, so switching changes only the names, never a date. Tap a 候 in the Season tab's right-hand lane to read its description.</div>
+  <select class="life-select" onchange="almSetHouList(this.value)" style="width:230px">
+    <option value="ukiah"${almHouList()==='ukiah'?' selected':''}>NorCal · Ukiah Valley</option>
+    <option value="chinese"${almHouList()==='chinese'?' selected':''}>Classical Chinese</option>
+  </select></div>
   <div class="settings-section"><label>Layers</label>
-  <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Solar terms, 候 and moon quarters appear in both the Week and Season tabs; the branch and the ☉/☿/☽ tracks are Season-tab flanks only, and the weather reading is Season-tab only.</div>
-  <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:var(--fs-xs)">${[['terms','Solar terms 節氣'],['hou','Pentads 候'],['moon','Moon quarters'],['branch','Earthly branch 月建'],['zodiac','☉ Sun sign'],['mercury','☿ Mercury sign'],['moonsign','☽ Moon sign']].map(([k,lbl])=>`<label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox"${almLayers()[k]?' checked':''} onchange="almSetLayer('${k}',this.checked)"/> ${lbl}</label>`).join('')}</div></div></div>
+  <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Solar terms and moon quarters appear in both the Week and Season tabs. Season adds the mirrored flanks — ☉/☿/☽ on the left, 建/節/候 on the right, coarsest outside to fastest inside — plus the two monastery calendars and the weather reading, none of which touch the Week tab. There the moon is stated once for every reckoning that agrees, attributed by emblem, and named only when the reading is a local quarter.</div>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:var(--fs-xs)">${[['terms','Solar terms 節'],['hou','Pentads 候'],['moon','Moon quarters'],['branch','Earthly branch 月建'],['zodiac','☉ Sun sign'],['mercury','☿ Mercury sign'],['moonsign','☽ Moon sign'],['abhayagiri','Abhayagiri calendar'],['drba','DRBA calendar']].map(([k,lbl])=>`<label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox"${almLayers()[k]?' checked':''} onchange="almSetLayer('${k}',this.checked)"/> ${lbl}</label>`).join('')}</div>
+  <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-top:8px">${calCoverageText()}</div></div></div>
   <div class="notes-box"><div class="notes-box-title">Weather</div>
   <div class="settings-section"><label>ZIP code</label>
   <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">US ZIP for the daily high, low and chance of precipitation shown in the Season tab's day cells. The next 16 days are a live forecast; beyond that each day shows a typical value — the average of the last three years for that date, marked with a dot — rather than a forecast.</div>
