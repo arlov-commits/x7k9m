@@ -162,6 +162,40 @@
     }
   }
 
+  /* The Ukiah list is a local phenological calendar, not astronomy, so there is no ground truth to
+     check it against — only that it is a well-formed drop-in replacement for the classical table.
+     Any entry that is not interchangeable slot-for-slot would silently shift a name onto the wrong
+     five days when the setting is flipped. */
+  function checkUkiah(g) {
+    var U = D.HOU_UKIAH;
+    note(g, !!U, 'HOU_UKIAH is missing from almanac-data.js');
+    if (!U) return;
+    note(g, U.length === 72, 'HOU_UKIAH.length = ' + U.length + ', want 72');
+    var seen = {};
+    for (var i = 0; i < U.length; i++) {
+      var e = U[i], at = i + ' (' + ((315 + 5 * i) % 360) + ' deg)';
+      note(g, !!(e && e.tc), 'HOU_UKIAH ' + at + ' has no tc');
+      note(g, !!(e && e.en), 'HOU_UKIAH ' + at + ' (' + (e && e.tc) + ') has no en');
+      note(g, !!(e && e.desc), 'HOU_UKIAH ' + at + ' (' + (e && e.tc) + ') has no description');
+      if (e && e.tc) {
+        note(g, !seen[e.tc], 'HOU_UKIAH ' + at + ' repeats the name ' + e.tc + ' from slot ' + seen[e.tc]);
+        seen[e.tc] = at;
+      }
+    }
+    // Entries the source states are kept verbatim from the classical list, in the same slot.
+    var VERBATIM = { 9: '玄鳥至', 37: '白露降', 43: '玄鳥歸' };
+    for (var k in VERBATIM) {
+      if (!Object.prototype.hasOwnProperty.call(VERBATIM, k)) continue;
+      note(g, U[k] && U[k].tc === VERBATIM[k],
+        'HOU_UKIAH ' + k + ' should keep the Chinese ' + VERBATIM[k] + ' in place, got ' + (U[k] && U[k].tc));
+    }
+    // 白露降 belongs to 立秋 二候 in BOTH lists — the point the source makes about nippon.com.
+    note(g, houIndex(140 + 1e-6) === 37 && termIndex(140 + 1e-6) === 12,
+      '140 deg should be hou 37 of term 12 立秋 in both lists');
+    note(g, D.HOU[37].tc === '白露降' && U[37].tc === '白露降',
+      'both lists should carry 白露降 at 140 deg');
+  }
+
   function checkTables(g) {
     note(g, D.HOU.length === 72, 'HOU.length = ' + D.HOU.length + ', want 72');
     note(g, D.TERMS.length === 24, 'TERMS.length = ' + D.TERMS.length + ', want 24');
@@ -272,6 +306,10 @@
 
     g = group('Name tables & index math');
     checkTables(g);
+    groups.push(g);
+
+    g = group('Ukiah 72 hou (local list)');
+    checkUkiah(g);
     groups.push(g);
 
     g = group('DST boundaries');

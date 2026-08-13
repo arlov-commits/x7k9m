@@ -1,4 +1,4 @@
-<!-- Academic Planner v10.5 -->
+<!-- Academic Planner v10.6 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -460,6 +460,21 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
    outlined instead of filled — present and legible, but not competing with a talk or a festival. */
 .cal-evt.obs{background:0;box-shadow:inset 0 0 0 1px currentColor;padding:3px 10px 4px;
   font-size:var(--fs-xs);letter-spacing:.05em;text-transform:uppercase}
+/* Which 72 候 list is running, named at the top of the tab. The classical list gets a quieter,
+   neutral treatment; the local one is tinted, because it is the default and the claim it makes —
+   these are the phenomena HERE — is the more particular of the two. */
+.hou-src{display:inline-flex;align-items:center;gap:5px;padding:2px 9px 3px;border-radius:var(--r-pill);
+  font-size:var(--fs-2xs);font-weight:600;letter-spacing:.04em;white-space:nowrap;
+  background:var(--surface2);color:var(--text-muted);border:1px solid var(--border)}
+.hou-src.ukiah{background:var(--accent-wh-dim,var(--surface2));color:var(--accent-wh);border-color:transparent}
+.hou-src-tc{font-family:var(--font-serif);font-size:var(--fs-xs);font-weight:700}
+/* The 候 pill is the only track meant to look tappable — its description is the point of the list. */
+.alm-pill.hou.track{cursor:pointer}
+.alm-pill.hou.track:hover{border-color:var(--accent-wh)}
+.hou-pop-tc{display:block;font-family:var(--font-serif);font-size:var(--fs-xl);font-weight:700;letter-spacing:.06em}
+.hou-pop-en{display:block;font-family:var(--font-sans);font-size:var(--fs-s);font-weight:500;
+  color:var(--text-dim);margin-top:3px;line-height:1.3}
+.hou-pop-src{font-size:var(--fs-2xs);color:var(--text-muted);letter-spacing:.04em}
 .season-hdr{margin-bottom:6px}
 /* Season now carries SIX lanes, three a side, so a lane has to be narrower than it was when the
    right flank was one wide stack. --alm-stack-w survives only for the Week tab's lone ribbon. */
@@ -759,6 +774,7 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 <div class="modal-overlay" id="evtModal"><div class="modal"><button class="modal-x" onclick="this.closest('.modal-overlay').classList.remove('open')" aria-label="Close"><span class="mi" style="--ic:var(--ic-x)"></span></button><h3 id="evtModalTitle">Edit Event</h3><label>Name</label><input id="eName" type="text"/><label>Start Date</label><input id="eDate" type="date" onchange="edStartChange('eDate','eEndDate')"/><label>Start Time</label><input id="eStart" type="time"/><label>End Date (for multi-day)</label><input id="eEndDate" type="date" onfocus="edEndFocus('eDate','eEndDate')" onchange="edEndChange('eEndDate')"/><label>End Time</label><input id="eEnd" type="time"/><label>Location</label><input id="eLoc" type="text"/><div style="margin-top:8px"><label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="eAllDay"/> All day event</label></div><div class="modal-btns"><button class="btn btn-danger" id="eDel">Delete</button><button class="btn btn-quiet" id="eCanc">Cancel</button><button class="btn btn-primary" id="eSave">Save</button></div></div></div>
 <!-- Syllabus quick-view popup (read-only view of a syllabus record by id) -->
 <div class="pop-scrim" id="sylPop" onclick="if(event.target.id==='sylPop')closeSylPop()"><div class="pop" id="sylPopPanel" role="dialog" aria-label="Syllabus entry"></div></div>
+<div class="pop-scrim" id="houPop" onclick="if(event.target.id==='houPop')closeHouPop()"><div class="pop" id="houPopPanel" role="dialog" aria-label="Pentad"></div></div>
 
 <!-- Almanac: name tables first, then the engine (data has no dependencies, engine has none either,
      but the app script below reads both). Both are in the sw.js precache list — if they are ever
@@ -785,7 +801,7 @@ const SYNC_COLLECTIONS=[
   {key:'deliverables',table:'deliverables'}
 ];
 // Data-meaningful singletons synced as one last-write-wins 'profile' row (SYNC_REFERENCE 1.7).
-const PROFILE_FIELDS=['semesterStart','maxFutureDate','catOrder','dayNotes','hiddenDays','almanacTz','almanacLayers','weatherZip'];
+const PROFILE_FIELDS=['semesterStart','maxFutureDate','catOrder','dayNotes','hiddenDays','almanacTz','almanacLayers','weatherZip','houList'];
 const SB_HEADERS={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
 const SEED_FLAG=SKEY+'-perrecord-seeded';
 // Collision-resistant, client-generated, immutable record id (large Number; stored as text PK).
@@ -816,6 +832,20 @@ const ALM_TZ_FALLBACK=['America/Los_Angeles','America/Denver','America/Chicago',
   'America/Sao_Paulo','UTC','Europe/London','Europe/Paris','Europe/Berlin','Europe/Moscow',
   'Asia/Jerusalem','Asia/Kolkata','Asia/Bangkok','Asia/Shanghai','Asia/Hong_Kong','Asia/Taipei',
   'Asia/Tokyo','Asia/Seoul','Australia/Sydney','Pacific/Auckland'];
+/* Which 72 候 list names the pentads. The Ukiah Valley list is the DEFAULT: this planner is used
+   in one place, and a phenological calendar is only worth anything where its phenomena happen.
+   The classical Chinese list stays selectable and is still what the fixtures verify — the two are
+   interchangeable slot for slot, both starting at 立春 and running in 5° steps, so switching
+   changes only the names, never a date. */
+const ALM_HOU_DEFAULT='ukiah';
+function almHouList(){return state.houList==='chinese'?'chinese':ALM_HOU_DEFAULT}
+function almHouTable(){
+  const D=(typeof AlmanacData!=='undefined')?AlmanacData:null;
+  if(!D)return null;
+  return(almHouList()==='ukiah'&&D.HOU_UKIAH)?D.HOU_UKIAH:D.HOU;
+}
+const ALM_HOU_LABEL={ukiah:'Ukiah Valley',chinese:'Classical Chinese'};
+function almSetHouList(v){state.houList=(v==='chinese')?'chinese':'ukiah';render();scheduleSave()}
 // Synced state can predate these keys; an undefined zone throws inside Intl.DateTimeFormat, so
 // every read goes through these accessors rather than touching state directly.
 function almTz(){const t=state.almanacTz;return(typeof t==='string'&&t)?t:ALM_TZ_DEFAULT}
@@ -907,7 +937,7 @@ function defaultSyllabus(){return[
 {id:5030,cat:'cn',type:'exam',title:'Chinese Classics Midterm Exam',detail:'',due:'2026-04-03',done:true}
 ]}
 
-let state={theme:'ember',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],nextId:4000,weekStartDay:6,semesterStart:'2026-01-17',maxFutureDate:'2026-05-30',weekSlot:'sprints',weatherZip:WX_ZIP_DEFAULT,almanacTz:ALM_TZ_DEFAULT,almanacLayers:{...ALM_LAYER_DEFAULT}};
+let state={theme:'ember',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],nextId:4000,weekStartDay:6,semesterStart:'2026-01-17',maxFutureDate:'2026-05-30',weekSlot:'sprints',weatherZip:WX_ZIP_DEFAULT,almanacTz:ALM_TZ_DEFAULT,houList:ALM_HOU_DEFAULT,almanacLayers:{...ALM_LAYER_DEFAULT}};
 let saveTimer=null,lastSaveTime=null,saveStatus='saved';
 // localStorage is the source of truth: write there synchronously, then diff & queue per-record pushes.
 function persistLocal(){try{localStorage.setItem(SKEY,JSON.stringify(state));localStorage.setItem(SKEY+'-time',new Date().toISOString())}catch(e){throw e}}
@@ -1046,7 +1076,7 @@ function render(){
   const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
   const bottomNav=`<nav class="bottomnav">${slotBtn('bn-item')}<button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
   const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v10.5</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v10.6</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -1226,7 +1256,7 @@ function almMarkerHtml(m){
   const D=AlmanacData;
   const open='<span class="alm-mk '+m.kind+(m.start?' hou-start':'')+'">'; // both names, every width
   if(m.kind==='term'){const t=D.TERMS[m.index];return open+`<span class="alm-en">${t.en}</span><span class="alm-tc">${t.tc}</span></span>`}
-  if(m.kind==='hou'){const x=D.HOU[m.index];return open+`<span class="alm-en">${x.en}</span><span class="alm-tc">${x.tc}</span></span>`}
+  if(m.kind==='hou'){const x=almHouTable()[m.index];return open+`<span class="alm-en">${x.en}</span><span class="alm-tc">${x.tc}</span></span>`}
   const mo=(m.kind==='phase'?D.MOON_MID:D.MOON)[m.index];  // inline SVG, currentColor — no emoji
   return open+`<span class="alm-moon-ico">${mo.svg}</span><span class="alm-en">${mo.en}</span></span>`;
 }
@@ -1292,10 +1322,13 @@ const ALM_LANES={
     lbl:v=>{const z=AlmanacData.ZODIAC[v>>1],rx=v&1;return{tip:'',
       html:`<span class="alm-glyph">${z.glyph}</span>`+(rx?`<span class="alm-rx">${ALM_RX}</span>`:'')+`<span class="alm-en">${z.name}</span>`}}},
   // 候 is the fastest Chinese layer, the mirror of ☽ on the western side. A pentad name runs up to
-  // eight characters (天氣上升地氣下降), so the English is printed after it and almFitLabels() takes
-  // it away again on any run too short to hold it — the same treatment the Moon sign gets.
+  // eight characters in the classical list (天氣上升地氣下降), so the English is printed after it and
+  // almFitLabels() takes it away again on any run too short to hold it — the same treatment the
+  // Moon sign gets. The pill carries its full description: as a title for hover, and behind a tap
+  // for touch, since a title attribute is unreachable without a pointer.
   hou:{get:a=>a.hou,
-    lbl:i=>{const x=AlmanacData.HOU[i];return{tip:x.tc+' — '+x.en,
+    lbl:i=>{const x=almHouTable()[i];return{
+      tip:x.tc+' — '+x.en+(x.desc?'\n\n'+x.desc:''),
       html:`<span class="alm-tc">${x.tc}</span><span class="alm-en">${x.en}</span>`}}}
 };
 
@@ -1319,7 +1352,11 @@ function almRunsHtml(alm,rowOf,col,key,role,tab){
     let html=n.html;
     if(key==='terms'&&tab==='season')
       html=html.replace('<span class="alm-tc">',`<span class="alm-tc" onclick="event.stopPropagation();almOpenTermLink(${r.value})">`);
-    return`<div class="alm-pill ${key} ${role}" style="grid-row:${r0}/${end};grid-column:${col}"${n.tip?` title="${n.tip}"`:''}><div class="alm-ribbon-inner"><div class="alm-ribbon-label">${html}</div></div></div>`;
+    // The 候 pill is the one that IS meant to look tappable: its description is the point of the
+    // list, and a hover title alone would hide it from every phone.
+    const act=(key==='hou'&&tab==='season')
+      ?` onclick="event.stopPropagation();almOpenHouPop(${r.value})" role="button" tabindex="0"`:'';
+    return`<div class="alm-pill ${key} ${role}" style="grid-row:${r0}/${end};grid-column:${col}"${n.tip?` title="${calEsc(n.tip)}"`:''}${act}><div class="alm-ribbon-inner"><div class="alm-ribbon-label">${html}</div></div></div>`;
   }).join('');
 }
 
@@ -1655,7 +1692,12 @@ function calCoverageText(){
    weather, then one line per reckoning (local, Abhayagiri, DRBA), each under its own emblem. */
 function renderSeason(){
   const sel=almWeekSelection();
-  let h=`<div class="life-header"><span class="life-title">Season</span><span class="legend-hint">節氣 · 候 · 月建 · sign · moon</span></div>`;
+  // Which 72 候 list is in force is stated at the top, because the two say very different things
+  // about the same five days and there is no way to tell them apart from a single pentad.
+  const hl=almHouList();
+  let h=`<div class="life-header"><span class="life-title">Season</span><span class="legend-hint">節氣 · 候 · 月建 · sign · moon</span>`
+    +`<span class="hou-src ${hl}" title="Which 72 候 list names the pentads. Change it in Settings → Almanac.">`
+    +`<span class="hou-src-tc">候</span>${hl==='ukiah'?'NorCal · Ukiah Valley':'Classical Chinese'}</span></div>`;
   if(!almReady())return h+`<div class="notes-box"><div class="notes-box-text" style="font-size:var(--fs-xs);color:var(--text-muted)">The almanac engine did not load, so there is nothing to show here. A hard refresh usually fixes it.</div></div>`;
   if(sel.collapsedCount>0)h+=`<div style="margin-bottom:12px"><button class="expand-week-btn" onclick="expandAllPastWeeks()" style="font-size:var(--fs-2xs);padding:3px 10px">▼ ${sel.collapsedCount} past week${sel.collapsedCount>1?'s':''} (show)</button></div>`;
   const g=almGridPlan(sel.perWeek,'season');
@@ -1708,6 +1750,27 @@ function almFitLabels(){
 }
 let _fitTimer=null;
 window.addEventListener('resize',()=>{clearTimeout(_fitTimer);_fitTimer=setTimeout(almFitLabels,150)});
+
+/* A 候's own description. The pill carries it as a title for hover, but a title is unreachable on
+   a touch screen, so tapping the pill opens it here. Reuses the syllabus popup's furniture rather
+   than inventing a second card. Names the list it came from, since the two lists say very
+   different things about the same five days. */
+function almOpenHouPop(i){
+  const t=almHouTable();const x=t&&t[i];
+  if(!x)return;
+  const term=AlmanacData.TERMS[Math.floor(i/3)];
+  const deg=(315+i*5)%360;
+  const beat=['初候','次候','末候'][i%3];
+  document.getElementById('houPopPanel').innerHTML=
+    `<div class="pop-head"><div class="pop-title"><span class="hou-pop-tc">${x.tc}</span><span class="hou-pop-en">${x.en}</span></div>`
+    +`<button class="pop-x" onclick="closeHouPop()" aria-label="Close"><span class="mi" style="--ic:var(--ic-x)"></span></button></div>`
+    +`<div class="pop-meta"><span class="pop-tag" style="background:var(--accent-bh-dim);color:var(--accent-bh)">${term.tc} ${beat}</span>`
+    +`<span class="pop-due">${deg}° · ${term.en}</span></div>`
+    +`<div class="pop-detail">${x.desc||'No description for this pentad.'}</div>`
+    +`<div class="pop-actions"><span class="hou-pop-src">72候 · ${ALM_HOU_LABEL[almHouList()]}</span></div>`;
+  document.getElementById('houPop').classList.add('open');
+}
+function closeHouPop(){const e=document.getElementById('houPop');if(e)e.classList.remove('open')}
 
 // Opens a solar term's reading. External site, so noopener/noreferrer and a fresh tab.
 function almOpenTermLink(i){
@@ -1961,6 +2024,12 @@ function renderSettings(){
   <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Places solar terms, 候 and moon quarters on the right day. This zone is used for the almanac only — tasks, events, countdowns and week boundaries keep using your device's local time. DST is handled automatically.</div>
   <input class="life-input" id="almTzFilter" value="${_almTzFilter.replace(/"/g,'&quot;')}" oninput="almTzFilterInput(this.value)" placeholder="Filter zones…" style="width:190px;margin-bottom:6px"/>
   <select class="life-select" id="almTzSelect" onchange="almSetTz(this.value)" style="width:260px;max-width:100%;display:block">${almTzOptionsHtml(_almTzFilter)}</select></div>
+  <div class="settings-section"><label>72 候 list</label>
+  <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Which names the pentads carry. The Ukiah Valley list is a local phenological calendar for 95482 — what is actually happening here in each five-day period, which is close to the inverse of the North China climate the classical list describes. Both use the identical astronomical frame, so switching changes only the names, never a date. Tap a 候 in the Season tab's right-hand lane to read its description.</div>
+  <select class="life-select" onchange="almSetHouList(this.value)" style="width:230px">
+    <option value="ukiah"${almHouList()==='ukiah'?' selected':''}>NorCal · Ukiah Valley</option>
+    <option value="chinese"${almHouList()==='chinese'?' selected':''}>Classical Chinese</option>
+  </select></div>
   <div class="settings-section"><label>Layers</label>
   <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Solar terms and moon quarters appear in both the Week and Season tabs. Season adds the mirrored flanks — ☉/☿/☽ on the left, 建/節/候 on the right, coarsest outside to fastest inside — plus the two monastery calendars and the weather reading, none of which touch the Week tab. There the moon is stated once for every reckoning that agrees, attributed by emblem, and named only when the reading is a local quarter.</div>
   <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:var(--fs-xs)">${[['terms','Solar terms 節'],['hou','Pentads 候'],['moon','Moon quarters'],['branch','Earthly branch 月建'],['zodiac','☉ Sun sign'],['mercury','☿ Mercury sign'],['moonsign','☽ Moon sign'],['abhayagiri','Abhayagiri calendar'],['drba','DRBA calendar']].map(([k,lbl])=>`<label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox"${almLayers()[k]?' checked':''} onchange="almSetLayer('${k}',this.checked)"/> ${lbl}</label>`).join('')}</div>

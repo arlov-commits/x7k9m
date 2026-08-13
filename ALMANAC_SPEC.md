@@ -193,6 +193,43 @@ against zh.wikipedia's 七十二候 table (which gives the same degrees) and ja.
 prints the Japanese and original Chinese columns side by side. Do not "fix" this to match a
 Japanese table.
 
+**Two 72 候 lists ship, and the LOCAL one is the default.** `HOU` is the classical Chinese table
+described above and remains what the fixtures verify. `HOU_UKIAH` is 優凱谷七十二候 v3.0 — a
+phenological calendar written for the Ukiah Valley / City of Ten Thousand Buddhas (95482), and the
+list the app shows unless Settings → Almanac → 72 候 list says otherwise.
+
+This is **not a translation**. Ukiah is close to the inverse of the North China climate the
+classical list describes, and the local list states that inversion rather than smoothing it:
+
+| | North China | Ukiah Valley |
+|---|---|---|
+| Green | spring–summer | November–May |
+| Gold / dead | autumn | June–October |
+| Dormancy | winter | **summer** |
+| Deep flowering | 春分–立夏 | **冬至–大寒** |
+
+So 夏至 (90°) is 草化黃金, the grasses turning to gold, where the Chinese year is at its fullest;
+立冬 (225°) is 秋草反青, the hills greening, where the Chinese list has 水始冰. A few entries are
+kept **verbatim in the same slot** where the phenomenon genuinely lands there — 玄鳥至 (0°),
+白露降 (140°), 玄鳥歸 (170°) — and a few deliberately reuse classical wording half a year out of
+place, notably 蚯蚓出 at 280° and 鹿角解 at 315°. The test group `Ukiah 72 hou (local list)`
+asserts the table is a well-formed drop-in for the classical one — 72 entries, no repeated name,
+every entry glossed, and the three verbatim slots intact — because anything else would silently
+move a name onto the wrong five days when the setting is flipped.
+
+Every entry carries a `desc`, shown on hovering or tapping its pill in the Season tab's 候 lane.
+The source flags its own confidence: 蜩始鳴 / 蜩鳴日中 / 蜩聲忽止 (cicada onset and cutoff),
+地鼠夏蟄, 連雀降實, 雁引雛行, 膠菊乃香 and 丹蒿出土 want a season of local observation before the
+placement is trusted. Several plant and animal names are **coinages**, flagged as such in the
+source rather than passed off as established: 七葉 (buckeye), 莓樹 (madrone), 石龍 (fence lizard,
+knowingly borrowed from 石龍子, which is a skink), 地蛛 (tarantula), 朱蝽 (boxelder bug),
+貫葉菜 (miner's lettuce), 膠菊 (tarweed), 丹蒿 (Indian warrior), 白橡 (valley oak), 地鼠 (ground
+squirrel), 冠雀 (crowned sparrows), 連雀 (cedar waxwing). Do not "correct" these to standard
+Chinese names without reading the source's naming notes first.
+
+The honest way to run the local list is the way the original was run: fix the astronomical
+position, write down what you actually see, and move the entry when three years disagree with it.
+
 **Hou names** follow 吳澄《月令七十二候集解》, verified against 中國氣象局, the 中國農業博物館 summary of《逸周書·時訓解》, and 百度百科's transcription of the 集解. Three corrections were made against the draft list this project started from, and you should not silently revert them:
 
 - Hou 5 is **候雁北** "Wild geese fly north", not 鴻雁來. The draft duplicated 鴻雁來 at both hou 5 and hou 43; 集解 gives 候雁北 for 雨水二候 and notes 鴻雁北 as the《月令》/《漢書》variant. Hou 43 (白露初候) genuinely is 鴻雁來.
