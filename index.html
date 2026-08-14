@@ -1,4 +1,4 @@
-<!-- Academic Planner v11.0 -->
+<!-- Academic Planner v11.1 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -361,8 +361,15 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 /* Sticky track tags. Emitted after the pills so they float above them, and pinned higher than the
    pill labels so the two never collide. */
 .alm-lane-tag{position:relative;pointer-events:none;display:flex;justify-content:center}
-.alm-lane-glyph{position:sticky;top:52px;pointer-events:auto;cursor:pointer;border-radius:var(--r-s);font-size:var(--fs-m);line-height:1;color:var(--text-muted);
-  background:var(--bg);border-radius:var(--r-pill);padding:3px 0 5px;width:100%;text-align:center}
+/* The tag is the tap target for its whole track, so it is sized deliberately: a square the width
+   of its own lane, centred on the glyph, rather than a text box whose height follows the font.
+   Left to line-height it came out 43px tall for a 17px glyph — a hit area that looked like a
+   mistake. min-height keeps it reachable on the narrowest phones, where the lane is 19px. */
+.alm-lane-glyph{position:sticky;top:52px;pointer-events:auto;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;align-self:flex-start;
+  width:100%;aspect-ratio:1;min-height:24px;padding:0;
+  font-size:var(--fs-m);line-height:1;color:var(--text-muted);
+  background:var(--bg);border-radius:var(--r-pill);text-align:center}
 
 /* ---- Season rows (v9.4; recomposed v10.3) ----
    A centred column with two corners (v10.5). The corners carry the badges; the centre line
@@ -1077,7 +1084,7 @@ function render(){
   const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
   const bottomNav=`<nav class="bottomnav">${slotBtn('bn-item')}<button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
   const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v11.0</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v11.1</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -1388,13 +1395,16 @@ function almRunsHtml(alm,rowOf,col,key,role,tab){
 
    A flank with every layer off takes no column at all rather than leaving an empty gutter, so the
    content column index moves — it is published as --alm-content-col for the row rules to follow. */
-const ALM_WEST=[{key:'zodiac',glyph:ALM_SUN,cls:'sun'},
-                {key:'mercury',glyph:ALM_MERC,cls:'merc'},
-                {key:'moonsign',glyph:ALM_MOON,cls:'moon'}];
+// `key` is the ambient layer this track draws; `pop` is the card it opens. They differ on the
+// western side, where the layers are named for what they plot and the cards for the body itself —
+// passing `key` where `pop` was wanted is exactly the bug that left these three tags dead.
+const ALM_WEST=[{key:'zodiac',pop:'sun',glyph:ALM_SUN,cls:'sun'},
+                {key:'mercury',pop:'merc',glyph:ALM_MERC,cls:'merc'},
+                {key:'moonsign',pop:'moon',glyph:ALM_MOON,cls:'moon'}];
 // Innermost first, so the fastest layer sits against the day cell on both sides.
-const ALM_EAST=[{key:'hou',glyph:'候',cls:'hou'},
-                {key:'terms',glyph:'節',cls:'term'},
-                {key:'branch',glyph:'建',cls:'branch'}];
+const ALM_EAST=[{key:'hou',pop:'hou',glyph:'候',cls:'hou'},
+                {key:'terms',pop:'terms',glyph:'節',cls:'term'},
+                {key:'branch',pop:'branch',glyph:'建',cls:'branch'}];
 // One flank: its tracks in column order, each with the sticky tag that names it. The tag is
 // emitted after its pills so it floats above them however far you scroll.
 function almTrackStripHtml(alm,rowOf,firstCol,lanes,tab){
@@ -1404,8 +1414,9 @@ function almTrackStripHtml(alm,rowOf,firstCol,lanes,tab){
     const edge=lanes.length===1?'only':(i===0?'first':(i===lanes.length-1?'last':'mid'));
     h+=almRunsHtml(alm,rowOf,col,w.key,'track '+w.cls+' '+edge,tab);
     // The tag spans the column so its glyph can stay sticky, but only the glyph takes the tap.
+    const pk=w.pop||w.key;
     const lane=(tab==='season')
-      ? ` onclick="event.stopPropagation();almOpenLanePop('${w.key}')" role="button" tabindex="0" title="${calEsc('What the '+w.glyph+' track measures')}"`
+      ? ` onclick="event.stopPropagation();almOpenLanePop('${pk}')" role="button" tabindex="0" title="${calEsc(almLaneTip(pk))}"`
       : '';
     h+=`<div class="alm-lane-tag ${w.cls}" style="grid-column:${col};grid-row:1/-1"><span class="alm-lane-glyph"${lane}>${w.glyph}</span></div>`;
   });
@@ -1721,6 +1732,13 @@ const ALM_EAST_LANES={
     motion:'One branch every two solar terms, about 30 days. 寅 opens at 立春, which is why the table starts there rather than at 子.',
     note:'The animal names are the ones these branches are usually recognised by in English, and are the same twelve as the year-animals — but here they count solar months, not years.'}
 };
+// A lane's hover text: the same opening the card leads with, so the pointer and the tap agree.
+function almLaneTip(key){
+  const pl=AlmanacData.PLANETS&&AlmanacData.PLANETS[key];
+  if(pl)return pl.glyph+' '+pl.name+' — '+pl.of+'\n\n'+pl.what;
+  const e=ALM_EAST_LANES[key];
+  return e?(e.tc+' '+e.name+'\n\n'+e.what):'';
+}
 function almOpenLanePop(key){
   const D=AlmanacData;
   const pl=D.PLANETS&&D.PLANETS[key];
