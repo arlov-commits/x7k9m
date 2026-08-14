@@ -24,7 +24,7 @@ The moon is stated **once for all three reckonings**, not once per layer: agreei
 
 ## Versioning
 - Version lives as an HTML comment on line 1: `<!-- Academic Planner vX.Y -->`, and in a visible `.version-label` in the header, and in the service worker `CACHE_NAME`.
-- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v11.0. All three locations must match.
+- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v11.1. All three locations must match.
 - Bumping the SW `CACHE_NAME` every change is required or installed devices serve stale code.
 
 ## Architecture rules (hard-won — do not violate)
