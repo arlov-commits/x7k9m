@@ -1,8 +1,11 @@
 /* almanac-data.js — name tables for solar terms, 72 hou, tropical zodiac, moon phases.
- * v1.4 — data only, no logic. Traditional Chinese throughout.
+ * v1.5 — data only, no logic. Traditional Chinese throughout.
  * v1.1 adds BRANCHES (地支 solar months) and SEASONS, both keyed off the solar-term index.
  * v1.2 adds TERM_LINKS — further reading per solar term, same index as TERMS.
  * v1.3 adds MOON_MID — the four phases between the quarters, for the Season tab.
+ * v1.5 rewrites every HOU_UKIAH description and adds the planetary tooltip layer: per-sign
+ * readings for ☉/☿/☽ on ZODIAC, plus ELEMENTS, MODES, PLANETS, DIGNITY and RETRO.
+ * Source for both: 'Almanac Tooltip Reference', kept in calendars/source.
  * v1.4 adds HOU_UKIAH — a local 72 候 for the Ukiah Valley, now the default list; HOU is kept
  * as the classical alternative, selectable in settings, and remains what the fixtures check.
  * 72 hou follow the CHINESE list of 吳澄《月令七十二候集解》; variants noted in ALMANAC_SPEC.md.
@@ -167,172 +170,172 @@
   var HOU_UKIAH = [
     /* 立春 */
     { tc: "鹿角解", en: "The buck lets go his antlers",
-      desc: "Blacktail bucks drop both antlers over a few days in Jan–Feb. You find them, or you notice the bucks are suddenly plain." },
+      desc: "Blacktail bucks drop their antlers in midwinter, usually both sides within a day of each other. The bucks go suddenly plain and stay that way until spring. For a few weeks the antlers lie on the ground where they fell, heavy and warm-colored, their edges gnawed by rodents taking the calcium." },
     { tc: "蛙聲徹夜", en: "Frog voice all night through",
-      desc: "Sierran treefrogs at full chorus in every ditch and seasonal pool. Loud enough to be a nuisance. The year's loudest sound." },
+      desc: "Treefrogs fill every ditch, seasonal pool and wet swale, calling from dusk until first light. Walk toward them and the entire chorus cuts out at once, then starts again behind you as you pass. It is the loudest the valley gets all year, at the coldest and wettest point of it." },
     { tc: "七葉先萌", en: "The buckeye leafs out first, alone",
-      desc: "California buckeye breaks bud in February while every other deciduous tree is bare. Pale apple-green fingers on grey wood. It runs its whole year early and quits in July." },
+      desc: "California buckeye breaks bud in February while every other deciduous tree is still bare wood. Pale apple-green fingers open at the branch tips, unmistakable across a hillside. It is the first tree to leaf and the first to quit — its entire year is compressed into the wet half." },
     /* 雨水 */
     { tc: "川壑皆盈", en: "Every ravine runs full",
-      desc: "Drainages that were dry stone in September are now audible from a distance. The valley has a background sound it lacks half the year." },
+      desc: "Drainages that were dry stone in September now run full and audible from a distance. Culverts roar, seasonal creeks reappear on ground that showed no sign of holding them, and the valley acquires a constant background sound it lacks for half the year." },
     { tc: "雁集水田", en: "The geese gather on the flooded field",
-      desc: "Canada geese massed on standing water in winter pasture, along the river, at the lake. Noisy, conspicuous, and the first beat of the goose thread." },
+      desc: "Canada geese mass on standing water in winter pasture, along the river, at the lake margins — hundreds where there were dozens. They lift in ragged skeins at any disturbance, complaining loudly, and resettle forty yards off. Nothing else concentrates them the way flooded ground does." },
     { tc: "貫葉菜秀", en: "The pierced-leaf herb comes into its own",
-      desc: "Miner's lettuce: a round disc of a leaf with the stem running clean through the middle and a little spray of white flowers standing out of it. Shaded banks and the north side of oaks. Edible, mild, faintly sour." },
+      desc: "Miner's lettuce carpets shaded banks and the north sides of oaks: a round disc of leaf with the stem running clean through the middle and a small spray of white flowers standing out of the hole. Crisp, mild, faintly sour. The first thing of the year you can pick and eat." },
     /* 驚蟄 */
     { tc: "紫荊先花", en: "Redbud flowers ahead of its leaves",
-      desc: "Western redbud goes magenta on completely bare wood. Ornament before substance — the same move as 桃始華, in the same slot." },
+      desc: "Western redbud goes magenta on completely bare wood, the flowers pressed directly to grey branches with no leaf anywhere on the plant. Visible from a long way off on dry slopes and roadcuts. The round blue-green leaves arrive weeks later, once the display is finished." },
     { tc: "孔雀開屏", en: "The peacock raises his screen",
-      desc: "Display season opens and runs to high summer: the fan, the rattling shiver of the quills, and the screaming at all hours." },
+      desc: "The peacocks begin to display and will not stop until high summer. The train comes up and fans, the quills shiver with a dry rattling hiss, and the bird turns slowly to keep the sun behind him. The screaming starts too, at all hours, carrying much further than seems reasonable." },
     { tc: "火雞曳翼", en: "The turkey drags his wings",
-      desc: "Wild toms in strut — tail fanned, primaries scraping the dirt, breast puffed, gobbling. They walk stiff-legged in slow circles around indifferent hens." },
+      desc: "Wild toms strut: tail fanned into a full wheel, primaries scraping the dirt, breast puffed, bare head flushed blue and red. They move stiff-legged in slow circles around hens who go on feeding without appearing to notice. Any loud noise — a door, a horn — draws a gobble in reply." },
     /* 春分 */
     { tc: "玄鳥至", en: "The swallows arrive",
-      desc: "Barn and cliff swallows back overhead after six months gone. Kept verbatim from the Chinese — it lands in the same slot here." },
+      desc: "Barn and cliff swallows are overhead again after six months away, cutting low and fast over open ground and water. They arrive within about a week of the same date each year, having crossed a continent to do it, and they go straight back to the eaves they used last season." },
     { tc: "燕銜泥", en: "The swallow carries mud",
-      desc: "Birds working a puddle edge, flying beakfuls up under the eaves. The gourd nests go up in about a week." },
+      desc: "Swallows work the edge of any puddle, gathering beakfuls of mud and carrying them up under eaves, bridge decks and overhangs. The gourd-shaped nests go up in roughly a week, built pellet by pellet, every one of them still visible in the finished wall." },
     { tc: "橡花垂穗", en: "The oaks hang out their tassels",
-      desc: "Catkins in dangling strings, then pollen on every horizontal surface — windshields, water, laundry. A yellow film over everything." },
+      desc: "The oaks put out catkins in long dangling strings, and then release. Pollen films every horizontal surface — windshields, standing water, laundry, the hood of a car — as a fine yellow-green dust that is back within hours of being washed off." },
     /* 清明 */
     { tc: "藍眼遍草", en: "Blue eyes scattered through the grass",
-      desc: "Blue-eyed grass: small six-petalled violet-blue stars on grassy slopes, each with a yellow centre. In numbers they look like the field is looking back." },
+      desc: "Blue-eyed grass opens across grassy slopes: small six-petalled stars, violet-blue with a yellow center, on flat iris-like leaves. Singly they are easy to miss. In numbers a slope reads as a scatter of small open eyes and seems to be looking back at you." },
     { tc: "金燈懸莖", en: "Golden lanterns hang from the stem",
-      desc: "Diogenes' lanterns (golden globe lily) — pendant, translucent yellow globes on thin stalks in oak shade. Lit from inside when the sun is behind them." },
+      desc: "Golden globe lilies hang in oak shade — translucent yellow globes on thin wiry stalks, nodding, closed at the mouth. With the sun behind them they light from the inside like paper lanterns. They last a short time and grow in loose scattered colonies rather than drifts." },
     { tc: "蜂蝶咸出", en: "Bees and butterflies, all of them at once",
-      desc: "咸 is the classical \"all together.\" There is a week where the insect load goes from noticeable to total." },
+      desc: "Within about a week the insect load goes from noticeable to total. Bees work every open flower, swallowtails and painted ladies cross the road at windshield height, and the air above any blooming shrub is continuously in motion. This is the densest exchange between flower and insect all year." },
     /* 穀雨 */
     { tc: "雁引雛行", en: "The geese lead their goslings in a line",
-      desc: "One parent in front, one behind, the yellow-grey goslings strung between them, the whole file crossing a road or lawn at its own pace, refusing to hurry. Everything stops for them." },
+      desc: "Geese walk their goslings in single file, one adult in front and one behind, the yellow-grey young strung between them. The line crosses lawns, roads and parking lots at its own pace and cannot be hurried. Traffic stops for it. Everyone waits." },
     { tc: "石龍拜日", en: "The rock-dragon bows to the sun",
-      desc: "Male fence lizards on a rock or post doing rapid push-ups, flashing the blue belly at rivals. It looks exactly like bowing, which is why the entry exists." },
+      desc: "Male fence lizards take a rock, post or step and do rapid push-ups, flashing an iridescent blue belly at rivals. The motion is abrupt, repeated and looks precisely like bowing. They hold territory this way through the spring, always in full sun on the warmest surface available." },
     { tc: "響尾出穴", en: "The rattle-tail leaves its hole",
-      desc: "Rattlesnakes out and moving. Watch the trail edges and the warm stone. The classical 蚯蚓出 with the stakes raised." },
+      desc: "Rattlesnakes are out and moving. Watch trail edges, warm stone, the shade beneath a step at midday and the open path in late afternoon. They are not aggressive and would much rather not be found, which is exactly why they are easy to walk up on without noticing." },
     /* 立夏 */
     { tc: "七葉舉燭", en: "The buckeye lifts its candles",
-      desc: "Upright white flower spikes, eight inches or more, standing off the branches. Heavily scented, covered in insects. The tree's whole year is spent here." },
+      desc: "Buckeye raises white flower spikes eight inches or more, standing upright off the branches like candles set on a stand. Heavily scented at close range and covered in insects at all hours. This is the tree's entire visible output for the year, spent in about three weeks." },
     { tc: "鶉引雛", en: "The quail leads her chicks",
-      desc: "California quail broods — a dozen chicks the size of bumblebees rolling across a path in a loose ball, the cock on a fencepost keeping watch." },
+      desc: "Quail broods appear: a dozen chicks the size of bumblebees rolling across a path in a loose ball, changing direction all at once. The hen moves with them. The cock takes a fencepost or low branch above and sounds a single sharp note at anything that approaches." },
     { tc: "蛙聲乃寂", en: "And so the frog voice falls silent",
-      desc: "The pools go down and the chorus stops. An absence-候, closing the thread that opened in January. You notice it at night, about a week after it happens." },
+      desc: "The pools go down and the chorus stops. There is no long fade — a week of thinning voices, then nothing. You notice it several nights after it has happened, as an absence you cannot immediately name, and the valley stays quiet until the cicadas start." },
     /* 小滿 */
     { tc: "芒穗乃堅", en: "And so the awned heads harden",
-      desc: "Foxtails go from soft green to barbed and brittle. They start getting into socks, and into dogs' ears and paws. The grass has stopped being food and become armament." },
+      desc: "Foxtails turn from soft green to barbed, brittle and straw-colored. The seed heads break apart at a touch and the awns travel one direction only — into socks, cuffs, and dogs' ears and paws. The grass has stopped being food and become armament." },
     { tc: "鹿子初生", en: "Fawns are born",
-      desc: "Spotted blacktail fawns, wobbly, usually two. Left folded in tall grass while the doe feeds elsewhere." },
+      desc: "Spotted fawns, usually two, unsteady for the first several days. The doe leaves them folded in tall grass while she feeds elsewhere and returns only to nurse. A fawn lying alone in the grass has not been abandoned — it is exactly where it is supposed to be." },
     { tc: "蜩始鳴", en: "The cicada begins to call",
-      desc: "First scattered dry buzzing from the oaks — one insect, then a few. Opening the thread the frogs just closed." },
+      desc: "The first cicadas: scattered dry buzzing from high in the oaks, one insect at a time, stopping as abruptly as it starts. Easy to mistake for a distant machine. Within a month it will be constant, and it will not let up until the end of August." },
     /* 芒種 */
     { tc: "燕雛滿簷", en: "The eaves are full of swallow chicks",
-      desc: "Gaping heads crowding the mouths of the mud nests, adults shuttling constantly, the noise under a roofline all day." },
+      desc: "The mud nests are full. Gaping heads crowd every opening, adults shuttle in and out without pause from first light to dusk, and the noise under a roofline runs all day. The ground beneath goes messy, which is the standing cost of the arrangement." },
     { tc: "乳草乃華", en: "And so the milkweed flowers",
-      desc: "Narrowleaf milkweed opens its dull-pink umbels. Monarchs come to it to lay; look for the striped caterpillars a few weeks on." },
+      desc: "Narrowleaf milkweed opens dull pink-white umbels on upright stems in dry open ground. Monarchs come to it to lay, and within a few weeks the striped caterpillars are working the undersides of the leaves, eating the plant down to stems. It is the only thing they will eat." },
     { tc: "溪斷成潭", en: "The creek breaks into pools",
-      desc: "Continuous flow fails and the creek becomes a chain of disconnected pools with dry stone between them. The background sound of 雨水 ends here." },
+      desc: "Continuous flow fails. The creek becomes a chain of disconnected pools with dry stone between them, each pool warmer, greener and more crowded than the last. The sound goes first, then the connection. From this point the water only goes down." },
     /* 夏至 */
     { tc: "草化黃金", en: "The grasses turn to gold",
-      desc: "Over roughly ten days the whole valley changes colour and the annual grasses finish. 化 is the transformation-verb from 腐草為螢, used deliberately: it does not look like drying, it looks like the hills becoming a different substance." },
+      desc: "Over roughly ten days the annual grasses finish and the whole valley changes color. It does not look like drying. It looks like the hills becoming a different substance — gold, dry-edged, uniform from ridge to floor. This is the visual signature of the place, and it holds until November." },
     { tc: "禿鷲乘熱", en: "The vulture rides the risen heat",
-      desc: "Turkey vultures on thermals over the gold hillsides, wings in a shallow V, rocking, not beating. Heat made visible by what it carries." },
+      desc: "Turkey vultures ride thermals above the gold hillsides, wings held in a shallow V, rocking side to side, almost never beating. They appear once the ground has heated and are absent when it hasn't. The heat itself is invisible; the birds are how you see it." },
     { tc: "蜩鳴日中", en: "The cicadas call at midday",
-      desc: "Full chorus, loudest in the hottest hour, cutting out when a cloud crosses. The sound is functionally the sound of the temperature." },
+      desc: "Full cicada chorus, loudest in the hottest hour and pausing when a cloud crosses. The sound comes from everywhere and from no locatable point. It is effectively the sound of the temperature — you can estimate the afternoon by it without looking at anything." },
     /* 小暑 */
     { tc: "七葉先凋", en: "The buckeye withers first, alone",
-      desc: "Buckeye leaves go brown and crisp and drop in July, sometimes with the flowers still on the tree, while everything around it is green. It is not dying. It finished early." },
+      desc: "Buckeye leaves go brown and crisp and drop in July, sometimes with the flower spikes still on the tree and everything around it fully green. The tree is neither dying nor stressed. It finished early, and it stands bare through the rest of the summer." },
     { tc: "地鼠夏蟄", en: "The ground squirrels take their summer sleep",
-      desc: "California ground squirrel activity drops off sharply in the heat; adults go below and stay there. China's 蟄蟲 sleep in winter. Here the retreat is from the sun." },
+      desc: "Ground squirrel activity falls off sharply. Burrow mouths stay open but the sentries are gone from the fence posts and culvert banks, and the adults go below and remain there through the worst of the heat. Here the retreat underground is from the sun, not the cold." },
     { tc: "莓樹褪皮", en: "The madrone sheds its skin",
-      desc: "Pacific madrone peels its outer bark in thin red curls, leaving smooth cool green underneath. The tree looks skinned and much better for it." },
+      desc: "Madrone peels its outer bark in thin curling red-brown strips, leaving smooth cool green-tan underneath. The curls collect around the base of the trunk. The tree looks flayed and is in excellent condition — the fresh surface is the entire point of the operation." },
     /* 大暑 */
     { tc: "孔雀解翎", en: "The peacock sheds his train",
-      desc: "The whole train comes out over a few weeks after breeding ends. The birds go abruptly plain and awkward, and there are eye-feathers on the ground everywhere. Same verb as 鹿角解, six months on." },
+      desc: "The train comes out over a few weeks once breeding is done. The birds go abruptly plain, shorter and more awkward, and eye-feathers turn up everywhere — on paths, in flowerbeds, beneath roosting trees. The most conspicuous thing about the animal is simply set down and left behind." },
     { tc: "星薊獨榮", en: "The star-thistle alone flourishes",
-      desc: "Yellow star-thistle in full spiny bloom across dead gold ground, the only thing blooming and the only thing feeding bees. Hated, invasive, and honestly the sole flower of this phase." },
+      desc: "Yellow star-thistle stands in full spiny bloom across dead gold ground: rigid, grey-green, armed at every node, and the only thing flowering for acres in any direction. It is invasive and rightly disliked, and for six weeks it is also the only thing feeding bees." },
     { tc: "橡子乃見", en: "And so the acorns become visible",
-      desc: "Green acorns appear in the oaks, small and hard in their cups. They have been forming since the catkins in March; now you can see them." },
+      desc: "Green acorns appear in the oaks, small and hard and tight in their cups. They have been forming since the catkins released in spring; only now are they large enough to pick out from underneath the tree. From here they swell quickly." },
     /* 立秋 */
     { tc: "涼風夜至", en: "The cool wind comes by night",
-      desc: "Ninety-five degrees at four in the afternoon; low fifties before dawn. The classical 涼風至, corrected for the fact that here it only arrives after dark." },
+      desc: "Ninety-five degrees at four in the afternoon and low fifties before dawn. The day has not turned at all and the night has turned completely. Sleeping takes a blanket for the first time since spring, and the air at first light has a distinct edge in it." },
     { tc: "白露降", en: "White dew descends",
-      desc: "Dew back on the grass at first light after two rainless months. Kept verbatim and in its true Chinese slot — 立秋 二候, not the solar term named 白露." },
+      desc: "Dew is back on the grass at first light after two rainless months. It arrives suddenly, on the first morning still and clear enough for the ground to radiate its heat away, and it soaks shoes. The air has begun holding water again, though no rain has fallen." },
     { tc: "膠菊乃香", en: "And so the tarweed gives off its scent",
-      desc: "Tarweed opens yellow daisies in the dead grass and the whole field smells resinous, sticky and strange — closer to turpentine than to flowers. It is on your hands if you walk through it. The only smell-候 in the calendar." },
+      desc: "Tarweed opens small yellow daisies in the dead grass and the whole field turns resinous — a sharp sticky smell, closer to turpentine or pitch than to any flower. It transfers to skin and clothing on contact and stays there. It is the one strong scent of the dry season." },
     /* 處暑 */
     { tc: "溪涸見石", en: "The creek dries, showing its stones",
-      desc: "The pools are gone and the bed is bare rock. The classical 水始涸, forty days early and much more absolute." },
+      desc: "The pools are gone and the bed is bare rock, the stones bleached, the last damp gravel drying at the deepest bends. Where water ran in February you can now walk a mile of channel without wetting a boot. This is the low point of the water year." },
     { tc: "胡蜂爭食", en: "Yellowjackets contend for food",
-      desc: "Colonies at maximum, natural forage exhausted, so they come to whatever you are eating outdoors and get bold about it." },
+      desc: "Colonies are at maximum and their natural forage is gone, so they come to whatever is being eaten outdoors and get bold about it. They work meat, sugar and the mouths of open drink containers with equal interest, and they do not leave when waved at." },
     { tc: "蜩聲忽止", en: "The cicadas abruptly stop",
-      desc: "Not a fade — an ending, over a few days. The absence-候 that closes the thread begun at 70. Suddenly you can hear the wind in the oaks again." },
+      desc: "The cicadas stop. Not a fade — a few days of thinning, then an ending. What comes back is the sound underneath: wind moving through oak leaves, which has been there all summer and completely inaudible. The valley stays quiet now until the frogs start in January." },
     /* 白露 */
     { tc: "蛛網懸露", en: "Webs hang weighted with dew",
-      desc: "Big orb-weaver webs across paths and between fence posts, invisible until the dew loads them, at which point they are everywhere and you have already walked into one." },
+      desc: "Orb-weaver webs span paths, gateways and the gaps between fence posts, invisible until dew loads the strands. Then they are everywhere at once, silver and geometric in the first light — and you have already walked face-first into one on the way out the door." },
     { tc: "玄鳥歸", en: "The swallows go home",
-      desc: "They gather on wires for a few days and then the eaves are silent. Closes the swallow thread that opened at 春分." },
+      desc: "The swallows gather on wires for a few days, in numbers, restless and vocal. Then one morning the eaves are silent and the sky above the field is empty of them. They will be gone until the equinox. The mud nests stay exactly where they are." },
     { tc: "松鼠藏橡", en: "The squirrel hides acorns",
-      desc: "Western gray squirrels carrying single acorns off and burying them one at a time, in a hundred places, most of which they will not find again. That is how oaks travel." },
+      desc: "Gray squirrels carry single acorns off and bury them one at a time, in a hundred separate places, pressing each one down with the nose. They will not find most of them again. This is how oak trees travel, and it only works because the squirrel forgets." },
     /* 秋分 */
     { tc: "橡實落地", en: "Acorns fall",
-      desc: "They come down hard on roofs and cars, and roll. Deer, jays, woodpeckers, squirrels and pigs all converge." },
+      desc: "Acorns come down hard on roofs, cars and paths, and roll. At night the sound is startling the first few times. Deer, jays, woodpeckers, squirrels and turkeys converge beneath the productive trees, and the competition is open, noisy and continuous." },
     { tc: "地蛛出穴", en: "The ground-spider leaves its burrow",
-      desc: "Male tarantulas walking the open hills at dusk after the first rain, looking for females, never returning. They are large, slow, harmless, and visibly on a one-way trip. China puts 蟄蟲坯戶 — hibernating insects seal their doors — in exactly this 5°." },
+      desc: "Male tarantulas walk the open hills at dusk after the first rains, searching for burrows with females in them. They are large, slow, dark and entirely harmless. They are also on a one-way journey: having abandoned their own burrows for good, they will not survive the winter." },
     { tc: "啄木貯倉", en: "The woodpecker stocks his granary",
-      desc: "Acorn woodpeckers hammering acorns one-per-hole into a granary snag, thousands of holes, the whole clan working it and fighting over it loudly." },
+      desc: "Acorn woodpeckers hammer acorns one per hole into a granary snag drilled with thousands of holes over generations. The whole clan works it, defends it and argues about it loudly all day. An established granary tree is a communal bank and is treated exactly like one." },
     /* 寒露 */
     { tc: "初雨土香", en: "First rain, and the earth's scent",
-      desc: "The smell that comes off dry ground in the first ten minutes of the first real rain. In a place with a five-month drought this is a genuine annual event, and people mention it to each other." },
+      desc: "The smell that rises off dry ground in the first ten minutes of the first real rain of the season. After five rainless months it is overwhelming and very specific — dust, oil, mineral, and something almost sweet underneath. People stop what they are doing and mention it to each other." },
     { tc: "毒漆乃丹", en: "And so poison oak turns cinnabar",
-      desc: "This is Ukiah's autumn colour — scarlet running up the hillsides and into the oaks, and the most beautiful thing in the landscape is the one you must not touch." },
+      desc: "Poison oak turns scarlet and runs up the hillsides and into the lower oaks in sheets of red. It is the autumn color of this landscape, more vivid than anything else on offer, and it belongs entirely to the one plant you cannot walk into. The oil stays fully active in the fallen leaves." },
     { tc: "冠雀來賓", en: "The crowned sparrows come as guests",
-      desc: "Golden-crowned and white-crowned sparrows arrive to winter. The golden-crowned sings a thin descending three-note whistle all season. 來賓 — the ones who come and stay, from 鴻雁來賓." },
+      desc: "Golden-crowned and white-crowned sparrows arrive to winter, appearing in brush piles and hedgerows that held none the week before. The golden-crowned sings a thin descending three-note whistle, plaintive and unmistakable, and it will keep singing it all winter long." },
     /* 霜降 */
     { tc: "朱蝽附壁", en: "The vermilion bugs cling to the wall",
-      desc: "Boxelder bugs — black with red lines, often coupled tail-to-tail — massing on warm south and west walls before overwintering, then getting into the house. Your butt-to-butt bugs. Classical parallel: 蟋蟀居壁." },
+      desc: "Boxelder bugs — black with red lines, frequently coupled end to end and walking about in that position — mass on warm south and west-facing walls through the afternoon, dozens to hundreds at a time. They are gathering to overwinter, they will find the way indoors, and they are harmless." },
     { tc: "腐草生菌", en: "Rotted grass gives birth to mushrooms",
-      desc: "First flush after the October rain, straight out of the dead thatch. Transposed from 腐草為螢 — there are no fireflies here, so the rotted grass becomes fungus instead." },
+      desc: "The first flush of mushrooms comes up straight out of the dead thatch within days of the October rain — inky caps, small brown domes, whole rings appearing on lawns overnight. Grass that has been dead since June is suddenly producing the most conspicuous growth in the landscape." },
     { tc: "鹿始交", en: "The deer begin to mate",
-      desc: "Blacktail rut. Bucks with swollen necks, chasing does across roads at bad hours, careless in a way they are not the rest of the year. Antlers now, gone by 立春." },
+      desc: "The rut. Bucks carry swollen necks and full antlers, follow does at a walk for hours, and cross roads at bad hours with none of their usual caution. Deer-vehicle collisions peak now. The antlers they are fighting with will be lying on the ground by February." },
     /* 立冬 */
     { tc: "秋草反青", en: "The autumn grasses turn green again",
-      desc: "Roughly two weeks after the first soaking rain, new grass comes through the dead gold and the valley reverses colour. The growing season is starting. China puts 水始冰 here." },
+      desc: "About two weeks after the first soaking rain, new grass comes up through the dead gold and the valley reverses color — green from below, gold on top, then green throughout. The growing season is beginning here, at the point in the year when the light is nearly at its shortest." },
     { tc: "白橡葉落", en: "The valley oak drops its leaves",
-      desc: "The deciduous oaks let go while the ground underneath them turns green — the two events are simultaneous and worth standing still for." },
+      desc: "The valley oaks let go, and the ground beneath them is turning green at the same time. Yellow-brown leaves come down over a fortnight into new grass. The two events are simultaneous and worth stopping for: the canopy shutting down as the floor opens up." },
     { tc: "蠑螈赴水", en: "The newts go down to the water",
-      desc: "On rainy nights newts walk overland, slowly and in numbers, downhill to their breeding pools. Orange-bellied, unhurried, and they cross roads." },
+      desc: "On rainy nights newts walk overland and downhill toward their breeding pools, slowly, in numbers, and completely undeterred. They are orange-bellied and unhurried, and they cross roads. Drive at walking pace on wet nights anywhere near standing water, or don't drive." },
     /* 小雪 */
     { tc: "熊果始華", en: "Manzanita begins to flower",
-      desc: "Small white-to-pink urns hanging in clusters on that red peeling wood, opening in November. The 桃始華 construction landing in late autumn." },
+      desc: "Manzanita opens small waxy urns, white to pink, hanging in clusters against smooth red peeling bark. It starts flowering as everything else finishes and keeps going for three months. Hummingbirds and early bees are working it from the first day it opens." },
     { tc: "石楠子丹", en: "Toyon berries redden",
-      desc: "Heavy clusters of scarlet berries on evergreen shrubs. The reason it is called Christmas berry, and the reason Hollywood is called that." },
+      desc: "Toyon carries heavy clusters of scarlet berries against dark evergreen leaves, on hillsides and along canyon edges. It is why the shrub is called Christmas berry. The fruit holds through the cold and will be stripped bare in a day once the winter flocks find it." },
     { tc: "連雀降實", en: "The waxwings descend on the fruit",
-      desc: "A flock of cedar waxwings arrives without warning, silent except for a high thin trilling, strips a toyon in a day, and is gone. Sleek, crested, faintly unreal. Constructed after 戴勝降于桑." },
+      desc: "A flock of cedar waxwings arrives without warning, silent except for a high thin trilling, strips a toyon or a pyracantha in a single day, and is gone. Sleek, crested, fawn-colored, black-masked, with small red wax droplets on the wingtips. They look almost manufactured." },
     /* 大雪 */
     { tc: "谷霧不開", en: "The valley fog does not lift",
-      desc: "Tule fog settles on the valley floor and stays all day, sometimes for days. The hills above are in sun. It is cold, still and very quiet inside it." },
+      desc: "Fog settles on the valley floor and stays, sometimes for days. Visibility drops to a few hundred feet, the cold is penetrating and completely still, and every sound is muffled. Climb a few hundred feet up the slope and you come out into full sun with the fog lying white beneath you." },
     { tc: "菌乃遍林", en: "And so mushrooms fill the woods",
-      desc: "Peak fungal season. Boletes, russulas, coral fungi, things on logs. The forest floor is doing more visible work now than in June." },
+      desc: "Peak fungal season. Boletes, russulas, coral fungi, brackets on downed logs, and a great many things with no obvious name pushing up through duff and moss. The forest floor is doing more visible work now than at any point in the warmth of spring." },
     { tc: "蜂鳥墜空", en: "The hummingbird falls out of the sky",
-      desc: "Male Anna's courtship dive: he climbs a hundred feet, drops nearly vertically, and pulls out with a loud explosive pop made by his tail feathers. In December." },
+      desc: "The male hummingbird climbs a hundred feet or more, hangs a moment, and drops nearly vertically, pulling out just above the ground with one loud explosive squeak produced by his tail feathers. He does it again, and again, oriented to the sun — in the middle of winter." },
     /* 冬至 */
     { tc: "蜂鳥營巢", en: "The hummingbird builds her nest",
-      desc: "A walnut-sized cup of plant down bound with spider silk and camouflaged with lichen, built at the winter solstice and timed to the manzanita bloom. China's 冬至 is 蚯蚓結, 麋角解 — the year's deepest stillness." },
+      desc: "The female builds a nest the size of a walnut from plant down, bound with spider silk and shingled outside with lichen so that it vanishes against the branch. The silk lets it stretch as the young grow. She is doing this at the shortest days of the year, timed to the manzanita." },
     { tc: "白橡枝空", en: "The valley oak's branches stand empty",
-      desc: "Full winter architecture, the whole crown legible for the only time all year. An absence-候, after 虹藏不見." },
+      desc: "The valley oaks stand completely bare, and the architecture of the crown is legible for the only weeks in the year — every fork, taper and turn visible from trunk to outermost twig. Against fog or a low sun the whole tree reads as a single drawn line." },
     { tc: "蚯蚓出", en: "Earthworms come out",
-      desc: "Up through the wet soil and out onto paths after rain. Same three characters as the Chinese 立夏 候 — here they belong to midwinter." },
+      desc: "Earthworms come up through saturated ground onto paths, stone and pavement after rain, sometimes in numbers, often stranded by morning. The soil is at its most alive now. Underfoot, the wet season is doing what five months of summer heat made impossible." },
     /* 小寒 */
     { tc: "鴞乃相答", en: "And so the owls answer one another",
-      desc: "Great horned owls duetting at dusk and before dawn — the male lower, the female higher and faster, back and forth. They are pair-bonding to nest in February. Compare 鶡鴠不鳴, the bird that stops singing at China's 大雪." },
+      desc: "Great horned owls call and answer at dusk and before first light — the male lower and slower, the female higher and more urgent, alternating across a distance. They are pairing up to nest in February, which makes this the earliest courtship in the valley." },
     { tc: "霜聚下田", en: "Frost gathers in the low fields",
-      desc: "Cold air drains downhill overnight, so the valley floor is white and the slopes above it are not. The frost has a visible upper edge." },
+      desc: "Cold air drains downhill overnight, so frost whitens the valley floor and the low fields while the slopes above them stay clear. The frost line has a visible upper edge. It burns off within an hour of the sun reaching it and returns the next night in exactly the same place." },
     { tc: "蛙始鳴", en: "The frogs begin to call",
-      desc: "A few voices from the wet ground, tentative and intermittent. By 立春 it will be the loudest thing in the valley." },
+      desc: "A few frog voices from wet ground and the edges of standing water — tentative, intermittent, cutting out when approached. One night there is a single caller; a week later there are ten. This is the beginning of the sound that will fill the whole valley by February." },
     /* 大寒 */
     { tc: "熊果花盛", en: "Manzanita in full flower",
-      desc: "Whole shrubs hung with pink-white urns, audibly busy with bees and hummingbirds, in January." },
+      desc: "Manzanita at full bloom: entire shrubs hung with pink-white urns, audibly working with bees, hummingbirds moving through constantly. It is the largest concentration of flower and nectar anywhere in the landscape, and it happens in the coldest weeks of the year." },
     { tc: "丹蒿出土", en: "A scarlet spike breaks the leaf litter",
-      desc: "Indian warrior: a dense crimson-purple flower head pushing straight up out of the oak duff, with fern-like reddish leaves. It looks like it came up in the wrong century." },
+      desc: "Indian warrior pushes a dense crimson-purple flower head straight up out of oak duff, with fern-like reddish leaves low around its base. It appears without warning in bare leaf litter beneath oaks and looks like nothing else growing here — closer to a coral than to a flower." },
     { tc: "雙鷹盤空", en: "A pair of hawks turns in the sky",
-      desc: "Red-tailed hawks in courtship flight — two birds circling together, high, sometimes locking talons and tumbling, screaming. Leads directly into 立春." },
+      desc: "Red-tailed hawks in courtship flight: two birds circling together on a rising column of air, going higher and higher, calling. They may stoop at one another, or lock talons and tumble several hundred feet before separating. Watch for it on clear afternoons through late winter." },
   ];
 
   /* 12 earthly branches 地支 as SOLAR months 月建 — index = floor(termIndex / 2), so the month
@@ -356,12 +359,90 @@
 
   /* Tropical zodiac — index = floor(lambda / 30). Boundaries coincide exactly with the 12 中氣. */
   var ZODIAC = [
-    { name: 'Aries', glyph: '\u2648\uFE0E', term: '春分' }, { name: 'Taurus', glyph: '\u2649\uFE0E', term: '穀雨' },
-    { name: 'Gemini', glyph: '\u264A\uFE0E', term: '小滿' }, { name: 'Cancer', glyph: '\u264B\uFE0E', term: '夏至' },
-    { name: 'Leo', glyph: '\u264C\uFE0E', term: '大暑' }, { name: 'Virgo', glyph: '\u264D\uFE0E', term: '處暑' },
-    { name: 'Libra', glyph: '\u264E\uFE0E', term: '秋分' }, { name: 'Scorpio', glyph: '\u264F\uFE0E', term: '霜降' },
-    { name: 'Sagittarius', glyph: '\u2650\uFE0E', term: '小雪' }, { name: 'Capricorn', glyph: '\u2651\uFE0E', term: '冬至' },
-    { name: 'Aquarius', glyph: '\u2652\uFE0E', term: '大寒' }, { name: 'Pisces', glyph: '\u2653\uFE0E', term: '雨水' }
+    { name: "Aries", glyph: "♈︎", term: "春分",
+      sun: { k: "Initiate",
+            t: "Direct assertion. Beginning without preamble, acting before the picture is complete, meeting things head-on. Energy that is fresh, blunt and impatient with deliberation." },
+      merc: { k: "Decide",
+            t: "Fast, direct, and unhedged. Conclusions arrive early and get stated plainly. Good for cutting through; poor at holding a question open. Argument preferred to deliberation." },
+      moon: { k: "Quicken",
+            t: "Impatient and forward-leaning. Reactions are fast and short-lived; irritation flares and passes. Favors starting, acting alone, physical exertion. Poor for waiting." } },
+    { name: "Taurus", glyph: "♉︎", term: "穀雨",
+      sun: { k: "Consolidate",
+            t: "Settling into what is already begun. Building substance, working at a steady unhurried pace, valuing what can be touched, tasted and kept. Resistance to being moved." },
+      merc: { k: "Concretize",
+            t: "Slow, literal and retentive. Wants the thing itself rather than a description of it. Reaches conclusions late and revises them reluctantly, but what is learned stays learned." },
+      moon: { k: "Settle",
+            t: "Slow, comfortable and physical. Appetite for food, warmth, rest and continuity. Favors steady work and anything sensory. Resists interruption and change of plan. The Moon's exaltation." } },
+    { name: "Gemini", glyph: "♊︎", term: "小滿",
+      sun: { k: "Circulate",
+            t: "Variety, exchange, and moving between things. Attention drawn outward in several directions at once; a season of gathering rather than concluding." },
+      merc: { k: "Exchange",
+            t: "Quick, verbal, comparative and endlessly curious. Talks to think rather than thinking before talking. Excellent range, restless depth. One of Mercury's own signs." },
+      moon: { k: "Scatter",
+            t: "Light, talkative and easily diverted. Attention moves; several things get started. Favors errands, correspondence, conversation and reading. Poor for sustained single-tasking." } },
+    { name: "Cancer", glyph: "♋︎", term: "夏至",
+      sun: { k: "Shelter",
+            t: "Turning toward what is one's own — family, house, origin, the people already inside the circle. Protective, retentive, and slow to open to what is unfamiliar." },
+      merc: { k: "Recall",
+            t: "Associative and memory-led. Ideas arrive attached to the circumstances in which they were first met, and reasoning runs through feeling rather than around it. Indirect, allusive, personal." },
+      moon: { k: "Withdraw",
+            t: "Inward, tender and domestic. Feeling runs close to the surface and memory is near at hand. Favors home, cooking, care, familiar company. The Moon's own sign — its strongest." } },
+    { name: "Leo", glyph: "♌︎", term: "大暑",
+      sun: { k: "Radiate",
+            t: "Showing rather than withholding. Warmth, generosity, performance, play, and the wish to be seen doing the thing well. The Sun's own sign, and its most unguarded." },
+      merc: { k: "Declare",
+            t: "Expressive, confident and performed. Prefers the strong formulation to the careful one and the vivid example to the representative one. Persuasive; disinclined to be corrected." },
+      moon: { k: "Warm",
+            t: "Generous, expressive and sociable, with an appetite for enjoyment and play. Favors performance, hospitality and creative work done in company. Pride is nearer the surface than usual." } },
+    { name: "Virgo", glyph: "♍︎", term: "處暑",
+      sun: { k: "Refine",
+            t: "Improving what exists. Attention to craft, detail, method and usefulness; separating good work from adequate work. Service rendered through competence." },
+      merc: { k: "Analyze",
+            t: "Precise, discriminating and procedural. Sorts, classifies, edits, checks and finds the error. Mercury's own sign and its exaltation — the clearest technical function available to it." },
+      moon: { k: "Tidy",
+            t: "Practical and detail-oriented, with a low tolerance for disorder. Favors cleaning, sorting, editing, repair, and health routines. The tendency to find fault runs high, including with oneself." } },
+    { name: "Libra", glyph: "♎︎", term: "秋分",
+      sun: { k: "Balance",
+            t: "Weighing, relating, and adjusting toward proportion. Nothing considered in isolation — everything measured against its counterpart. Diplomatic, deferring, reluctant to force." },
+      merc: { k: "Weigh",
+            t: "Comparative and even-handed, holding two positions at once and reluctant to collapse them. Articulate about relationship and proportion. The cost is difficulty concluding." },
+      moon: { k: "Accommodate",
+            t: "Socially attuned, agreeable, and reluctant to disturb the peace. Favors company, aesthetics, negotiation and reconciliation. Decisions come hard; the wish to please can outrun judgment." } },
+    { name: "Scorpio", glyph: "♏︎", term: "霜降",
+      sun: { k: "Concentrate",
+            t: "Intensity and depth over breadth. Interest in what lies beneath the surface, in what is withheld, and in whatever survives being taken apart. Sustained, private, uncompromising." },
+      merc: { k: "Probe",
+            t: "Investigative and suspicious of surfaces. Interested in motive, omission and what a statement is avoiding. Retentive, strategic, and disinclined to say everything it knows." },
+      moon: { k: "Deepen",
+            t: "Private, intense and unwilling to be superficial. Feeling runs deep and stays hidden. Favors solitary concentration, research and anything requiring nerve. Traditionally the Moon's fall." } },
+    { name: "Sagittarius", glyph: "♐︎", term: "小雪",
+      sun: { k: "Range",
+            t: "Reaching past the known — travel, teaching, doctrine, the far end of the question. Interested in meaning and pattern more than in accuracy of detail. Expansive and frank." },
+      merc: { k: "Interpret",
+            t: "Synthesizing and large-scale. Generalizes readily, reaches for the principle behind the instance, and speaks bluntly. Strong on meaning, careless with particulars." },
+      moon: { k: "Roam",
+            t: "Restless, cheerful and appetitive for space. Confinement chafes and detail bores. Favors movement, outdoors, study for its own sake and plain speech. Prone to overcommitting." } },
+    { name: "Capricorn", glyph: "♑︎", term: "冬至",
+      sun: { k: "Build",
+            t: "Structure, endurance, and the long horizon. Working within limits rather than against them, and accepting cost for the sake of what lasts. Sober, disciplined, unsentimental." },
+      merc: { k: "Organize",
+            t: "Structural, sequential and pragmatic. Builds arguments that hold weight, plans in order, and discards what cannot be used. Serious, economical, sometimes narrow." },
+      moon: { k: "Contain",
+            t: "Sober, reserved and duty-minded. Feeling is held rather than shown, and the mood runs cool. Favors discipline, administration and unglamorous work carried through to the end." } },
+    { name: "Aquarius", glyph: "♒︎", term: "大寒",
+      sun: { k: "Differentiate",
+            t: "Standing apart in order to see clearly. Principle over custom, the group over the individual, and the reform of what everyone else takes as given. Cool and independent." },
+      merc: { k: "Abstract",
+            t: "Systemic and pattern-seeking, willing to hold an unpopular position on principle. Thinks in models and exceptions. Detached from the particular case, sometimes to its cost." },
+      moon: { k: "Detach",
+            t: "Cool, observant and set slightly apart from the situation. Favors abstraction, group settings, and seeing the pattern rather than feeling the instance. Intimacy feels effortful." } },
+    { name: "Pisces", glyph: "♓︎", term: "雨水",
+      sun: { k: "Dissolve",
+            t: "Boundaries thinning — between self and other, waking and dreaming, this thing and that. Compassionate, impressionable, imaginative, and hard to pin to a single position." },
+      merc: { k: "Associate",
+            t: "Non-linear, symbolic and impressionistic. Reasons by image, resonance and analogy rather than by step. Poor at precision, unmatched at connections nobody was looking for." },
+      moon: { k: "Absorb",
+            t: "Porous, dreamy and receptive, picking up whatever is in the room. Boundaries are thin and energy is uneven. Favors rest, music, imagination, contemplation. Poor for hard decisions." } },
   ];
 
   /* Moon quarters — index matches Almanac.moonQuartersInRange phase codes.
@@ -406,8 +487,61 @@
            '<path d="M8 1.5A6.5 6.5 0 0 0 8 14.5A3.2 6.5 0 0 0 8 1.5Z" fill="currentColor"/></svg>' }
   ];
 
+
+  /* The three western tracks, for the tooltip on each lane's sticky glyph. `what` says what the
+     layer measures, `motion` how fast it moves, `note` the one fact worth knowing about it.
+     Element and modality are NOT stored per sign: they are recoverable from the index alone,
+     element = i % 4 and modality = i % 3, because 4 and 3 are coprime and so every pairing occurs
+     exactly once across the twelve. See almZodGrid() in index.html. */
+  var ELEMENTS = [
+    { name: 'Fire',  gloss: 'animating' }, { name: 'Earth', gloss: 'substantiating' },
+    { name: 'Air',   gloss: 'relating'  }, { name: 'Water', gloss: 'absorbing' }
+  ];
+  var MODES = [
+    { name: 'Cardinal', gloss: 'starts' }, { name: 'Fixed', gloss: 'holds' },
+    { name: 'Mutable',  gloss: 'adapts' }
+  ];
+
+  var PLANETS = {
+    sun: { glyph: '\u2609\uFE0E', name: 'Sun', of: "the Sun's sign",
+      what: 'The roughly thirty-day frame the whole month sits inside — traditionally the mode of vitality and self-showing, and the quality of the period as a whole.',
+      motion: 'About 1\u00B0 a day: one sign a month, the full circuit in 365.24 days.',
+      note: 'This layer and the solar terms are the same measurement read two ways. Sign boundaries fall at exact multiples of 30\u00B0 solar longitude, which is precisely where the twelve \u4E2D\u6C23 fall, so one sign is always two solar terms and six \u5019 exactly.' },
+    merc: { glyph: '\u263F\uFE0E', name: 'Mercury', of: "Mercury's sign",
+      what: 'How thinking and speaking are being done, independent of what is being thought about.',
+      motion: 'Variable, 0 to about 2\u00B0 a day, and backwards for three weeks at a time: 14 to 60 days in a sign.',
+      note: 'Mercury never strays more than about 28\u00B0 from the Sun. A sign is 30\u00B0, so it is always in the Sun\u2019s sign or one immediately beside it \u2014 if this almanac ever shows it three signs away, the ephemeris is wrong.' },
+    moon: { glyph: '\u263D\uFE0E', name: 'Moon', of: "the Moon's sign",
+      what: 'The ambient tenor of a short stretch of days — what the atmosphere favours, what feels easy and what feels effortful — rather than a description of character.',
+      motion: 'About 13\u00B0 a day: a sign in 2 days and 5 hours, the whole zodiac in 27.32 days.',
+      note: 'The Moon turns over about thirteen times for each turn of the Sun layer, and about once for every two and a half \u5019.' }
+  };
+
+  /* Traditional dignities, by sign index. A planet is held to work readily in the signs it rules
+     or is exalted in, and against the grain in its detriment or fall. Indices into ZODIAC. */
+  var DIGNITY = {
+    sun:  { rules: [4],    exalt: 0,  detriment: [10],    fall: 6  },
+    merc: { rules: [2, 5], exalt: 5,  detriment: [8, 11], fall: 11 },
+    moon: { rules: [3],    exalt: 1,  detriment: [9],     fall: 7  }
+  };
+
+  /* Mercury retrograde, for the tooltip on the \u211E modifier. The astronomy is exact; the
+     reading is a traditional attribution, and `caveat` says so rather than letting the two blur. */
+  var RETRO = {
+    title: 'Mercury retrograde',
+    what: 'Mercury orbits the Sun in 88 days to Earth\u2019s 365, so it periodically overtakes us on the inside. Our changing line of sight makes it appear to slow, stop, run westward against the stars for about three weeks, stop again, and resume. Nothing about Mercury\u2019s own motion changes \u2014 it is the same effect as a faster car appearing to slide backwards as it passes you.',
+    when: 'Three times in most years, occasionally four. The synodic period is about 116 days, so retrogrades fall roughly every four months and occupy a little under a fifth of the year.',
+    element: 'Successive retrogrades are about 116 days apart, in which the Sun advances roughly 114\u00B0 \u2014 close enough to a third of the zodiac that they land in signs of the same element for a year or two at a stretch before the series drifts on.',
+    stations: 'The two standstills: station retrograde at the start, station direct at the end. Mercury\u2019s daily motion falls to zero on either side, so its position barely changes for several days.',
+    shadow: 'The stretch of zodiac Mercury covers three times \u2014 forward, back, forward again. Roughly two weeks of shadow on each side of the retrograde proper.',
+    tradition: 'Mercury governs speech, writing, records, transactions and short journeys, so the tradition reads its retrograde as a period for the re- prefix: review, revise, repair, revisit, reconsider. Prefer finishing to starting, read what you sign, confirm arrangements twice, and expect returns \u2014 of people, objects, and questions thought settled.',
+    caveat: 'The astronomy above is measurable and exact. The interpretation is a traditional symbolic attribution, not a demonstrated effect; controlled studies have not found the disruptions the tradition describes. A real phenomenon that has been assigned a meaning \u2014 which is a fair description of this whole layer.'
+  };
+
   root.AlmanacData = { TERMS: TERMS, HOU: HOU, HOU_UKIAH: HOU_UKIAH, ZODIAC: ZODIAC, MOON: MOON, MOON_MID: MOON_MID,
-                       BRANCHES: BRANCHES, SEASONS: SEASONS, TERM_LINKS: TERM_LINKS };
+                       BRANCHES: BRANCHES, SEASONS: SEASONS, TERM_LINKS: TERM_LINKS,
+                       ELEMENTS: ELEMENTS, MODES: MODES, PLANETS: PLANETS,
+                       DIGNITY: DIGNITY, RETRO: RETRO };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 
 if (typeof module !== 'undefined' && module.exports) module.exports = globalThis.AlmanacData;

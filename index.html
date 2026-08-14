@@ -1,4 +1,4 @@
-<!-- Academic Planner v10.9 -->
+<!-- Academic Planner v11.0 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -361,7 +361,7 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 /* Sticky track tags. Emitted after the pills so they float above them, and pinned higher than the
    pill labels so the two never collide. */
 .alm-lane-tag{position:relative;pointer-events:none;display:flex;justify-content:center}
-.alm-lane-glyph{position:sticky;top:52px;border-radius:var(--r-s);font-size:var(--fs-m);line-height:1;color:var(--text-muted);
+.alm-lane-glyph{position:sticky;top:52px;pointer-events:auto;cursor:pointer;border-radius:var(--r-s);font-size:var(--fs-m);line-height:1;color:var(--text-muted);
   background:var(--bg);border-radius:var(--r-pill);padding:3px 0 5px;width:100%;text-align:center}
 
 /* ---- Season rows (v9.4; recomposed v10.3) ----
@@ -453,13 +453,37 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
   background:var(--surface2);color:var(--text-muted);border:1px solid var(--border)}
 .hou-src.ukiah{background:var(--accent-wh-dim,var(--surface2));color:var(--accent-wh);border-color:transparent}
 .hou-src-tc{font-family:var(--font-serif);font-size:var(--fs-xs);font-weight:700}
-/* The 候 pill is the only track meant to look tappable — its description is the point of the list. */
-.alm-pill.hou.track{cursor:pointer}
+/* Every flank pill opens a reading, so every flank pill says so on hover (v11.0). */
+.alm-pill.track{cursor:pointer}
 .alm-pill.hou.track:hover{border-color:var(--accent-wh)}
-.hou-pop-tc{display:block;font-family:var(--font-serif);font-size:var(--fs-xl);font-weight:700;letter-spacing:.06em}
-.hou-pop-en{display:block;font-family:var(--font-sans);font-size:var(--fs-s);font-weight:500;
-  color:var(--text-dim);margin-top:3px;line-height:1.3}
-.hou-pop-src{font-size:var(--fs-2xs);color:var(--text-muted);letter-spacing:.04em}
+.alm-pill.terms.track:hover{border-color:var(--accent-bh)}
+.alm-pill.branch.track:hover{border-color:var(--accent-cn)}
+.alm-pill.zodiac.track:hover,.alm-pill.mercury.track:hover,.alm-pill.moonsign.track:hover{border-color:var(--accent-ab)}
+.alm-lane-glyph:hover{color:var(--text);background:var(--surface2)}
+/* ℞ is a target inside a target: it explains retrograde, the pill around it explains the sign. */
+.alm-rx{cursor:pointer}
+.alm-rx:hover{color:var(--text)}
+
+/* The shared reading card. */
+.alm-pop-main{display:block;font-family:var(--font-serif);font-size:var(--fs-xl);font-weight:700;
+  letter-spacing:.04em;line-height:1.15;display:flex;align-items:baseline;gap:9px}
+.alm-pop-tc{font-family:var(--font-serif);letter-spacing:.08em}
+.alm-pop-glyph{font-size:var(--fs-xl);line-height:1}
+.alm-pop-glyph.rx{color:var(--danger)}
+.alm-pop-sub{display:block;font-family:var(--font-sans);font-size:var(--fs-s);font-weight:500;
+  color:var(--text-dim);margin-top:4px;line-height:1.3}
+.alm-pop-dig{font-size:var(--fs-2xs);font-style:italic;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--accent-bh)}
+/* A labelled paragraph — the retrograde card stacks six of them. */
+.alm-pop-para{font-size:var(--fs-xs);color:var(--text-dim);line-height:1.5;margin:0 0 var(--sp-3)}
+.alm-pop-label{display:block;font-size:var(--fs-2xs);font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--text-muted);margin-bottom:2px}
+.alm-pop-src{font-size:var(--fs-2xs);color:var(--text-muted);letter-spacing:.04em}
+/* The honesty note: the astronomy is exact, the reading is an attribution. Set apart so it is not
+   mistaken for more of the interpretation. */
+.alm-pop-caveat{display:block;font-size:var(--fs-2xs);color:var(--text-muted);line-height:1.45;
+  font-style:italic;border-top:1px solid var(--border);padding-top:var(--sp-2)}
+.pop-actions{flex-wrap:wrap}
 .season-hdr{margin-bottom:6px}
 /* Season now carries SIX lanes, three a side, so a lane has to be narrower than it was when the
    right flank was one wide stack. --alm-stack-w survives only for the Week tab's lone ribbon. */
@@ -757,7 +781,7 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 <div class="modal-overlay" id="evtModal"><div class="modal"><button class="modal-x" onclick="this.closest('.modal-overlay').classList.remove('open')" aria-label="Close"><span class="mi" style="--ic:var(--ic-x)"></span></button><h3 id="evtModalTitle">Edit Event</h3><label>Name</label><input id="eName" type="text"/><label>Start Date</label><input id="eDate" type="date" onchange="edStartChange('eDate','eEndDate')"/><label>Start Time</label><input id="eStart" type="time"/><label>End Date (for multi-day)</label><input id="eEndDate" type="date" onfocus="edEndFocus('eDate','eEndDate')" onchange="edEndChange('eEndDate')"/><label>End Time</label><input id="eEnd" type="time"/><label>Location</label><input id="eLoc" type="text"/><div style="margin-top:8px"><label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="eAllDay"/> All day event</label></div><div class="modal-btns"><button class="btn btn-danger" id="eDel">Delete</button><button class="btn btn-quiet" id="eCanc">Cancel</button><button class="btn btn-primary" id="eSave">Save</button></div></div></div>
 <!-- Syllabus quick-view popup (read-only view of a syllabus record by id) -->
 <div class="pop-scrim" id="sylPop" onclick="if(event.target.id==='sylPop')closeSylPop()"><div class="pop" id="sylPopPanel" role="dialog" aria-label="Syllabus entry"></div></div>
-<div class="pop-scrim" id="houPop" onclick="if(event.target.id==='houPop')closeHouPop()"><div class="pop" id="houPopPanel" role="dialog" aria-label="Pentad"></div></div>
+<div class="pop-scrim" id="almPop" onclick="if(event.target.id==='almPop')closeAlmPop()"><div class="pop" id="almPopPanel" role="dialog" aria-label="Almanac reading"></div></div>
 
 <!-- Almanac: name tables first, then the engine (data has no dependencies, engine has none either,
      but the app script below reads both). Both are in the sw.js precache list — if they are ever
@@ -1053,7 +1077,7 @@ function render(){
   const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
   const bottomNav=`<nav class="bottomnav">${slotBtn('bn-item')}<button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
   const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v10.9</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v11.0</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -1286,18 +1310,18 @@ const ALM_LANES={
   terms:{get:a=>a.term,
     lbl:i=>{const t=AlmanacData.TERMS[i];return{tip:'',
       html:`<span class="alm-tc">${t.tc}</span><span class="alm-en">${t.en}</span>`}}},
+  // All three western tracks carry their sign's reading FOR THAT PLANET (v11.0): the same twelve
+  // signs answer different questions depending on which body is in them, so ☉ Leo and ☽ Leo are
+  // not the same statement. The tip is the hover convenience; tapping the pill opens the full card.
   zodiac:{get:a=>almZodOfTerm(a.term),
-    lbl:i=>{const z=AlmanacData.ZODIAC[i];return{tip:'',
+    lbl:i=>{const z=AlmanacData.ZODIAC[i];return{tip:almSignTip('sun',i),
       html:`<span class="alm-glyph">${z.glyph}</span><span class="alm-en">${z.name}</span>`}}},
-  // The Moon is the only track that carries a tooltip — the others spell their own name out, so a
-  // tooltip would only repeat what is already on the pill. Its name is printed too, but a Moon run
-  // is often a single day, so almFitLabels() drops it again wherever it would be clipped.
   moonsign:{get:a=>a.moonSign,
-    lbl:i=>{const z=AlmanacData.ZODIAC[i];return{tip:ALM_MOON+' '+z.name,
+    lbl:i=>{const z=AlmanacData.ZODIAC[i];return{tip:almSignTip('moon',i),
       html:`<span class="alm-glyph">${z.glyph}</span><span class="alm-en">${z.name}</span>`}}},
   mercury:{get:a=>a.merc,
-    lbl:v=>{const z=AlmanacData.ZODIAC[v>>1],rx=v&1;return{tip:'',
-      html:`<span class="alm-glyph">${z.glyph}</span>`+(rx?`<span class="alm-rx">${ALM_RX}</span>`:'')+`<span class="alm-en">${z.name}</span>`}}},
+    lbl:v=>{const z=AlmanacData.ZODIAC[v>>1],rx=v&1;return{tip:almSignTip('merc',v>>1),
+      html:`<span class="alm-glyph">${z.glyph}</span>`+(rx?`<span class="alm-rx" title="${calEsc(ALM_RX+' Mercury retrograde — tap for what that means')}">${ALM_RX}</span>`:'')+`<span class="alm-en">${z.name}</span>`}}},
   // 候 is the fastest Chinese layer, the mirror of ☽ on the western side. A pentad name runs up to
   // eight characters in the classical list (天氣上升地氣下降), so the English is printed after it and
   // almFitLabels() takes it away again on any run too short to hold it — the same treatment the
@@ -1329,10 +1353,17 @@ function almRunsHtml(alm,rowOf,col,key,role,tab){
     let html=n.html;
     if(key==='terms'&&tab==='season')
       html=html.replace('<span class="alm-tc">',`<span class="alm-tc" onclick="event.stopPropagation();almOpenTermLink(${r.value})">`);
-    // The 候 pill is the one that IS meant to look tappable: its description is the point of the
-    // list, and a hover title alone would hide it from every phone.
-    const act=(key==='hou'&&tab==='season')
-      ?` onclick="event.stopPropagation();almOpenHouPop(${r.value})" role="button" tabindex="0"`:'';
+    // Every flank pill is tappable in Season (v11.0), because a hover title is unreachable on a
+    // phone and unreadable at four sentences. ℞ gets its own handler INSIDE the Mercury pill, and
+    // stops the event so tapping the modifier explains retrograde rather than the sign.
+    const SIGN={zodiac:'sun',mercury:'merc',moonsign:'moon'};
+    let act='';
+    if(tab==='season'){
+      if(key==='hou')act=` onclick="event.stopPropagation();almOpenHouPop(${r.value})" role="button" tabindex="0"`;
+      else if(SIGN[key])act=` onclick="event.stopPropagation();almOpenSignPop('${SIGN[key]}',${key==='mercury'?(r.value>>1):r.value})" role="button" tabindex="0"`;
+    }
+    if(key==='mercury'&&tab==='season')
+      html=html.replace('<span class="alm-rx"','<span class="alm-rx" onclick="event.stopPropagation();almOpenRetroPop()" role="button" tabindex="0"');
     return`<div class="alm-pill ${key} ${role}" style="grid-row:${r0}/${end};grid-column:${col}"${n.tip?` title="${calEsc(n.tip)}"`:''}${act}><div class="alm-ribbon-inner"><div class="alm-ribbon-label">${html}</div></div></div>`;
   }).join('');
 }
@@ -1372,7 +1403,11 @@ function almTrackStripHtml(alm,rowOf,firstCol,lanes,tab){
     const col=firstCol+i;
     const edge=lanes.length===1?'only':(i===0?'first':(i===lanes.length-1?'last':'mid'));
     h+=almRunsHtml(alm,rowOf,col,w.key,'track '+w.cls+' '+edge,tab);
-    h+=`<div class="alm-lane-tag ${w.cls}" style="grid-column:${col};grid-row:1/-1" aria-hidden="true"><span class="alm-lane-glyph">${w.glyph}</span></div>`;
+    // The tag spans the column so its glyph can stay sticky, but only the glyph takes the tap.
+    const lane=(tab==='season')
+      ? ` onclick="event.stopPropagation();almOpenLanePop('${w.key}')" role="button" tabindex="0" title="${calEsc('What the '+w.glyph+' track measures')}"`
+      : '';
+    h+=`<div class="alm-lane-tag ${w.cls}" style="grid-column:${col};grid-row:1/-1"><span class="alm-lane-glyph"${lane}>${w.glyph}</span></div>`;
   });
   return h;
 }
@@ -1583,26 +1618,143 @@ function almFitLabels(){
 let _fitTimer=null;
 window.addEventListener('resize',()=>{clearTimeout(_fitTimer);_fitTimer=setTimeout(almFitLabels,150)});
 
-/* A 候's own description. The pill carries it as a title for hover, but a title is unreachable on
-   a touch screen, so tapping the pill opens it here. Reuses the syllabus popup's furniture rather
-   than inventing a second card. Names the list it came from, since the two lists say very
-   different things about the same five days. */
+/* ============================================================
+   ALMANAC READINGS (v11.0) — one card, four kinds of target.
+
+   Every pill and lane tag in the two flanks can be tapped for what it means. A `title` carries the
+   same text for a pointer, but a title is unreachable on a touch screen and unreadable at four
+   sentences, so the tap is the real affordance and the title is the convenience.
+
+     · a 候 pill        what you would actually see in those five days
+     · a sign pill      that sign read for THAT planet — ☉, ☿ and ☽ each get their own reading,
+                        because the layers answer different questions
+     · a lane tag       what the whole track measures, how fast it moves, and its one salient fact
+     · the ℞ modifier   what retrograde is astronomically, and what the tradition makes of it
+
+   All four reuse the syllabus popup's furniture rather than inventing a second card.
+   ============================================================ */
+function almPopOpen(html){
+  const p=document.getElementById('almPopPanel');
+  if(!p)return;
+  p.innerHTML=html;
+  document.getElementById('almPop').classList.add('open');
+}
+function closeAlmPop(){const e=document.getElementById('almPop');if(e)e.classList.remove('open')}
+function almPopHead(main,sub){
+  return`<div class="pop-head"><div class="pop-title"><span class="alm-pop-main">${main}</span>`
+    +(sub?`<span class="alm-pop-sub">${sub}</span>`:'')+`</div>`
+    +`<button class="pop-x" onclick="closeAlmPop()" aria-label="Close"><span class="mi" style="--ic:var(--ic-x)"></span></button></div>`;
+}
+const almPopTag=(t,c)=>`<span class="pop-tag" style="background:var(--accent-${c}-dim);color:var(--accent-${c})">${t}</span>`;
+// One labelled paragraph in a stacked card.
+const almPopPara=(label,text)=>`<div class="alm-pop-para"><span class="alm-pop-label">${label}</span>${calEsc(text)}</div>`;
+
+/* Element and modality are derived, never stored: element = i % 4, modality = i % 3. Four and
+   three are coprime, so the two cycles do not resolve until all twelve signs have run, which is
+   exactly why every element/modality pairing occurs once and only once. */
+function almZodGrid(i){
+  const D=AlmanacData;
+  return{el:D.ELEMENTS[i%4],mode:D.MODES[i%3]};
+}
+// Traditional dignity of one planet in one sign, or '' where it has none.
+function almDignity(planet,i){
+  const d=AlmanacData.DIGNITY&&AlmanacData.DIGNITY[planet];
+  if(!d)return'';
+  if(d.rules.indexOf(i)>=0&&d.exalt===i)return'rules · exalted';
+  if(d.rules.indexOf(i)>=0)return'rules';
+  if(d.exalt===i)return'exalted';
+  if(d.detriment.indexOf(i)>=0&&d.fall===i)return'detriment · fall';
+  if(d.detriment.indexOf(i)>=0)return'detriment';
+  if(d.fall===i)return'fall';
+  return'';
+}
+// The reading a sign carries for one planet, as the pill's hover text.
+function almSignTip(planet,i){
+  const D=AlmanacData,z=D.ZODIAC[i],r=z&&z[planet],pl=D.PLANETS&&D.PLANETS[planet];
+  if(!z||!r||!pl)return'';
+  return pl.glyph+' '+z.name+' — '+r.k+'\n\n'+r.t;
+}
+
 function almOpenHouPop(i){
   const t=almHouTable();const x=t&&t[i];
   if(!x)return;
   const term=AlmanacData.TERMS[Math.floor(i/3)];
   const deg=(315+i*5)%360;
   const beat=['初候','次候','末候'][i%3];
-  document.getElementById('houPopPanel').innerHTML=
-    `<div class="pop-head"><div class="pop-title"><span class="hou-pop-tc">${x.tc}</span><span class="hou-pop-en">${x.en}</span></div>`
-    +`<button class="pop-x" onclick="closeHouPop()" aria-label="Close"><span class="mi" style="--ic:var(--ic-x)"></span></button></div>`
-    +`<div class="pop-meta"><span class="pop-tag" style="background:var(--accent-bh-dim);color:var(--accent-bh)">${term.tc} ${beat}</span>`
-    +`<span class="pop-due">${deg}° · ${term.en}</span></div>`
-    +`<div class="pop-detail">${x.desc||'No description for this pentad.'}</div>`
-    +`<div class="pop-actions"><span class="hou-pop-src">72候 · ${ALM_HOU_LABEL[almHouList()]}</span></div>`;
-  document.getElementById('houPop').classList.add('open');
+  almPopOpen(
+    almPopHead(`<span class="alm-pop-tc">${x.tc}</span>`,x.en)
+    +`<div class="pop-meta">${almPopTag(term.tc+' '+beat,'bh')}<span class="pop-due">${deg}° · ${term.en}</span></div>`
+    +`<div class="pop-detail">${calEsc(x.desc||'No description for this pentad.')}</div>`
+    +`<div class="pop-actions"><span class="alm-pop-src">72候 · ${ALM_HOU_LABEL[almHouList()]}</span></div>`);
 }
-function closeHouPop(){const e=document.getElementById('houPop');if(e)e.classList.remove('open')}
+
+/* A sign, read for one planet. The same twelve signs mean different things depending on which
+   body is in them, so the card names the planet as well as the sign. */
+function almOpenSignPop(planet,i){
+  const D=AlmanacData,z=D.ZODIAC[i],r=z&&z[planet],pl=D.PLANETS&&D.PLANETS[planet];
+  if(!z||!r||!pl)return;
+  const g=almZodGrid(i),dig=almDignity(planet,i);
+  almPopOpen(
+    almPopHead(`<span class="alm-pop-glyph">${z.glyph}</span>${z.name}`,pl.glyph+' '+pl.name+' sign')
+    +`<div class="pop-meta">${almPopTag(r.k,'ab')}`
+    +`<span class="pop-due">${g.el.name} · ${g.mode.name}</span>`
+    +(dig?`<span class="alm-pop-dig">${dig}</span>`:'')+`</div>`
+    +`<div class="pop-detail">${calEsc(r.t)}</div>`
+    +`<div class="pop-actions"><span class="alm-pop-src">${g.el.name}, ${g.el.gloss} · ${g.mode.name}, ${g.mode.gloss}`
+    +` · opens at ${z.term} (${i*30}°)</span></div>`);
+}
+
+/* A whole track: what it measures, how fast it turns, and the one fact worth carrying. The caveat
+   rides on the three western lanes, where it belongs — the astronomy is exact, the reading is a
+   traditional attribution, and the card should not let the two blur together. */
+const ALM_EAST_LANES={
+  hou:{tc:'候',name:'Pentads',accent:'wh',
+    what:'The 72 候: five degrees of solar longitude each, about five days, three to every solar term. The fastest layer on this side, and the mirror of the Moon opposite.',
+    motion:'One 候 every 5° of solar longitude — roughly every five days, 72 in the year.',
+    note:'Two lists ship. Which one is running is named at the top of this tab and set in Settings; both use the identical frame, so switching changes the names and never a date.'},
+  terms:{tc:'節氣',name:'Solar terms',accent:'bh',
+    what:'The 24 節氣: fifteen degrees of solar longitude each, about a fortnight. The classical Chinese division of the year, and the backbone the rest of this flank hangs on.',
+    motion:'One term every 15° — 24 in the year, each containing exactly three 候.',
+    note:'Tapping a term’s Chinese in its pill opens a reading for it on sinocultural.com. The twelve 中氣, the even-numbered terms, are also the twelve tropical sign boundaries: one sign is two terms is six 候.'},
+  branch:{tc:'月建',name:'Earthly branch',accent:'cn',
+    what:'The 12 地支 as SOLAR months. The month turns at each 節 — the odd-numbered terms — rather than at a new moon, so this is a solar reckoning that happens to be counted in the lunar month’s names.',
+    motion:'One branch every two solar terms, about 30 days. 寅 opens at 立春, which is why the table starts there rather than at 子.',
+    note:'The animal names are the ones these branches are usually recognised by in English, and are the same twelve as the year-animals — but here they count solar months, not years.'}
+};
+function almOpenLanePop(key){
+  const D=AlmanacData;
+  const pl=D.PLANETS&&D.PLANETS[key];
+  if(pl){
+    almPopOpen(
+      almPopHead(`<span class="alm-pop-glyph">${pl.glyph}</span>${pl.name}`,pl.of)
+      +`<div class="pop-detail">${calEsc(pl.what)}</div>`
+      +almPopPara('Motion',pl.motion)
+      +almPopPara('Worth knowing',pl.note)
+      +`<div class="pop-actions"><span class="alm-pop-caveat">${calEsc(D.RETRO?D.RETRO.caveat:'')}</span></div>`);
+    return;
+  }
+  const e=ALM_EAST_LANES[key];
+  if(!e)return;
+  almPopOpen(
+    almPopHead(`<span class="alm-pop-tc">${e.tc}</span>`,e.name)
+    +`<div class="pop-detail">${calEsc(e.what)}</div>`
+    +almPopPara('Rate',e.motion)
+    +almPopPara('Worth knowing',e.note));
+}
+
+function almOpenRetroPop(){
+  const R=AlmanacData.RETRO;
+  if(!R)return;
+  almPopOpen(
+    almPopHead(`<span class="alm-pop-glyph rx">${ALM_RX}</span>Retrograde`,R.title)
+    +`<div class="pop-detail">${calEsc(R.what)}</div>`
+    +almPopPara('How often',R.when)
+    +almPopPara('Why they cluster',R.element)
+    +almPopPara('Stations',R.stations)
+    +almPopPara('Shadow',R.shadow)
+    +almPopPara('What the tradition makes of it',R.tradition)
+    +`<div class="pop-actions"><span class="alm-pop-caveat">${calEsc(R.caveat)}</span></div>`);
+}
 
 // Opens a solar term's reading. External site, so noopener/noreferrer and a fresh tab.
 function almOpenTermLink(i){
