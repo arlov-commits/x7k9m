@@ -196,6 +196,50 @@
       'both lists should carry 白露降 at 140 deg');
   }
 
+  /* The tooltip layer (v11.0). No ground truth to check readings against — only that the tables
+     are complete and that the derived element/modality grid is sound, since the app computes both
+     from the sign index rather than storing them. */
+  function checkTooltips(g) {
+    var Z = D.ZODIAC, i;
+    note(g, !!D.PLANETS && !!D.DIGNITY && !!D.RETRO, 'PLANETS / DIGNITY / RETRO missing');
+    if (!D.PLANETS) return;
+    ['sun', 'merc', 'moon'].forEach(function (k) {
+      var pl = D.PLANETS[k];
+      note(g, !!(pl && pl.what && pl.motion && pl.note), 'PLANETS.' + k + ' is incomplete');
+      for (i = 0; i < 12; i++) {
+        var r = Z[i] && Z[i][k];
+        note(g, !!(r && r.k && r.t), 'ZODIAC[' + i + '] ' + (Z[i] && Z[i].name) + ' has no ' + k + ' reading');
+        note(g, !!(r && r.t && r.t.length > 40), 'ZODIAC[' + i + '].' + k + ' reading is suspiciously short');
+      }
+      var d = D.DIGNITY[k];
+      note(g, !!d, 'DIGNITY.' + k + ' missing');
+      if (!d) return;
+      d.rules.concat(d.detriment).concat([d.exalt, d.fall]).forEach(function (ix) {
+        note(g, ix >= 0 && ix < 12, 'DIGNITY.' + k + ' has out-of-range sign index ' + ix);
+      });
+    });
+    // Element = i % 4 and modality = i % 3. Four and three are coprime, so across the twelve signs
+    // every element/modality pairing must occur exactly once — no repeats, no gaps.
+    var seen = {};
+    for (i = 0; i < 12; i++) {
+      var key = (i % 4) + '/' + (i % 3);
+      note(g, !seen[key], 'element/modality pair ' + key + ' repeats at sign ' + i + ' (also ' + seen[key] + ')');
+      seen[key] = i;
+    }
+    note(g, Object.keys(seen).length === 12, 'the 4x3 grid should have 12 filled cells, got ' + Object.keys(seen).length);
+    // The cardinal signs are the quarter-days: Aries/Cancer/Libra/Capricorn open at 0/90/180/270.
+    [[0, 0], [3, 90], [6, 180], [9, 270]].forEach(function (pair) {
+      note(g, pair[0] % 3 === 0, 'sign ' + pair[0] + ' should be cardinal');
+      note(g, zodIndex(pair[1] + 1e-6) === pair[0],
+        pair[1] + ' deg should open sign ' + pair[0] + ' ' + Z[pair[0]].name);
+    });
+    // Every Ukiah hou still carries a description after the rewrite.
+    for (i = 0; i < 72; i++) {
+      note(g, !!(D.HOU_UKIAH[i] && D.HOU_UKIAH[i].desc && D.HOU_UKIAH[i].desc.length > 60),
+        'HOU_UKIAH[' + i + '] description missing or too short after the v11.0 rewrite');
+    }
+  }
+
   function checkTables(g) {
     note(g, D.HOU.length === 72, 'HOU.length = ' + D.HOU.length + ', want 72');
     note(g, D.TERMS.length === 24, 'TERMS.length = ' + D.TERMS.length + ', want 24');
@@ -306,6 +350,10 @@
 
     g = group('Name tables & index math');
     checkTables(g);
+    groups.push(g);
+
+    g = group('Tooltip layer (signs, dignities, 4x3 grid)');
+    checkTooltips(g);
     groups.push(g);
 
     g = group('Ukiah 72 hou (local list)');

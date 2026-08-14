@@ -1,4 +1,4 @@
-const CACHE_NAME = 'academic-planner-v10.9';
+const CACHE_NAME = 'academic-planner-v11.0';
 // almanac-data.js, almanac.js and calendars-data.js must stay in this list: index.html loads them
 // as separate scripts, so a stale cache would serve new markup with no engine and the almanac
 // strip and monastery calendar layers would silently render empty.
