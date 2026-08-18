@@ -1,4 +1,4 @@
-<!-- Academic Planner v11.1 -->
+<!-- Academic Planner v11.2 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -448,6 +448,27 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .cal-emblem .mi{width:15px;height:15px;vertical-align:0}
 .cal-evt.abh{background:var(--accent-ab-dim,var(--surface2));color:var(--accent-ab)}
 .cal-evt.drba{background:var(--accent-cn-dim,var(--surface2));color:var(--accent-cn)}
+/* Mirrored to the Week tab (v11.2). A sent chip has to read as sent at a glance and carry its own
+   undo, on a phone, without a hover: hence a standing "Week" tag and a visible x rather than the
+   hover-revealed acts the Week tab's own chips use. */
+.cal-evt{position:relative;cursor:pointer}
+/* A sent chip wraps: the title keeps the full width it had before, and the marker and its undo
+   drop to a line of their own, right-aligned. Sharing one line cost the title so much room that
+   "Saturday Puja and Dhamma Talk" broke over four lines. */
+.cal-evt.sent{box-shadow:inset 0 0 0 1px currentColor;flex-wrap:wrap}
+.cal-evt.sent .cal-evt-name{flex:1 1 100%}
+.cal-sent{flex-shrink:0;margin-left:auto;font-size:var(--fs-2xs);font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;opacity:.75}
+.cal-sent::before{content:'\2192 ';font-weight:500}
+.cal-x{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;
+  width:18px;height:18px;margin:-2px -5px -2px 0;padding:0;border:0;border-radius:var(--r-s);
+  background:0;color:inherit;opacity:.6;cursor:pointer}
+.cal-x:hover{opacity:1;background:var(--surface3)}
+.cal-x .mi{width:11px;height:11px;vertical-align:0}
+/* The emblem on the reading card's subtitle line. */
+.alm-pop-emblem{display:inline-flex;align-items:center;margin-right:5px}
+.alm-pop-emblem .mi{width:14px;height:14px;vertical-align:0}
+
 /* The Wan Phra observance is the moon's own occasion rather than a scheduled gathering, so it is
    outlined instead of filled — present and legible, but not competing with a talk or a festival. */
 .cal-evt.obs{background:0;box-shadow:inset 0 0 0 1px currentColor;padding:3px 10px 4px;
@@ -667,6 +688,15 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .evt-chip[draggable="true"]{cursor:grab}
 .evt-chip.dragging{opacity:.4}
 .evt-chip.evt-past{opacity:.35;text-decoration:line-through}
+/* A mirrored calendar event in the Week tab (v11.2): it wears the publishing tradition's emblem in
+   place of the generic bell, and carries a standing x. Deleting here only removes the copy — the
+   published entry in Season is a read-only table and is never touched. */
+.evt-chip.evt-cal{border-style:dashed}
+.evt-cal-x{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;
+  margin-left:4px;padding:0;border:0;border-radius:var(--r-s);background:0;color:inherit;
+  opacity:.55;cursor:pointer;vertical-align:-3px}
+.evt-cal-x:hover{opacity:1;background:var(--surface3)}
+.evt-cal-x .mi{width:10px;height:10px;vertical-align:0}
 .evt-chip .chip-acts{display:none;position:absolute;top:-5px;right:-5px;gap:2px;z-index:10}
 .evt-chip:hover .chip-acts,.evt-chip.menu-open .chip-acts{display:flex}
 .evt-chip.menu-activating .chip-acts{pointer-events:none}
@@ -1084,7 +1114,7 @@ function render(){
   const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
   const bottomNav=`<nav class="bottomnav">${slotBtn('bn-item')}<button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
   const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v11.1</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v11.2</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -1535,22 +1565,100 @@ function calMoonBlockHtml(alm,dateKey){
 }
 
 /* What happens on the day, as chips. A chip carries the emblem of whoever published it, so the
-   event and its source are one object instead of an emblem governing a line. */
+   event and its source are one object instead of an emblem governing a line.
+
+   MIRRORING (v11.2). These calendars are read-only published tables, so a day's items are
+   addressed positionally — source, date, index — rather than by embedding the title in an onclick.
+   Several titles carry apostrophes (Venerable Master Hua's Entering Nirvana) and quoting them
+   through an attribute is a bug waiting to happen. calDayItems is the single ordered list both
+   the chip and the card index into, so the two can never disagree about what item 2 is. */
+function calDayItems(src,dateKey){
+  const r=calRec(src,dateKey);
+  if(!r)return[];
+  const out=[];
+  // A `p` on an Abhayagiri day IS the observance, and it leads the day.
+  if(src==='abhayagiri'&&r.p!=null)out.push({title:'Wan Phra',obs:true});
+  (r.e||[]).forEach(e=>out.push({title:e,obs:false}));
+  return out;
+}
+// The immutable handle for one published item. Stored on the mirrored event so either tab can find
+// the other side of the pair.
+const calEvtRef=(src,dateKey,title)=>src+'|'+dateKey+'|'+title;
+function calRefAt(src,dateKey,i){
+  const it=calDayItems(src,dateKey)[i];
+  return it?calEvtRef(src,dateKey,it.title):'';
+}
+// The Week-tab event mirroring a published item, or null.
+function calSentEvent(ref){return ref?((state.events||[]).find(e=>e.calRef===ref)||null):null}
+
+/* Send one published item to the Week tab as a real event. It becomes an ordinary all-day event —
+   editable, draggable, syncable like any other — that merely remembers where it came from. */
+function calSend(src,dateKey,i){
+  const items=calDayItems(src,dateKey),it=items[i];
+  if(!it)return;
+  const ref=calEvtRef(src,dateKey,it.title);
+  if(calSentEvent(ref)){closeAlmPop();return}          // already there; nothing to do
+  if(!state.events)state.events=[];
+  state.events.push({id:genId(),name:it.title,date:dateKey,endDate:'',startTime:'',endTime:'',
+                     location:'',allDay:true,calRef:ref});
+  closeAlmPop();render();scheduleSave();
+}
+/* Cancel the mirror from either side. No confirm: it is one tap to put back, and the published
+   item it came from is never touched — only the copy in the Week tab goes. */
+function calUnsend(ref){
+  if(!ref)return;
+  state.events=(state.events||[]).filter(e=>e.calRef!==ref);
+  closeAlmPop();render();scheduleSave();
+}
+function calUnsendAt(src,dateKey,i){calUnsend(calRefAt(src,dateKey,i))}
+// Cancel from the Week tab, where the event's own id is the handle already to hand. Only a
+// mirrored event is removable this way; an ordinary event keeps its normal delete-with-confirm.
+function calUnsendEvent(id){
+  const e=(state.events||[]).find(x=>x.id===id);
+  if(!e||!e.calRef)return;
+  calUnsend(e.calRef);
+}
+
+/* The card behind a tap on a published event: what it is, whose it is, and the one action. */
+function calOpenEvtPop(src,dateKey,i){
+  const items=calDayItems(src,dateKey),it=items[i];
+  if(!it)return;
+  const S=CAL_SRC[src],ref=calEvtRef(src,dateKey,it.title);
+  const sent=calSentEvent(ref);
+  const d=parseDate(dateKey);
+  almPopOpen(
+    almPopHead(calEsc(it.title),`<span class="alm-pop-emblem"><span class="mi" style="--ic:var(--ic-${S.icon})"></span></span>${calEsc(S.name)}`)
+    +`<div class="pop-meta">${almPopTag(fmtDate(d),S.cls==='abh'?'ab':'cn')}`
+    +(it.obs?`<span class="pop-due">lunar observance day</span>`:'')+`</div>`
+    +`<div class="alm-pop-para">`
+    +(sent
+      ?`This is on your Week tab as an event. Removing it there leaves the published entry here untouched.`
+      :`Send this to the Week tab and it becomes an ordinary event there — editable and movable like any other — while staying here in the published calendar.`)
+    +`</div>`
+    +`<div class="pop-actions">`
+    +(sent
+      ?`<button class="pop-btn" onclick="calUnsendAt('${src}','${dateKey}',${i})"><span class="mi" style="--ic:var(--ic-x)"></span> Remove from Week</button>`
+      :`<button class="pop-btn primary" onclick="calSend('${src}','${dateKey}',${i})"><span class="mi" style="--ic:var(--ic-up)"></span> Send to Week</button>`)
+    +`</div>`);
+}
+
 function calEventChips(dateKey){
   const L=almLayers(),out=[];
   ['abhayagiri','drba'].forEach(src=>{
     if(!L[src])return;
-    const r=calRec(src,dateKey);
-    if(!r)return;
     const s=CAL_SRC[src];
-    const chip=(txt,extra)=>`<div class="cal-evt ${s.cls}${extra||''}">`
-      +`<span class="cal-emblem" title="${calEsc(s.name)}" aria-label="${calEsc(s.name)}">`
-      +`<span class="mi" style="--ic:var(--ic-${s.icon})"></span></span>`
-      +`<span class="cal-evt-name">${calEsc(txt)}</span></div>`;
-    // A `p` on an Abhayagiri day IS the observance. The phase itself is already named in the moon
-    // block above, so the chip says only what kind of occasion it is.
-    if(src==='abhayagiri'&&r.p!=null)out.push(chip('Wan Phra',' obs'));
-    (r.e||[]).forEach(e=>out.push(chip(e)));
+    calDayItems(src,dateKey).forEach((it,i)=>{
+      const ref=calEvtRef(src,dateKey,it.title);
+      const sent=!!calSentEvent(ref);
+      out.push(`<div class="cal-evt ${s.cls}${it.obs?' obs':''}${sent?' sent':''}" role="button" tabindex="0"`
+        +` onclick="event.stopPropagation();calOpenEvtPop('${src}','${dateKey}',${i})"`
+        +` title="${calEsc(it.title+' — '+s.name+(sent?'\n\nOn your Week tab. Tap to remove it from there.':'\n\nTap to send this to the Week tab.'))}">`
+        +`<span class="cal-emblem" aria-hidden="true"><span class="mi" style="--ic:var(--ic-${s.icon})"></span></span>`
+        +`<span class="cal-evt-name">${calEsc(it.title)}</span>`
+        +(sent?`<span class="cal-sent" aria-label="on the Week tab">Week</span>`
+              +`<button class="cal-x" onclick="event.stopPropagation();calUnsendAt('${src}','${dateKey}',${i})" title="Remove from the Week tab" aria-label="Remove from the Week tab"><span class="mi" style="--ic:var(--ic-x)"></span></button>`:'')
+        +`</div>`);
+    });
   });
   return out;
 }
@@ -1839,7 +1947,9 @@ const dayEvts=getEventsForDate(day.date);const sylChips=getSylForDate(day.date);
 // Build unified sorted pill list
 const pills=[];
 const _now=new Date();
-dayEvts.forEach(ev=>{const et=ev.endTime||ev.startTime||'';let evPast=false;if(isT&&et){const[eh,em]=et.split(':').map(Number);evPast=_now.getHours()>eh||(_now.getHours()===eh&&_now.getMinutes()>=em)}else if(day.dateObj<TODAY)evPast=true;const dragAttr=ev.draggable?` draggable="true" ondragstart="dragEvtId=${ev.evtId};dragEvtAnchor='${ev.isStart?'start':'end'}';event.dataTransfer.setData('text/plain','evt:${ev.evtId}');event.dataTransfer.effectAllowed='move';this.classList.add('dragging')" ondragend="this.classList.remove('dragging')"`:'';const evtStyle=` style="background:var(--evt-${ev.colorN}-dim);color:var(--evt-${ev.colorN});border-color:var(--evt-${ev.colorN})"`;pills.push({type:'evt',time:ev.startTime||'',html:`<span class="evt-chip${evPast?' evt-past':''}" data-tip="${ev.tip}" data-evt-id="${ev.evtId}"${dragAttr}${evtStyle} onclick="event.stopPropagation();toggleEvtChipMenu(${ev.evtId},this)" ondblclick="event.stopPropagation();openEvtEdit(${ev.evtId})"><span class="mi" style="--ic:var(--ic-bell)"></span> ${ev.label}<span class="chip-acts"><button class="chip-btn" onclick="event.stopPropagation();openEvtEdit(${ev.evtId})" title="Edit"><span class="mi" style="--ic:var(--ic-edit)"></span></button><button class="chip-btn life-remove" onclick="event.stopPropagation();deleteEvent(${ev.evtId})" title="Delete"><span class="mi" style="--ic:var(--ic-x)"></span></button></span></span>`})});
+dayEvts.forEach(ev=>{const et=ev.endTime||ev.startTime||'';let evPast=false;if(isT&&et){const[eh,em]=et.split(':').map(Number);evPast=_now.getHours()>eh||(_now.getHours()===eh&&_now.getMinutes()>=em)}else if(day.dateObj<TODAY)evPast=true;const dragAttr=ev.draggable?` draggable="true" ondragstart="dragEvtId=${ev.evtId};dragEvtAnchor='${ev.isStart?'start':'end'}';event.dataTransfer.setData('text/plain','evt:${ev.evtId}');event.dataTransfer.effectAllowed='move';this.classList.add('dragging')" ondragend="this.classList.remove('dragging')"`:'';const evtStyle=` style="background:var(--evt-${ev.colorN}-dim);color:var(--evt-${ev.colorN});border-color:var(--evt-${ev.colorN})"`;const calS=ev.calRef?CAL_SRC[ev.calRef.split('|')[0]]:null;const calIco=calS?calS.icon:'bell';
+const calX=calS?`<button class="evt-cal-x" onclick="event.stopPropagation();calUnsendEvent(${ev.evtId})" title="Remove from the Week tab — the ${calS.name} calendar entry stays" aria-label="Remove this mirrored event"><span class="mi" style="--ic:var(--ic-x)"></span></button>`:'';
+pills.push({type:'evt',time:ev.startTime||'',html:`<span class="evt-chip${evPast?' evt-past':''}${calS?' evt-cal':''}" data-tip="${ev.tip}" data-evt-id="${ev.evtId}"${dragAttr}${evtStyle} onclick="event.stopPropagation();toggleEvtChipMenu(${ev.evtId},this)" ondblclick="event.stopPropagation();openEvtEdit(${ev.evtId})"><span class="mi" style="--ic:var(--ic-${calIco})"></span> ${ev.label}${calX}<span class="chip-acts"><button class="chip-btn" onclick="event.stopPropagation();openEvtEdit(${ev.evtId})" title="Edit"><span class="mi" style="--ic:var(--ic-edit)"></span></button><button class="chip-btn life-remove" onclick="event.stopPropagation();deleteEvent(${ev.evtId})" title="Delete"><span class="mi" style="--ic:var(--ic-x)"></span></button></span></span>`})});
 sylChips.forEach(sc=>{const sylTime=sc.dueTime||'09:00';const fmtSylTime=((h,m)=>{const hr=parseInt(h);return(hr>12?hr-12:hr||12)+':'+m+(hr>=12?'p':'a')})(sylTime.split(':')[0],sylTime.split(':')[1]);pills.push({type:'syl',time:sylTime,html:`<span class="chip ${sc.cat} syl-mirror" data-tip="${CAT_NAMES[sc.cat]||sc.cat} · ${sc.type}${sc.dueTime?' · due '+fmtSylTime:''}" onclick="event.stopPropagation();openSylPopup(${sc.entry.id})"><span class="mi" style="--ic:var(--ic-${SYL_ICON[sc.type]||'pin'})"></span> ${sc.dueTime?'<span class="t">'+fmtSylTime+'</span> ':''}${sc.title}${sc.label}</span>`})});
 tasks.forEach(t=>pills.push({type:'task',time:t.time||'',html:renderChip(t)}));
 pills.sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
@@ -1931,7 +2041,7 @@ const isMulti=end!==start;
 if(isMulti){const s=parseDate(start),en=parseDate(end),c=parseDate(dateStr);const total=Math.round((en-s)/864e5)+1;const day=Math.round((c-s)/864e5)+1;label+=` (${day}/${total})`}
 const tip=[e.allDay?'All day':(e.startTime?fmtT(e.startTime)+(e.endTime?'–'+fmtT(e.endTime):''):''),e.location].filter(Boolean).join(' · ');
 const isStart=dateStr===start,isEnd=dateStr===end;
-chips.push({evtId:e.id,label,tip:tip||e.name,startTime:e.startTime||'',endTime:e.endTime||'',endDate:end,isMulti,isStart,isEnd,draggable:isStart||isEnd,colorN:evtColorN(e.id)})}});
+chips.push({evtId:e.id,label,tip:tip||e.name,calRef:e.calRef||'',startTime:e.startTime||'',endTime:e.endTime||'',endDate:end,isMulti,isStart,isEnd,draggable:isStart||isEnd,colorN:evtColorN(e.id)})}});
 return chips}
 
 function renderSyllabus(){

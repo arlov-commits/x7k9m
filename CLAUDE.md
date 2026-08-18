@@ -13,6 +13,8 @@ The exceptions to "single file" are the almanac (v9.0) and the monastery calenda
 
 The Season day cell (v10.5) is a **centred column with two corners**. The corners carry the two badges — the moon top-left, `today` top-right — and everything on the centre line is centred: the date, the solar openings, and the event chips, the last divided off by a rule drawn only when there are events. Only an event chip's own text stays left-aligned, since a two-line title set ragged-centre inside its own ground reads worse than one with a straight edge. Nothing but an event is chipped, which is what makes an event unmistakable.
 
+A published event can be **mirrored to the Week tab** (v11.2): tapping its chip offers "Send to Week", which creates an ordinary all-day event carrying a `calRef` back to its source (`src|date|title`). The published table is read-only and is never touched — only the copy moves. Both tabs show the mirror plainly and both can cancel it: the Season chip gains an outline, a `→ WEEK` tag and a standing ×; the Week chip wears the publishing tradition's emblem instead of the bell, a dashed border and its own ×. Items are addressed **positionally** (`calDayItems(src,date)[i]`), never by embedding a title in an `onclick` — several titles carry apostrophes, and `JSON.stringify` into a double-quoted attribute is exactly how the first attempt broke.
+
 The moon is stated **once for all three reckonings**, not once per layer: agreeing sources group onto a single reading. Attribution is by **emblem only** — a stupa or a dharmachakra beside the icon; the source is never written out, and local is never labelled at all because local is the default. A phase is **named** only when it is a local quarter: the intermediate phases read fine from the icon and would otherwise put prose on four days out of five. The full sentence survives as the `title`. The three reckonings — local astronomical, Thai, Chinese — routinely disagree by a day and are deliberately **not** reconciled. Only the local layer is drawn between the quarters (waxing crescent and so on); the monasteries publish new/quarter/full and nothing else, so the intermediate phases are never attributed to them and never group.
 
 ## Deploy workflow (NON-NEGOTIABLE)
@@ -24,7 +26,7 @@ The moon is stated **once for all three reckonings**, not once per layer: agreei
 
 ## Versioning
 - Version lives as an HTML comment on line 1: `<!-- Academic Planner vX.Y -->`, and in a visible `.version-label` in the header, and in the service worker `CACHE_NAME`.
-- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v11.1. All three locations must match.
+- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v11.2. All three locations must match.
 - Bumping the SW `CACHE_NAME` every change is required or installed devices serve stale code.
 
 ## Architecture rules (hard-won — do not violate)
