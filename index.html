@@ -1,4 +1,4 @@
-<!-- Academic Planner v11.3 -->
+<!-- Academic Planner v11.4 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -458,15 +458,39 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .cal-evt.sent{box-shadow:inset 0 0 0 1px currentColor}
 .cal-act{flex:0 0 17px;width:17px;height:17px;align-self:center;
   display:inline-flex;align-items:center;justify-content:center;
-  margin:-1px -4px -1px 0;padding:0;border:0;border-radius:var(--r-s);
+  margin:-1px -4px -1px 0;padding:0;border:0;border-radius:var(--r-pill);
   background:0;color:inherit;font-family:var(--font-sans);font-size:var(--fs-s);line-height:1;
-  visibility:hidden;pointer-events:none;cursor:pointer}
-.cal-evt.armed .cal-act,.cal-evt.sent .cal-act{visibility:visible;pointer-events:auto}
-.cal-evt.armed .cal-act{background:currentColor;border-radius:var(--r-pill)}
+  cursor:pointer;
+  /* Idle uses opacity, not visibility, so arming can be transitioned. The slot keeps its width
+     either way; pointer-events is what makes an invisible one untouchable. */
+  opacity:0;transform:scale(.72);pointer-events:none;
+  transition:opacity var(--t-fast) var(--ease),transform var(--t-fast) var(--ease),
+             background var(--t-fast) var(--ease)}
+.cal-evt.armed .cal-act,.cal-evt.sent .cal-act{opacity:1;transform:scale(1);pointer-events:auto}
+.cal-evt.armed .cal-act{background:currentColor}
 .cal-evt.armed .cal-act .cal-act-ico{color:var(--surface);font-weight:700}
-.cal-evt.sent .cal-act{opacity:.7}
+.cal-evt.sent .cal-act{opacity:.65}
 .cal-evt.sent .cal-act:hover{opacity:1;background:var(--surface3)}
 .cal-act-ico{display:block;transform:translateY(-.5px)}
+/* The chip itself eases between its states rather than snapping. box-shadow is what carries the
+   sent outline, so it is the thing that has to transition. */
+.cal-evt{transition:box-shadow var(--t-med) var(--ease),background var(--t-med) var(--ease)}
+
+/* Send and cancel replace the node, so there is nothing to transition FROM — the changed chip is
+   marked for one beat and animated in instead. Only that chip carries the class, so an unrelated
+   re-render never sets the whole column moving. */
+@keyframes calMark{from{opacity:0;transform:scale(.5) rotate(-25deg)}
+                   60%{opacity:1;transform:scale(1.14) rotate(0)}
+                   to{opacity:1;transform:scale(1) rotate(0)}}
+@keyframes calSettle{from{box-shadow:inset 0 0 0 2.5px currentColor}
+                     to{box-shadow:inset 0 0 0 1px currentColor}}
+.cal-flash .cal-act-ico{animation:calMark 340ms var(--ease) both}
+.cal-evt.sent.cal-flash{animation:calSettle 420ms var(--ease)}
+.evt-chip.cal-flash{animation:calSettle 420ms var(--ease)}
+@media(prefers-reduced-motion:reduce){
+  .cal-act{transition:none}
+  .cal-flash .cal-act-ico,.cal-evt.sent.cal-flash,.evt-chip.cal-flash{animation:none}
+}
 
 /* The Wan Phra observance is the moon's own occasion rather than a scheduled gathering, so it is
    outlined instead of filled — present and legible, but not competing with a talk or a festival. */
@@ -690,7 +714,10 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 /* A mirrored calendar event in the Week tab (v11.2): it wears the publishing tradition's emblem in
    place of the generic bell, and carries a standing x. Deleting here only removes the copy — the
    published entry in Season is a read-only table and is never touched. */
-.evt-chip.evt-cal{border-style:dashed}
+/* Drawn as its Season original (v11.4): the tradition's own colours and emblem, and an outlined
+   ground for an observance, so a mirrored item is recognisably the same object in both tabs. */
+.evt-chip.evt-cal.obs{background:transparent!important;box-shadow:inset 0 0 0 1px currentColor}
+.evt-chip.evt-cal{transition:box-shadow var(--t-med) var(--ease)}
 .evt-cal-x{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;
   margin-left:4px;padding:0;border:0;border-radius:var(--r-s);background:0;color:inherit;
   opacity:.55;cursor:pointer;vertical-align:-3px}
@@ -1113,7 +1140,7 @@ function render(){
   const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
   const bottomNav=`<nav class="bottomnav">${slotBtn('bn-item')}<button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
   const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v11.3</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v11.4</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -1501,8 +1528,8 @@ function almFlanksHtml(alm,rowOf,tab){
    never sync, and are precached by the service worker alongside the almanac. Season tab only.
    ============================================================ */
 const CAL_SRC={
-  abhayagiri:{table:'ABHAYAGIRI',cls:'abh',icon:'stupa',name:'Abhayagiri'},
-  drba:{table:'DRBA',cls:'drba',icon:'wheel',name:'DRBA'}
+  abhayagiri:{table:'ABHAYAGIRI',cls:'abh',icon:'stupa',name:'Abhayagiri',accent:'ab'},
+  drba:{table:'DRBA',cls:'drba',icon:'wheel',name:'DRBA',accent:'cn'}
 };
 function calReady(){return typeof CalendarData!=='undefined'&&!!CalendarData}
 // A day's published entry, or null — outside a calendar's exported range every day is null and
@@ -1587,6 +1614,20 @@ function calRefAt(src,dateKey,i){
   const it=calDayItems(src,dateKey)[i];
   return it?calEvtRef(src,dateKey,it.title):'';
 }
+/* Unpack a mirror reference back into what Season knows about the item, so the Week tab can draw
+   the copy exactly as the original: same emblem, same accent, and the same outlined treatment for
+   an observance as opposed to a scheduled gathering. Returns null for anything that is not a
+   mirror, which is how an ordinary event keeps its ordinary appearance. */
+function calRefInfo(ref){
+  if(!ref)return null;
+  const cut=ref.indexOf('|'),cut2=ref.indexOf('|',cut+1);
+  if(cut<0||cut2<0)return null;
+  const src=ref.slice(0,cut),date=ref.slice(cut+1,cut2),title=ref.slice(cut2+1);
+  const S=CAL_SRC[src];
+  if(!S)return null;
+  const it=calDayItems(src,date).find(x=>x.title===title);
+  return{src,date,title,S,obs:!!(it&&it.obs)};
+}
 // The Week-tab event mirroring a published item, or null.
 function calSentEvent(ref){return ref?((state.events||[]).find(e=>e.calRef===ref)||null):null}
 
@@ -1598,6 +1639,7 @@ function calSend(src,dateKey,i){
   const ref=calEvtRef(src,dateKey,it.title);
   _calArmed=null;                                      // the arrow has done its job
   if(calSentEvent(ref))return;                         // already there; nothing to do
+  calFlash(ref);
   if(!state.events)state.events=[];
   state.events.push({id:genId(),name:it.title,date:dateKey,endDate:'',startTime:'',endTime:'',
                      location:'',allDay:true,calRef:ref});
@@ -1607,7 +1649,7 @@ function calSend(src,dateKey,i){
    item it came from is never touched — only the copy in the Week tab goes. */
 function calUnsend(ref){
   if(!ref)return;
-  _calArmed=null;
+  _calArmed=null;calFlash(ref);
   state.events=(state.events||[]).filter(e=>e.calRef!==ref);
   render();scheduleSave();
 }
@@ -1630,7 +1672,18 @@ function calUnsendEvent(id){
 
    Only one chip is armed at a time, and arming is transient UI state — never persisted, never
    synced. It is applied by toggling a class rather than re-rendering, so a tap costs nothing. */
-let _calArmed=null;
+let _calArmed=null,_calFlash=null;
+/* Send and cancel go through render(), which replaces the node — so a CSS transition has nothing
+   to run from. The changed chip is marked for one beat instead, and its class is dropped again
+   afterwards without another render. Only the chip that actually changed animates; re-rendering
+   for any other reason leaves every other chip still. */
+function calFlash(ref){
+  _calFlash=ref;
+  setTimeout(()=>{
+    _calFlash=null;
+    document.querySelectorAll('.cal-flash').forEach(e=>e.classList.remove('cal-flash'));
+  },560);
+}
 function calChipRef(el){return el?el.dataset.calRef||'':''}
 function calSyncArmed(){
   document.querySelectorAll('.cal-evt').forEach(c=>{
@@ -1665,7 +1718,7 @@ function calEventChips(dateKey){
       const armed=(_calArmed===ref);
       const tip=sent?'On your Week tab. Tap the × to remove it from there.'
         :(armed?'Tap the → to send this to the Week tab.':'Tap to send this to the Week tab.');
-      out.push(`<div class="cal-evt ${s.cls}${it.obs?' obs':''}${sent?' sent':''}${armed?' armed':''}"`
+      out.push(`<div class="cal-evt ${s.cls}${it.obs?' obs':''}${sent?' sent':''}${armed?' armed':''}${_calFlash===ref?' cal-flash':''}"`
         +` role="button" tabindex="0" data-cal-ref="${calEsc(ref)}" data-src="${src}" data-date="${dateKey}" data-i="${i}"`
         +` onclick="event.stopPropagation();calArmChip(this)"`
         +` title="${calEsc(it.title+' — '+s.name+'\n\n'+tip)}">`
@@ -1990,9 +2043,14 @@ const dayEvts=getEventsForDate(day.date);const sylChips=getSylForDate(day.date);
 // Build unified sorted pill list
 const pills=[];
 const _now=new Date();
-dayEvts.forEach(ev=>{const et=ev.endTime||ev.startTime||'';let evPast=false;if(isT&&et){const[eh,em]=et.split(':').map(Number);evPast=_now.getHours()>eh||(_now.getHours()===eh&&_now.getMinutes()>=em)}else if(day.dateObj<TODAY)evPast=true;const dragAttr=ev.draggable?` draggable="true" ondragstart="dragEvtId=${ev.evtId};dragEvtAnchor='${ev.isStart?'start':'end'}';event.dataTransfer.setData('text/plain','evt:${ev.evtId}');event.dataTransfer.effectAllowed='move';this.classList.add('dragging')" ondragend="this.classList.remove('dragging')"`:'';const evtStyle=` style="background:var(--evt-${ev.colorN}-dim);color:var(--evt-${ev.colorN});border-color:var(--evt-${ev.colorN})"`;const calS=ev.calRef?CAL_SRC[ev.calRef.split('|')[0]]:null;const calIco=calS?calS.icon:'bell';
+dayEvts.forEach(ev=>{const et=ev.endTime||ev.startTime||'';let evPast=false;if(isT&&et){const[eh,em]=et.split(':').map(Number);evPast=_now.getHours()>eh||(_now.getHours()===eh&&_now.getMinutes()>=em)}else if(day.dateObj<TODAY)evPast=true;const dragAttr=ev.draggable?` draggable="true" ondragstart="dragEvtId=${ev.evtId};dragEvtAnchor='${ev.isStart?'start':'end'}';event.dataTransfer.setData('text/plain','evt:${ev.evtId}');event.dataTransfer.effectAllowed='move';this.classList.add('dragging')" ondragend="this.classList.remove('dragging')"`:'';const evtStyle=` style="background:var(--evt-${ev.colorN}-dim);color:var(--evt-${ev.colorN});border-color:var(--evt-${ev.colorN})"`;// A mirrored calendar event is drawn as its Season original: the tradition's emblem, the
+// tradition's accent, and the outlined treatment if the original was an observance rather than a
+// scheduled gathering. It is its own kind of thing, not one of the numbered event colours.
+const calI=ev.calRef?calRefInfo(ev.calRef):null;const calS=calI?calI.S:null;
+const calIco=calS?calS.icon:'bell';
+const calStyle=calS?` style="background:${calI.obs?'transparent':`var(--accent-${calS.accent}-dim)`};color:var(--accent-${calS.accent});border-color:var(--accent-${calS.accent})"`:evtStyle;
 const calX=calS?`<button class="evt-cal-x" onclick="event.stopPropagation();calUnsendEvent(${ev.evtId})" title="Remove from the Week tab — the ${calS.name} calendar entry stays" aria-label="Remove this mirrored event"><span class="mi" style="--ic:var(--ic-x)"></span></button>`:'';
-pills.push({type:'evt',time:ev.startTime||'',html:`<span class="evt-chip${evPast?' evt-past':''}${calS?' evt-cal':''}" data-tip="${ev.tip}" data-evt-id="${ev.evtId}"${dragAttr}${evtStyle} onclick="event.stopPropagation();toggleEvtChipMenu(${ev.evtId},this)" ondblclick="event.stopPropagation();openEvtEdit(${ev.evtId})"><span class="mi" style="--ic:var(--ic-${calIco})"></span> ${ev.label}${calX}<span class="chip-acts"><button class="chip-btn" onclick="event.stopPropagation();openEvtEdit(${ev.evtId})" title="Edit"><span class="mi" style="--ic:var(--ic-edit)"></span></button><button class="chip-btn life-remove" onclick="event.stopPropagation();deleteEvent(${ev.evtId})" title="Delete"><span class="mi" style="--ic:var(--ic-x)"></span></button></span></span>`})});
+pills.push({type:'evt',time:ev.startTime||'',html:`<span class="evt-chip${evPast?' evt-past':''}${calS?' evt-cal '+calS.cls+(calI.obs?' obs':''):''}${calS&&_calFlash===ev.calRef?' cal-flash':''}" data-tip="${ev.tip}" data-evt-id="${ev.evtId}"${dragAttr}${calStyle} onclick="event.stopPropagation();toggleEvtChipMenu(${ev.evtId},this)" ondblclick="event.stopPropagation();openEvtEdit(${ev.evtId})"><span class="mi" style="--ic:var(--ic-${calIco})"></span> ${ev.label}${calX}<span class="chip-acts"><button class="chip-btn" onclick="event.stopPropagation();openEvtEdit(${ev.evtId})" title="Edit"><span class="mi" style="--ic:var(--ic-edit)"></span></button><button class="chip-btn life-remove" onclick="event.stopPropagation();deleteEvent(${ev.evtId})" title="Delete"><span class="mi" style="--ic:var(--ic-x)"></span></button></span></span>`})});
 sylChips.forEach(sc=>{const sylTime=sc.dueTime||'09:00';const fmtSylTime=((h,m)=>{const hr=parseInt(h);return(hr>12?hr-12:hr||12)+':'+m+(hr>=12?'p':'a')})(sylTime.split(':')[0],sylTime.split(':')[1]);pills.push({type:'syl',time:sylTime,html:`<span class="chip ${sc.cat} syl-mirror" data-tip="${CAT_NAMES[sc.cat]||sc.cat} · ${sc.type}${sc.dueTime?' · due '+fmtSylTime:''}" onclick="event.stopPropagation();openSylPopup(${sc.entry.id})"><span class="mi" style="--ic:var(--ic-${SYL_ICON[sc.type]||'pin'})"></span> ${sc.dueTime?'<span class="t">'+fmtSylTime+'</span> ':''}${sc.title}${sc.label}</span>`})});
 tasks.forEach(t=>pills.push({type:'task',time:t.time||'',html:renderChip(t)}));
 pills.sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
