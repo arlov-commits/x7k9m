@@ -1,4 +1,4 @@
-<!-- Academic Planner v11.2 -->
+<!-- Academic Planner v11.3 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -448,26 +448,25 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .cal-emblem .mi{width:15px;height:15px;vertical-align:0}
 .cal-evt.abh{background:var(--accent-ab-dim,var(--surface2));color:var(--accent-ab)}
 .cal-evt.drba{background:var(--accent-cn-dim,var(--surface2));color:var(--accent-cn)}
-/* Mirrored to the Week tab (v11.2). A sent chip has to read as sent at a glance and carry its own
-   undo, on a phone, without a hover: hence a standing "Week" tag and a visible x rather than the
-   hover-revealed acts the Week tab's own chips use. */
+/* Mirrored to the Week tab (v11.2, reworked v11.3). The action slot is on EVERY chip at every
+   moment and is always the same width — only its contents change, from nothing to → to ×. An idle
+   slot is hidden with visibility rather than display, so it still takes its space. That is the
+   whole trick: the pill cannot change size when it is clicked or sent, because nothing about its
+   box depends on either state. The sent outline is an inset box-shadow for the same reason — a
+   border would add a pixel and reflow the text. */
 .cal-evt{position:relative;cursor:pointer}
-/* A sent chip wraps: the title keeps the full width it had before, and the marker and its undo
-   drop to a line of their own, right-aligned. Sharing one line cost the title so much room that
-   "Saturday Puja and Dhamma Talk" broke over four lines. */
-.cal-evt.sent{box-shadow:inset 0 0 0 1px currentColor;flex-wrap:wrap}
-.cal-evt.sent .cal-evt-name{flex:1 1 100%}
-.cal-sent{flex-shrink:0;margin-left:auto;font-size:var(--fs-2xs);font-weight:700;letter-spacing:.08em;
-  text-transform:uppercase;opacity:.75}
-.cal-sent::before{content:'\2192 ';font-weight:500}
-.cal-x{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;
-  width:18px;height:18px;margin:-2px -5px -2px 0;padding:0;border:0;border-radius:var(--r-s);
-  background:0;color:inherit;opacity:.6;cursor:pointer}
-.cal-x:hover{opacity:1;background:var(--surface3)}
-.cal-x .mi{width:11px;height:11px;vertical-align:0}
-/* The emblem on the reading card's subtitle line. */
-.alm-pop-emblem{display:inline-flex;align-items:center;margin-right:5px}
-.alm-pop-emblem .mi{width:14px;height:14px;vertical-align:0}
+.cal-evt.sent{box-shadow:inset 0 0 0 1px currentColor}
+.cal-act{flex:0 0 17px;width:17px;height:17px;align-self:center;
+  display:inline-flex;align-items:center;justify-content:center;
+  margin:-1px -4px -1px 0;padding:0;border:0;border-radius:var(--r-s);
+  background:0;color:inherit;font-family:var(--font-sans);font-size:var(--fs-s);line-height:1;
+  visibility:hidden;pointer-events:none;cursor:pointer}
+.cal-evt.armed .cal-act,.cal-evt.sent .cal-act{visibility:visible;pointer-events:auto}
+.cal-evt.armed .cal-act{background:currentColor;border-radius:var(--r-pill)}
+.cal-evt.armed .cal-act .cal-act-ico{color:var(--surface);font-weight:700}
+.cal-evt.sent .cal-act{opacity:.7}
+.cal-evt.sent .cal-act:hover{opacity:1;background:var(--surface3)}
+.cal-act-ico{display:block;transform:translateY(-.5px)}
 
 /* The Wan Phra observance is the moon's own occasion rather than a scheduled gathering, so it is
    outlined instead of filled — present and legible, but not competing with a talk or a festival. */
@@ -1114,7 +1113,7 @@ function render(){
   const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
   const bottomNav=`<nav class="bottomnav">${slotBtn('bn-item')}<button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
   const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v11.2</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v11.3</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -1597,18 +1596,20 @@ function calSend(src,dateKey,i){
   const items=calDayItems(src,dateKey),it=items[i];
   if(!it)return;
   const ref=calEvtRef(src,dateKey,it.title);
-  if(calSentEvent(ref)){closeAlmPop();return}          // already there; nothing to do
+  _calArmed=null;                                      // the arrow has done its job
+  if(calSentEvent(ref))return;                         // already there; nothing to do
   if(!state.events)state.events=[];
   state.events.push({id:genId(),name:it.title,date:dateKey,endDate:'',startTime:'',endTime:'',
                      location:'',allDay:true,calRef:ref});
-  closeAlmPop();render();scheduleSave();
+  render();scheduleSave();
 }
 /* Cancel the mirror from either side. No confirm: it is one tap to put back, and the published
    item it came from is never touched — only the copy in the Week tab goes. */
 function calUnsend(ref){
   if(!ref)return;
+  _calArmed=null;
   state.events=(state.events||[]).filter(e=>e.calRef!==ref);
-  closeAlmPop();render();scheduleSave();
+  render();scheduleSave();
 }
 function calUnsendAt(src,dateKey,i){calUnsend(calRefAt(src,dateKey,i))}
 // Cancel from the Week tab, where the event's own id is the handle already to hand. Only a
@@ -1619,27 +1620,38 @@ function calUnsendEvent(id){
   calUnsend(e.calRef);
 }
 
-/* The card behind a tap on a published event: what it is, whose it is, and the one action. */
-function calOpenEvtPop(src,dateKey,i){
-  const items=calDayItems(src,dateKey),it=items[i];
-  if(!it)return;
-  const S=CAL_SRC[src],ref=calEvtRef(src,dateKey,it.title);
-  const sent=calSentEvent(ref);
-  const d=parseDate(dateKey);
-  almPopOpen(
-    almPopHead(calEsc(it.title),`<span class="alm-pop-emblem"><span class="mi" style="--ic:var(--ic-${S.icon})"></span></span>${calEsc(S.name)}`)
-    +`<div class="pop-meta">${almPopTag(fmtDate(d),S.cls==='abh'?'ab':'cn')}`
-    +(it.obs?`<span class="pop-due">lunar observance day</span>`:'')+`</div>`
-    +`<div class="alm-pop-para">`
-    +(sent
-      ?`This is on your Week tab as an event. Removing it there leaves the published entry here untouched.`
-      :`Send this to the Week tab and it becomes an ordinary event there — editable and movable like any other — while staying here in the published calendar.`)
-    +`</div>`
-    +`<div class="pop-actions">`
-    +(sent
-      ?`<button class="pop-btn" onclick="calUnsendAt('${src}','${dateKey}',${i})"><span class="mi" style="--ic:var(--ic-x)"></span> Remove from Week</button>`
-      :`<button class="pop-btn primary" onclick="calSend('${src}','${dateKey}',${i})"><span class="mi" style="--ic:var(--ic-up)"></span> Send to Week</button>`)
-    +`</div>`);
+/* Tapping a chip ARMS it: a → appears in the slot at its right edge. Tapping that → sends it to
+   the Week tab, and the → becomes an × in the same slot, which cancels the mirror.
+
+   The slot is present on every chip at every moment and is always the same size — only its
+   CONTENTS change, from nothing to → to ×. That is what keeps the pill from changing size when it
+   is clicked or sent, which a popup-free affordance otherwise does by construction. An idle slot
+   is hidden with visibility, not display, so it still occupies its width.
+
+   Only one chip is armed at a time, and arming is transient UI state — never persisted, never
+   synced. It is applied by toggling a class rather than re-rendering, so a tap costs nothing. */
+let _calArmed=null;
+function calChipRef(el){return el?el.dataset.calRef||'':''}
+function calSyncArmed(){
+  document.querySelectorAll('.cal-evt').forEach(c=>{
+    c.classList.toggle('armed',!!_calArmed&&c.dataset.calRef===_calArmed);
+  });
+}
+// Tap the chip body: arm it, or disarm it if it was already the armed one.
+function calArmChip(el){
+  const ref=calChipRef(el);
+  if(!ref)return;
+  _calArmed=(_calArmed===ref)?null:ref;
+  calSyncArmed();
+}
+// Anything else on the page dismisses a pending arrow, the way a menu would.
+function calDisarm(){if(_calArmed){_calArmed=null;calSyncArmed()}}
+function calActFromChip(btn){
+  const el=btn.closest('.cal-evt');
+  if(!el)return;
+  const {src,date}=el.dataset,i=+el.dataset.i;
+  if(el.classList.contains('sent'))calUnsendAt(src,date,i);
+  else calSend(src,date,i);
 }
 
 function calEventChips(dateKey){
@@ -1650,13 +1662,19 @@ function calEventChips(dateKey){
     calDayItems(src,dateKey).forEach((it,i)=>{
       const ref=calEvtRef(src,dateKey,it.title);
       const sent=!!calSentEvent(ref);
-      out.push(`<div class="cal-evt ${s.cls}${it.obs?' obs':''}${sent?' sent':''}" role="button" tabindex="0"`
-        +` onclick="event.stopPropagation();calOpenEvtPop('${src}','${dateKey}',${i})"`
-        +` title="${calEsc(it.title+' — '+s.name+(sent?'\n\nOn your Week tab. Tap to remove it from there.':'\n\nTap to send this to the Week tab.'))}">`
+      const armed=(_calArmed===ref);
+      const tip=sent?'On your Week tab. Tap the × to remove it from there.'
+        :(armed?'Tap the → to send this to the Week tab.':'Tap to send this to the Week tab.');
+      out.push(`<div class="cal-evt ${s.cls}${it.obs?' obs':''}${sent?' sent':''}${armed?' armed':''}"`
+        +` role="button" tabindex="0" data-cal-ref="${calEsc(ref)}" data-src="${src}" data-date="${dateKey}" data-i="${i}"`
+        +` onclick="event.stopPropagation();calArmChip(this)"`
+        +` title="${calEsc(it.title+' — '+s.name+'\n\n'+tip)}">`
         +`<span class="cal-emblem" aria-hidden="true"><span class="mi" style="--ic:var(--ic-${s.icon})"></span></span>`
         +`<span class="cal-evt-name">${calEsc(it.title)}</span>`
-        +(sent?`<span class="cal-sent" aria-label="on the Week tab">Week</span>`
-              +`<button class="cal-x" onclick="event.stopPropagation();calUnsendAt('${src}','${dateKey}',${i})" title="Remove from the Week tab" aria-label="Remove from the Week tab"><span class="mi" style="--ic:var(--ic-x)"></span></button>`:'')
+        +`<button class="cal-act" onclick="event.stopPropagation();calActFromChip(this)" tabindex="${sent||armed?0:-1}"`
+        +` aria-label="${sent?'Remove from the Week tab':'Send to the Week tab'}"`
+        +` title="${sent?'Remove from the Week tab':'Send to the Week tab'}">`
+        +`<span class="cal-act-ico" aria-hidden="true">${sent?'\u00D7':'\u2192'}</span></button>`
         +`</div>`);
     });
   });
@@ -1907,27 +1925,52 @@ const ALM_ROWS='.day-row[data-date],.season-row[data-date]';
 // offset (rect.top + scrollY) and scrolls to an absolute position: a relative scrollBy would be
 // measured against a scroll offset the browser is about to clamp, because swapping tabs changes
 // the document height under us.
-function almAlignTo(date,top){
+/* Put `date`'s row back at viewport offset `top`, and KEEP it there.
+
+   Self-correcting rather than fire-and-forget: each pass measures where the row actually landed
+   and nudges by the residual, repeating over the next few animation frames until two consecutive
+   frames agree within half a pixel. A single scrollTo was accurate at the moment it ran but had
+   nothing to say about a reflow arriving after it — almFitLabels adding a class, a webfont
+   swapping in, the sticky flanks resolving — and any of those silently moved the row afterwards.
+   Converging on the measurement instead of computing one offset makes the crossing robust to
+   whatever settles late, now and in future. The pass cap stops it spinning when the target simply
+   cannot be reached, i.e. the scroll is clamped at the end of a shorter document. */
+function almAlignTo(date,top,frames){
   const to=document.querySelector('.view.active');
   if(!to)return;
   const rows=[...to.querySelectorAll(ALM_ROWS)];
   const el=rows.find(r=>r.dataset.date===date)||rows.find(r=>r.dataset.date>=date)||rows[rows.length-1];
   if(!el)return;
-  window.scrollTo(0,Math.max(0,el.getBoundingClientRect().top+window.scrollY-top));
+  const step=()=>{
+    const delta=el.getBoundingClientRect().top-top;
+    if(Math.abs(delta)>=.5)window.scrollTo(0,Math.max(0,window.scrollY+delta));
+    return Math.abs(delta);
+  };
+  step();
+  let left=(frames==null?8:frames),settled=0;
+  const again=()=>{
+    if(left--<=0)return;
+    settled=step()<.5?settled+1:0;
+    if(settled<2)requestAnimationFrame(again);
+  };
+  requestAnimationFrame(again);
+}
+/* The row to hold still across the swap: the first one not entirely above the fold — so a row the
+   viewport is sitting in the MIDDLE of anchors on itself, at its own negative offset, rather than
+   being skipped in favour of the next one down. Skipping it made the crossing jump by up to a
+   whole row height, which is the drift you could feel even though the arithmetic was exact. */
+function almSwapAnchor(view){
+  if(!view)return null;
+  const rows=[...view.querySelectorAll(ALM_ROWS)];
+  const hit=rows.find(r=>r.getBoundingClientRect().bottom>0)||rows[rows.length-1];
+  return hit?{date:hit.dataset.date,top:hit.getBoundingClientRect().top}:null;
 }
 function almSwapTab(){
-  const from=document.querySelector('.view.active');
-  let anchor=null;
-  if(from){                                                  // anchor on the first row fully in view
-    const rows=[...from.querySelectorAll(ALM_ROWS)];
-    const hit=rows.find(r=>r.getBoundingClientRect().top>=0)||rows[rows.length-1];
-    if(hit)anchor={date:hit.dataset.date,top:hit.getBoundingClientRect().top};
-  }
+  const anchor=almSwapAnchor(document.querySelector('.view.active'));
   state.weekSlot=state.activeTab==='season'?'sprints':'season';   // set before render: the slot's
   switchTab(state.weekSlot);                                      // own label and icon change too
   if(!anchor)return;
-  almAlignTo(anchor.date,anchor.top);                        // once now,
-  requestAnimationFrame(()=>almAlignTo(anchor.date,anchor.top)); // once more after the reflow settles
+  almAlignTo(anchor.date,anchor.top);
 }
 
 // The section is display:contents — its header and day rows are grid items of the shared
@@ -2601,12 +2644,24 @@ async function init(){
   window.addEventListener('online',()=>{updateConn('online');setTimeout(()=>{flushQueue().then(()=>syncPullAndMerge(false))},500)});
   window.addEventListener('offline',()=>updateConn('offline'));
   window.addEventListener('pagehide',flushQueueBeacon);
+  // Capture phase, so it runs even though the chip stops propagation — but only for clicks that
+  // did NOT land on a chip, or it would disarm the very chip being armed.
+  document.addEventListener('click',e=>{
+    const t=e.target;
+    if(!t||!t.closest||!t.closest('.cal-evt'))calDisarm();
+  },true);
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushQueueBeacon();else if(document.visibilityState==='visible'&&navigator.onLine){flushQueue().then(()=>syncPullAndMerge(false))}});
   if('serviceWorker' in navigator){
     const hadController=!!navigator.serviceWorker.controller;let swReloading=false;
     navigator.serviceWorker.addEventListener('controllerchange',()=>{if(swReloading||!hadController)return;swReloading=true;location.reload()});
     navigator.serviceWorker.register('sw.js').then(reg=>{if(reg)reg.update()}).catch(e=>console.warn('SW reg failed:',e));
-    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')navigator.serviceWorker.getRegistration().then(r=>{if(r)r.update()})});
+    // Capture phase, so it runs even though the chip stops propagation — but only for clicks that
+  // did NOT land on a chip, or it would disarm the very chip being armed.
+  document.addEventListener('click',e=>{
+    const t=e.target;
+    if(!t||!t.closest||!t.closest('.cal-evt'))calDisarm();
+  },true);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')navigator.serviceWorker.getRegistration().then(r=>{if(r)r.update()})});
   }}
 init();
 
