@@ -1,4 +1,4 @@
-<!-- Academic Planner v11.5 -->
+<!-- Academic Planner v11.6 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1137,7 +1137,7 @@ function render(){
   const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
   const bottomNav=`<nav class="bottomnav">${slotBtn('bn-item')}<button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
   const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v11.5</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v11.6</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -2434,12 +2434,13 @@ function duplicateTask(id){const t=state.tasks.find(t=>t.id===id);if(!t)return;c
 // Add task modal
 function toggleAddPri(){const tog=$('#aPriToggle'),hid=$('#aPri');const isHigh=hid.value==='high';hid.value=isHigh?'normal':'high';tog.className=isHigh?'pri-toggle':'pri-toggle high';tog.querySelectorAll('.pri-option').forEach(o=>o.classList.toggle('active'))}
 // ---- Shared start/end-date helper (behavior identical for every start/end pair) ----
-// End date pre-fills to start+1 only when opened empty & not user-edited; tracks start changes
-// while untouched; never overrides a value the user manually set.
-function edPlusOne(dateStr){const p=parseDate(dateStr);p.setDate(p.getDate()+1);return isoDate(p)}
-function edEndFocus(startId,endId){const s=document.getElementById(startId),e=document.getElementById(endId);if(!s||!e)return;if(!e.value&&e.dataset.edTouched!=='1'&&s.value)e.value=edPlusOne(s.value)}
+// End date pre-fills to the start date itself only when opened empty & not user-edited; tracks
+// start changes while untouched; never overrides a value the user manually set. The point of the
+// pre-fill is to land the picker on the start month rather than on today, so the user nudges a day
+// instead of scrolling — it is not a guess that the event is multi-day, hence same-day, not start+1.
+function edEndFocus(startId,endId){const s=document.getElementById(startId),e=document.getElementById(endId);if(!s||!e)return;if(!e.value&&e.dataset.edTouched!=='1'&&s.value)e.value=s.value}
 function edEndChange(endId){const e=document.getElementById(endId);if(e)e.dataset.edTouched=e.value?'1':''}
-function edStartChange(startId,endId){const s=document.getElementById(startId),e=document.getElementById(endId);if(!s||!e)return;if(e.dataset.edTouched!=='1'&&s.value)e.value=edPlusOne(s.value)}
+function edStartChange(startId,endId){const s=document.getElementById(startId),e=document.getElementById(endId);if(!s||!e)return;if(e.dataset.edTouched!=='1'&&s.value)e.value=s.value}
 // Call when (re)opening a form: mark end "touched" iff it already has a value, so existing
 // end dates are preserved and empty ones auto-track.
 function edResetTouched(endId){const e=document.getElementById(endId);if(e)e.dataset.edTouched=e.value?'1':''}
