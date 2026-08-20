@@ -28,6 +28,11 @@ A published event can be **mirrored to the Week tab** (v11.2): tapping its chip 
 
 The moon is stated **once for all three reckonings**, not once per layer: agreeing sources group onto a single reading. Attribution is by **emblem only** — a stupa or a dharmachakra beside the icon; the source is never written out, and local is never labelled at all because local is the default. A phase is **named** only when it is a local quarter: the intermediate phases read fine from the icon and would otherwise put prose on four days out of five. The full sentence survives as the `title`. The three reckonings — local astronomical, Thai, Chinese — routinely disagree by a day and are deliberately **not** reconciled. Only the local layer is drawn between the quarters (waxing crescent and so on); the monasteries publish new/quarter/full and nothing else, so the intermediate phases are never attributed to them and never group.
 
+## Week-tab pills (v11.7)
+Every pill in a day row states its own time in one compact form (`fmtPillTime`) — a tooltip is unreachable on a phone, so the clock has to be on the pill. An event states its **start time on its start day only**: an all-day event has no time to state, and on the later days of a multi-day run the start has already passed. A syllabus pill also carries its **class alias** (`catShort`, the workbook's own sheet alias) ahead of the title, set in mono beside the clock so the small facts read as one register; the title is its own flex item so a wrapped one keeps a straight left edge.
+
+A syllabus pill's actions are **on the pill, never in a popup**: tapping it lifts a rail of three targets — highlight, complete, open in Syllabus — over the pill itself. The rail is absolutely positioned and overhangs the pill on every side, which is what lets a target be thumb-sized while **the pill keeps its exact footprint and the day row never reflows**; do not reach for an inline expansion instead. The armed key is `entry.id|date` (one pill per day of a multi-day entry, so tapping one day must not open the rail on the others), transient in `_sylActing` — never persisted, never synced, and cleared by a click anywhere off a pill. It is read back at render time, so the rail survives the re-render a toggle triggers and the button under the finger updates in place. **Completing dismisses the rail and highlighting does not**: the struck-through pill is the confirmation for the one and worth uncovering, while the lit button is the confirmation for the other. Writes still go through `toggleSylDone`/`toggleSylHL` — one per-record write each. A completed entry **stays in the week**, struck through where it sits (`getSylForDate` no longer filters `done`): the week is a record of what was due, not only of what is left, and nothing should vanish out from under the finger that ticked it.
+
 ## Deploy workflow (NON-NEGOTIABLE)
 - **Never commit directly to `main`.** A live user depends on `main`.
 - Work on a branch. Push the branch → Cloudflare builds a **preview URL** automatically.
@@ -37,7 +42,7 @@ The moon is stated **once for all three reckonings**, not once per layer: agreei
 
 ## Versioning
 - Version lives as an HTML comment on line 1: `<!-- Academic Planner vX.Y -->`, and in a visible `.version-label` in the header, and in the service worker `CACHE_NAME`.
-- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v11.5. All three locations must match.
+- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v11.7. All three locations must match.
 - Bumping the SW `CACHE_NAME` every change is required or installed devices serve stale code.
 
 ## Architecture rules (hard-won — do not violate)
