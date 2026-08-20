@@ -1,8 +1,10 @@
-const CACHE_NAME = 'academic-planner-v11.4';
-// almanac-data.js, almanac.js and calendars-data.js must stay in this list: index.html loads them
-// as separate scripts, so a stale cache would serve new markup with no engine and the almanac
-// strip and monastery calendar layers would silently render empty.
-const ASSETS = ['./', './index.html', './manifest.json', './almanac-data.js', './almanac.js', './calendars-data.js'];
+const CACHE_NAME = 'academic-planner-v11.5';
+// almanac-data.js, almanac.js, calendars-data.js and syllabus.js must stay in this list: index.html
+// loads them as separate scripts, so a stale cache would serve new markup with no engine and the
+// almanac strip, the monastery calendar layers or the whole Syllabus tab would silently render empty.
+// syllabus.xlsx is the syllabus feed itself; precaching it means a first offline load still has a
+// syllabus. The fetch handler below is network-first, so a pushed spreadsheet still wins when online.
+const ASSETS = ['./', './index.html', './manifest.json', './almanac-data.js', './almanac.js', './calendars-data.js', './syllabus.js', './calendars/source/syllabus.xlsx'];
 
 self.addEventListener('install', e => {
   e.waitUntil(
