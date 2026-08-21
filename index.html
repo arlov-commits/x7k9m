@@ -719,9 +719,10 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
    narrow enough to leave the title its width, and reads better beside the title than stranded on a
    line of its own — so the title shrinks past its content width (min-width:0) and wraps inside. */
 .evt-title{flex:1 1 auto;min-width:0;text-align:left}
-/* The clock is a tail on the title, not a column ahead of it: it reads as part of the sentence the
-   pill makes, and it never takes width away from the name. Kept whole on one line. */
-.evt-when{opacity:.7;white-space:nowrap}
+/* The clock is a zone at the end of the title, inside it rather than beside it, so it flows with
+   the text like a last word: it never takes width away from the name, and it cannot be stranded on
+   a line of its own however narrow the day column gets. */
+.pill-zone.evt-when{white-space:nowrap;margin-left:2px;font-weight:500}
 .evt-chip[draggable="true"]{cursor:grab}
 .evt-chip.dragging{opacity:.4}
 .evt-chip.evt-past{opacity:.35;text-decoration:line-through}
@@ -801,10 +802,17 @@ a.syl-meta-tag.link{color:var(--text-dim);text-decoration:none}a.syl-meta-tag.li
    is left — so it is struck through in place rather than removed. Three classes deep, because the
    .syl-mirror opacity above would otherwise win over .chip.done on source order alone. */
 .chip.syl-mirror.done{opacity:.4;text-decoration:line-through}
+/* What a pill says *about* an entry — which class it belongs to, when an event runs — sits in a
+   zone of its own: a soft block of the pill's own accent, no border, no second typeface, no
+   brackets. It is a part of the pill rather than something stuck onto it, and because the ground is
+   the accent the pill is already tinted with, the zone reads as the same object at a different
+   depth. Both pill kinds use it, which is what makes them look like one family. */
+.pill-zone{display:inline-block;padding:1px 6px;border-radius:var(--r-s);font-size:var(--fs-2xs);font-weight:600;letter-spacing:.01em;
+  background:var(--surface2);background:color-mix(in srgb,currentColor 16%,transparent)}
+
 /* A syllabus pill is a tag and a title, not one run of inline scraps. The tag — the type's symbol,
-   the class's alias from the workbook, and the star if the entry carries one — is set small, in
-   mono, at reduced weight against the title: everything that says *which* entry this is, held apart
-   from *what* it is.
+   the class's alias from the workbook in its own zone, and the star if the entry carries one —
+   holds everything that says *which* entry this is, apart from *what* it is.
    The pill wraps, and that is what makes it work in a day column barely 150px wide on a phone: the
    title's base size is its own width, so where the pill has room the tag and the title sit inline,
    and where it does not the title takes a line of its own at the pill's full width with the tag
@@ -813,7 +821,7 @@ a.syl-meta-tag.link{color:var(--text-dim);text-decoration:none}a.syl-meta-tag.li
    the break: an intrinsically-sized pill then measures itself against that basis instead of its
    text, and short titles wrap while long ones stay inline — exactly backwards.) */
 .chip.syl-mirror{flex-wrap:wrap;row-gap:1px}
-.syl-tab{display:flex;align-items:center;gap:4px;flex:0 0 auto;font-family:var(--font-mono);font-size:var(--fs-2xs);font-weight:700;letter-spacing:.02em;opacity:.85}
+.syl-tab{display:flex;align-items:center;gap:5px;flex:0 0 auto}
 .syl-tab .mi{width:13px;height:13px}
 .syl-pill-title{flex:1 1 auto;min-width:0;text-align:left}
 .syl-hl-mark{width:9px;height:9px;vertical-align:0;flex-shrink:0}
@@ -2093,7 +2101,7 @@ const calX=calS?`<button class="evt-cal-x" onclick="event.stopPropagation();calU
 // all-day event has no time to state, and on the later days of a multi-day run the start time has
 // already passed, so both show none.
 const evWhen=evtWhen(ev);
-pills.push({type:'evt',time:ev.startTime||'',html:`<span class="evt-chip${evPast?' evt-past':''}${calS?' evt-cal '+calS.cls+(calI.obs?' obs':''):''}${calS&&_calFlash===ev.calRef?' cal-flash':''}" data-tip="${ev.tip}" data-evt-id="${ev.evtId}"${dragAttr}${calStyle} onclick="event.stopPropagation();toggleEvtChipMenu(${ev.evtId},this)" ondblclick="event.stopPropagation();openEvtEdit(${ev.evtId})"><span class="mi" style="--ic:var(--ic-${calIco})"></span> <span class="evt-title">${ev.label}${evWhen?'<span class="evt-when">'+evWhen+'</span>':''}</span>${calX}<span class="chip-acts"><button class="chip-btn" onclick="event.stopPropagation();openEvtEdit(${ev.evtId})" title="Edit"><span class="mi" style="--ic:var(--ic-edit)"></span></button><button class="chip-btn life-remove" onclick="event.stopPropagation();deleteEvent(${ev.evtId})" title="Delete"><span class="mi" style="--ic:var(--ic-x)"></span></button></span></span>`})});
+pills.push({type:'evt',time:ev.startTime||'',html:`<span class="evt-chip${evPast?' evt-past':''}${calS?' evt-cal '+calS.cls+(calI.obs?' obs':''):''}${calS&&_calFlash===ev.calRef?' cal-flash':''}" data-tip="${ev.tip}" data-evt-id="${ev.evtId}"${dragAttr}${calStyle} onclick="event.stopPropagation();toggleEvtChipMenu(${ev.evtId},this)" ondblclick="event.stopPropagation();openEvtEdit(${ev.evtId})"><span class="mi" style="--ic:var(--ic-${calIco})"></span> <span class="evt-title">${ev.label}${evWhen?' <span class="pill-zone evt-when">'+evWhen+'</span>':''}</span>${calX}<span class="chip-acts"><button class="chip-btn" onclick="event.stopPropagation();openEvtEdit(${ev.evtId})" title="Edit"><span class="mi" style="--ic:var(--ic-edit)"></span></button><button class="chip-btn life-remove" onclick="event.stopPropagation();deleteEvent(${ev.evtId})" title="Delete"><span class="mi" style="--ic:var(--ic-x)"></span></button></span></span>`})});
 sylChips.forEach(sc=>{const s=sc.entry;const sylTime=sc.dueTime||'09:00';const fmtSylTime=fmtPillTime(sylTime);
 // One pill instance per day of a multi-day entry, so the armed key is the entry and the day
 // together: tapping one day's pill must not open the rail on the same entry's other days.
@@ -2102,7 +2110,7 @@ const sylTip=escAttr(catName(sc.cat)+' · '+sc.type+(sc.dueTime?' · due '+fmtSy
 // No clock on a syllabus pill: an entry is due on a day, and the hour is a detail of the class's
 // own making that only crowds the title out of the width a phone has. It still sorts the pill among
 // the day's others, and it still reads in the tooltip.
-const sylTab=`<span class="syl-tab"><span class="mi" style="--ic:var(--ic-${SYL_ICON[sc.type]||'pin'})"></span>${escHtml(catShort(sc.cat))}${s.highlighted?'<span class="mi syl-hl-mark" style="--ic:var(--ic-star)"></span>':''}</span>`;
+const sylTab=`<span class="syl-tab"><span class="mi" style="--ic:var(--ic-${SYL_ICON[sc.type]||'pin'})"></span><span class="pill-zone">${escHtml(catShort(sc.cat))}</span>${s.highlighted?'<span class="mi syl-hl-mark" style="--ic:var(--ic-star)"></span>':''}</span>`;
 const sylActs=`<span class="syl-acts" role="group" aria-label="Entry actions"><button class="syl-act${s.highlighted?' on':''}" onclick="event.stopPropagation();toggleSylHL(${s.id})" title="${s.highlighted?'Remove highlight':'Highlight'}" aria-label="${s.highlighted?'Remove highlight':'Highlight'}"><span class="mi" style="--ic:var(--ic-star)"></span></button><button class="syl-act${s.done?' is-done':''}" onclick="event.stopPropagation();sylActDone(${s.id})" title="${s.done?'Mark not done':'Mark done'}" aria-label="${s.done?'Mark not done':'Mark done'}"><span class="mi" style="--ic:var(--ic-${s.done?'up':'check'})"></span></button><button class="syl-act" onclick="event.stopPropagation();sylActOpen(${s.id})" title="Open in Syllabus" aria-label="Open in Syllabus"><span class="mi" style="--ic:var(--ic-book)"></span></button></span>`;
 pills.push({type:'syl',time:sylTime,html:`<span class="chip ${sc.cat} syl-mirror${s.done?' done':''}${_sylActing===sylKey?' acting':''}" data-tip="${sylTip}" onclick="event.stopPropagation();sylPillTap('${sylKey}',this)">${sylTab}<span class="syl-pill-title">${escHtml(sc.title)}${sc.label}</span>${sylActs}</span>`})});
 tasks.forEach(t=>pills.push({type:'task',time:t.time||'',html:renderChip(t)}));
@@ -2113,11 +2121,13 @@ h+='</div>';return h}
 
 // The Week tab's clock, in the column form a task pill sets it in.
 function fmtPillTime(t){if(!t)return'';const[h,m]=t.split(':');const hr=parseInt(h);return(hr>12?hr-12:hr||12)+':'+m+(hr>=12?'p':'a')}
-// An event states its time as a tail on its own title — "Go shopping (5pm–7pm)" — so it reads as
-// part of the name rather than as a column ahead of it. Minutes only when it is not on the hour.
-function fmtEvtClock(t){const[h,m]=t.split(':');const hr=parseInt(h);return(hr>12?hr-12:hr||12)+(m==='00'?'':':'+m)+(hr>=12?'pm':'am')}
+// An event states its time in a zone at the end of its own title — "Go shopping 5–7pm". Minutes
+// only when it is not on the hour, and a meridiem the two ends share is said once, at the end.
+function fmtEvtClock(t,mer){const[h,m]=t.split(':');const hr=parseInt(h);return(hr>12?hr-12:hr||12)+(m==='00'?'':':'+m)+(mer===false?'':(hr>=12?'pm':'am'))}
 function evtWhen(ev){if(ev.allDay||!ev.isStart||!ev.startTime)return'';
-  return' ('+fmtEvtClock(ev.startTime)+(ev.endTime?'–'+fmtEvtClock(ev.endTime):'')+')'}
+  if(!ev.endTime)return fmtEvtClock(ev.startTime);
+  const same=(parseInt(ev.startTime)>=12)===(parseInt(ev.endTime)>=12);
+  return fmtEvtClock(ev.startTime,!same)+'–'+fmtEvtClock(ev.endTime)}
 function renderChip(t){const isLife=t.cat==='life'&&t.lifeSourceId;let acts='';
 if(isLife){acts=`<span class="chip-acts"><button class="chip-btn life-return" onclick="event.stopPropagation();returnToBank(${t.id})" title="Return to bank"><span class="mi" style="--ic:var(--ic-up)"></span></button><button class="chip-btn" onclick="event.stopPropagation();toggleTaskDone(${t.id})" title="${t.done?'Undo':'Done'}">${t.done?'<span class="mi" style="--ic:var(--ic-up)"></span>':'<span class="mi" style="--ic:var(--ic-check)"></span>'}</button><button class="chip-btn" onclick="event.stopPropagation();openTaskEdit(${t.id})" title="Edit"><span class="mi" style="--ic:var(--ic-edit)"></span></button><button class="chip-btn" onclick="event.stopPropagation();duplicateTask(${t.id})" title="Duplicate"><span class="mi" style="--ic:var(--ic-dup)"></span></button><button class="chip-btn life-remove" onclick="event.stopPropagation();deleteTask(${t.id})" title="Delete"><span class="mi" style="--ic:var(--ic-x)"></span></button></span>`}
 else{acts=`<span class="chip-acts"><button class="chip-btn" onclick="event.stopPropagation();toggleTaskDone(${t.id})" title="${t.done?'Undo':'Done'}">${t.done?'<span class="mi" style="--ic:var(--ic-up)"></span>':'<span class="mi" style="--ic:var(--ic-check)"></span>'}</button><button class="chip-btn" onclick="event.stopPropagation();openTaskEdit(${t.id})" title="Edit"><span class="mi" style="--ic:var(--ic-edit)"></span></button><button class="chip-btn" onclick="event.stopPropagation();duplicateTask(${t.id})" title="Duplicate"><span class="mi" style="--ic:var(--ic-dup)"></span></button><button class="chip-btn life-remove" onclick="event.stopPropagation();deleteTask(${t.id})" title="Delete"><span class="mi" style="--ic:var(--ic-x)"></span></button></span>`}
