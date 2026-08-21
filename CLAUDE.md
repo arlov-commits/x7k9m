@@ -64,7 +64,7 @@ The **only scrolling element is `#scroll`** (`scroller()`); the document does no
 
 The cost, stated plainly: the browser's URL bar no longer auto-hides while scrolling, because the document itself no longer scrolls. It does not apply at all once the app is installed to the home screen.
 
-**Back to top** appears after exactly **three screen heights**, in every tab (`TO_TOP_SCREENS`). A threshold derived from the document's own height moves with the tab you are in, so the button appeared at a different point in each and read as unpredictable.
+**Back to top** appears after exactly **three screen heights**, in every tab (`TO_TOP_SCREENS`). A threshold derived from the document's own height moves with the tab you are in, so the button appeared at a different point in each and read as unpredictable. Its state is settled three ways, because a scroll handler throttled to one reading a frame is right for a finger and wrong for a programmatic scroll — a smooth scroll ends at a definite moment, and a frame pending at that moment takes the last reading mid-flight and leaves the button on screen at the top of the page. So: the press hides it and locks out readings until it lands (a finger scrolling the other way breaks the lock at once), `scrollend` settles it where the browser has that event, and a late re-check covers the browsers that do not.
 
 ## Nothing may widen the page (v11.9)
 One unbreakable token — a URL pasted into a syllabus row — used to stretch a day column past the viewport, scrolling the whole layout sideways under a bottom bar that is fixed to the viewport, which is what made the tab bar look misplaced and cut off. Two defences, and keep both: text that can carry a URL breaks anywhere (`.evt-title`, `.syl-pill-title`, `.syl-title-text`, `.syl-detail-text`), and `body{overflow-x:clip}` holds for whatever comes next. `clip`, not `hidden`: it does not make the body a scroll container, so the almanac's sticky flanks keep sticking. Where a cell may hold long text, the column that must give way is named explicitly (`.syl-title-cell{width:100%}`) — otherwise the title column is the one that yields and collapses to a few characters a line.
@@ -80,7 +80,7 @@ A week pill's title is capped at **ten rendered lines** (`sylFitTitles`, `SYL_PI
 
 ## Versioning
 - Version lives as an HTML comment on line 1: `<!-- Academic Planner vX.Y -->`, and in a visible `.version-label` in the header, and in the service worker `CACHE_NAME`.
-- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v12.5. All three locations must match.
+- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v12.6. All three locations must match.
 - Bumping the SW `CACHE_NAME` every change is required or installed devices serve stale code.
 
 ## Architecture rules (hard-won — do not violate)

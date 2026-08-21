@@ -1,4 +1,4 @@
-<!-- Academic Planner v12.5 -->
+<!-- Academic Planner v12.6 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1309,7 +1309,7 @@ function render(){
   // their place in the layout, and only their contents are rewritten.
   document.getElementById('sideNav').innerHTML=`<div class="sidenav-title">Planner</div>${NAV_SLOTS.map(sl=>slotBtn('nav-item',sl)).join('')}`;
   document.getElementById('bottomNav').innerHTML=NAV_SLOTS.map(sl=>slotBtn('bn-item',sl)).join('');
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v12.5</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply();updateToTop()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v12.6</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply();updateToTop()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -1993,12 +1993,34 @@ function scroller(){return document.getElementById('scroll')}
 const TO_TOP_SCREENS=3;
 function toTopThreshold(){const sc=scroller();return (sc?sc.clientHeight:innerHeight)*TO_TOP_SCREENS}
 function updateToTop(){const el=document.getElementById('toTop'),sc=scroller();if(!el||!sc)return;
+  if(_toTopLock>Date.now())return;
   el.classList.toggle('show',sc.scrollTop>toTopThreshold())}
-function scrollToTop(){const soft=!matchMedia('(prefers-reduced-motion:reduce)').matches;
-  scroller().scrollTo({top:0,behavior:soft?'smooth':'auto'})}
-let _toTopRaf=0;
-addEventListener('DOMContentLoaded',()=>scroller().addEventListener('scroll',()=>{
-  if(_toTopRaf)return;_toTopRaf=requestAnimationFrame(()=>{_toTopRaf=0;updateToTop()})},{passive:true}));
+/* The scroll handler is throttled to one reading a frame, which is right for a finger-driven scroll
+   (hundreds of events) and wrong for a programmatic one: a smooth scroll ends at a definite moment,
+   and if that moment falls while a frame is already pending, the pending read happens mid-flight and
+   is the LAST word — leaving the button on screen at the top of the page. So the state is settled
+   three ways: the press itself says where we are going, `scrollend` is the authoritative last word
+   where the browser has it, and a late re-check covers the browsers that do not (and the case where
+   the smooth scroll was interrupted by a finger on the way up). */
+let _toTopRaf=0,_toTopLock=0,_toTopLastY=0;
+function toTopSettle(){_toTopLock=0;if(_toTopRaf)cancelAnimationFrame(_toTopRaf);_toTopRaf=0;updateToTop()}
+function scrollToTop(){
+  const el=document.getElementById('toTop');if(el)el.classList.remove('show');
+  // The destination is known from the press, so readings taken on the way there say nothing worth
+  // acting on — without this, the first mid-flight scroll event puts the button straight back.
+  _toTopLock=Date.now()+900;
+  const soft=!matchMedia('(prefers-reduced-motion:reduce)').matches;
+  scroller().scrollTo({top:0,behavior:soft?'smooth':'auto'});
+  setTimeout(toTopSettle,700)}
+addEventListener('DOMContentLoaded',()=>{const sc=scroller();
+  sc.addEventListener('scroll',()=>{
+    const y=sc.scrollTop;
+    // A finger going the other way ends the press's claim at once, so the button comes back the
+    // moment you scroll down again rather than after the lock times out.
+    if(_toTopLock&&y>_toTopLastY+2)_toTopLock=0;
+    _toTopLastY=y;
+    if(_toTopRaf)return;_toTopRaf=requestAnimationFrame(()=>{_toTopRaf=0;updateToTop()})},{passive:true});
+  sc.addEventListener('scrollend',toTopSettle)});
 
 /* ---- Find ------------------------------------------------------------------------------------ */
 /* A find that behaves the way the browser's own does — pinned while open, Enter and Shift+Enter to
