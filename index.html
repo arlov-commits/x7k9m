@@ -1,4 +1,4 @@
-<!-- Academic Planner v12.0 -->
+<!-- Academic Planner v12.1 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1195,7 +1195,7 @@ function render(){
   const [weekSlotDef,sylSlotDef,evtSlotDef,miscSlotDef]=NAV_SLOTS;
   const sideNav=`<nav class="sidenav"><div class="sidenav-title">Planner</div>${slotBtn('nav-item',weekSlotDef)}${slotBtn('nav-item',sylSlotDef)}${slotBtn('nav-item',evtSlotDef)}<div class="nav-spacer"></div>${slotBtn('nav-item',miscSlotDef)}</nav>`;
   const bottomNav=`<nav class="bottomnav">${slotBtn('bn-item',weekSlotDef)}${slotBtn('bn-item',sylSlotDef)}${slotBtn('bn-item',evtSlotDef)}${slotBtn('bn-item',miscSlotDef)}</nav>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v12.0</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}`;updateSI();almFitLabels();sylFitTitles()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v12.1</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}`;updateSI();almFitLabels();sylFitTitles()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -2523,7 +2523,60 @@ function renderSettings(){
   <button class="btn btn-quiet" onclick="importState()">Restore</button></div>
   <div class="settings-section"><label>Backup to file</label>
   <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Download all your data as a JSON file you can re-import later.</div>
-  <button class="btn btn-quiet" onclick="exportState()">Backup</button></div></div>`}
+  <button class="btn btn-quiet" onclick="exportState()">Backup</button></div></div>
+  ${legacyCatSectionHtml()}`}
+
+/* Records left over from a term the workbook no longer defines. v12.0 took the retired classes out
+   of the code, which is why these now read as Custom everywhere — but the records themselves are
+   the user's data, held in the synced collections, and deleting them is theirs to authorise. So the
+   app counts them and offers one sweep rather than purging on load behind their back.
+   Two tests, and both are needed. One: a cat that is neither one of the workbook's classes nor one
+   of the three kinds that are not classes — that is a class tag from a term that has ended. Two: a
+   hand-added syllabus entry due before the workbook's own first date, which is how the spring
+   entries filed under Custom are caught, Custom being a bucket that is still live. The second test
+   is confined to hand-added syllabus entries: a task or a life task can be undated or long-running,
+   and its date is nobody's evidence of which term it belongs to. Skipped entirely while the feed
+   has not loaded — a missing workbook must never be read as "everything is old".
+   The section removes itself once nothing matches. */
+const LIVE_KINDS=['life','events','custom'];
+function legacyCatRecords(){
+  const out={syllabus:[],tasks:[],deliverables:[]},seen=new Set();
+  for(const k in out){(state[k]||[]).forEach(r=>{const c=r&&r.cat;
+    if(!c||LIVE_KINDS.includes(c)||sylClassOf(c))return;
+    out[k].push(r);seen.add(c)})}
+  const f=(typeof sylFeed==='function')?sylFeed():null;
+  out.stale=[];
+  if(f&&f.first)(state.syllabus||[]).forEach(r=>{
+    if(!r||!r.due||r.due>=f.first||out.syllabus.includes(r))return;
+    out.syllabus.push(r);out.stale.push(r)});
+  out.total=out.syllabus.length+out.tasks.length+out.deliverables.length;
+  out.cats=[...seen].sort();
+  out.before=f&&f.first?f.first:'';
+  return out}
+function legacyCatSectionHtml(){
+  const g=legacyCatRecords();
+  if(!g.total)return'';
+  const part=[['syllabus entries',g.syllabus.length],['tasks',g.tasks.length],['deliverables',g.deliverables.length]]
+    .filter(p=>p[1]).map(p=>p[1]+' '+p[0]).join(', ');
+  const why=[g.cats.length?'filed under '+g.cats.join(', ')+' — class tags the workbook no longer defines':'',
+    g.stale.length?g.stale.length+' of them hand-added and due before the workbook’s first date ('+g.before+')':'']
+    .filter(Boolean).join('; ');
+  return `<div class="notes-box"><div class="notes-box-title">Retired Classes</div>
+  <div class="settings-section"><label>${g.total} record${g.total>1?'s':''} from a past term</label>
+  <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">${escHtml(part)} — ${escHtml(why)}. They read as Custom everywhere until they are cleared. Back up first if you want them kept: this deletes them on every device.</div>
+  <button class="btn btn-danger" onclick="clearLegacyCatRecords()">Clear ${g.total} record${g.total>1?'s':''}</button></div></div>`}
+function clearLegacyCatRecords(){
+  const g=legacyCatRecords();
+  if(!g.total)return;
+  if(!confirm('Delete '+g.total+' record'+(g.total>1?'s':'')+' from a past term?\n\n'
+    +[['syllabus entries',g.syllabus.length],['tasks',g.tasks.length],['deliverables',g.deliverables.length]]
+      .filter(p=>p[1]).map(p=>'  '+p[1]+' '+p[0]).join('\n')
+    +'\n\nThis syncs to every device and cannot be undone here. Settings → Backup first if in doubt.'))return;
+  // Deleting from the array IS the delete: detectAndQueue turns each disappearance into a per-record
+  // delete with a tombstone, the same path the row-level delete buttons take. (SYNC_REFERENCE 1.6)
+  ['syllabus','tasks','deliverables'].forEach(k=>{const ids=new Set(g[k].map(r=>String(r.id)));
+    if(ids.size)state[k]=(state[k]||[]).filter(r=>!ids.has(String(r.id)))});
+  render();scheduleSave()}
 
 function getSylForDate(dateStr){
   const chips=[];
