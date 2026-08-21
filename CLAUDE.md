@@ -35,6 +35,8 @@ A published event can be **mirrored to the Week tab** (v11.2): tapping its chip 
 The moon is stated **once for all three reckonings**, not once per layer: agreeing sources group onto a single reading. Attribution is by **emblem only** — a stupa or a dharmachakra beside the icon; the source is never written out, and local is never labelled at all because local is the default. A phase is **named** only when it is a local quarter: the intermediate phases read fine from the icon and would otherwise put prose on four days out of five. The full sentence survives as the `title`. The three reckonings — local astronomical, Thai, Chinese — routinely disagree by a day and are deliberately **not** reconciled. Only the local layer is drawn between the quarters (waxing crescent and so on); the monasteries publish new/quarter/full and nothing else, so the intermediate phases are never attributed to them and never group.
 
 ## Week-tab pills (v11.7)
+The **week header is a heading and nothing more** (v12.3): it does not take a dropped pill, offer to add one, or act as an allocation target, and there are no week-scoped tasks (`weekNum`) any more. A pill belongs to a day.
+
 A day column is barely 150px wide on a phone, and every pill here is designed against that width. **A pill's title is always its own flex item, left-aligned** (`.evt-title`, `.syl-pill-title`, both `min-width:0`): a title too long for the column then wraps against a straight left edge instead of setting itself ragged around whatever precedes it, which is what made these unreadable before v11.7.
 
 What a pill says *about* an entry — which class it is, when it runs — sits in a **zone of its own** (`.pill-zone`): a soft block of the pill's own accent, no border, no second typeface, no brackets. Both pill kinds use the same zone, which is what makes them one family, and because the ground is the accent the pill is already tinted with, a zone reads as the same object at another depth rather than something stuck on. The tint is `color-mix` on `currentColor` with a flat `--surface2` fallback declared ahead of it.
@@ -53,6 +55,10 @@ The **side nav is the bottom bar transposed**: both render `NAV_SLOTS` through t
 
 **Find** (`#findBar`) is pinned to the viewport, not to a tab, and lives outside `#app` with the back-to-top button: `render()` replaces that subtree wholesale and neither may lose its state mid-repaint. It exists because the browser's own Ctrl+F cannot work here — seven of the eight tabs are in the DOM but `display:none`. Matches are wrapped in `<mark class="find-hit">`; `findClear()` unwraps and `normalize()`s so the DOM returns exactly as it was, and `findReapply()` re-marks after every render. Matching **folds diacritics one character at a time** (`findFold`), so the folded haystack keeps the original's length and a hit's offsets still address the real text — this is what lets "surangama" find Śūraṅgama. Hidden subtrees are skipped by `offsetParent`, which is also what keeps the inactive tabs out of the marking pass; their counts come from `textContent` instead (`findTabCounts`). With **all tabs** ticked, stepping past the last match opens the next tab that has one; without it, stepping wraps inside the tab and never navigates. Enter/Shift+Enter step from anywhere inside the bar, not just the input — after ticking the checkbox the focus is on it, and a dead Enter there reads as breakage.
 
+Everything in the bar except the query field is a **control, not text**: `user-select:none`, no callout, and `touch-action:manipulation` so a quick second tap on next/prev is another press rather than a double-tap zoom (which was expanding the page and pushing the close button off the edge). The query field is 16px on a coarse pointer — under that a phone zooms the page when it takes focus — and nothing in the bar calls `focus()` on a touch device, since that is what was raising the on-screen keyboard when you only meant to tick "all tabs".
+
+**The bottom bar is pinned to the visual viewport**, not just the layout one (`pinBottomBar`, `--vv-gap`). Chrome on Android lays `position:fixed` out against the layout viewport, which keeps the taller height it had while the URL bar was hidden; scrolling up brings the URL bar back and leaves a bottom-anchored bar hanging below the screen with its labels cut off. Nothing about that is tab-specific. A gap wider than 160px is the on-screen keyboard rather than the URL bar, and is ignored — otherwise the bar would launch into the middle of the screen.
+
 **Back to top** appears after `max(half a screen, a tenth of the document)` but never later than a screen and a half — a tenth of the Week tab is several screens, long past when you want the way back.
 
 ## Nothing may widen the page (v11.9)
@@ -69,7 +75,7 @@ A week pill's title is capped at **ten rendered lines** (`sylFitTitles`, `SYL_PI
 
 ## Versioning
 - Version lives as an HTML comment on line 1: `<!-- Academic Planner vX.Y -->`, and in a visible `.version-label` in the header, and in the service worker `CACHE_NAME`.
-- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v12.2. All three locations must match.
+- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v12.3. All three locations must match.
 - Bumping the SW `CACHE_NAME` every change is required or installed devices serve stale code.
 
 ## Architecture rules (hard-won — do not violate)

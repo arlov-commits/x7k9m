@@ -1,4 +1,4 @@
-<!-- Academic Planner v12.2 -->
+<!-- Academic Planner v12.3 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -147,6 +147,8 @@ body{overflow-x:clip;font-family:var(--font-sans);font-size:var(--fs-s);backgrou
 .nav-item:hover{color:var(--text)}
 .nav-item.active{color:var(--text);border-left-color:var(--accent-ab)}
 .nav-item.active .nav-face{background:var(--surface3)}
+/* Pinned to the visual viewport, not just to the layout one — see pinBottomBar(). */
+.bottomnav{transform:translateY(calc(-1 * var(--vv-gap,0px)));transition:transform 90ms linear}
 .bottomnav{display:flex;position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--border);z-index:40;padding-bottom:env(safe-area-inset-bottom,0)}
 .bn-item{flex:1;display:flex;align-items:center;justify-content:center;background:0;border:0;border-top:2px solid transparent;color:var(--text-dim);font-family:var(--font-sans);font-size:var(--fs-2xs);font-weight:600;padding:8px 2px 7px;cursor:pointer}
 .bn-item.active{color:var(--text);border-top-color:var(--accent-ab)}
@@ -169,6 +171,13 @@ body{overflow-x:clip;font-family:var(--font-sans);font-size:var(--fs-s);backgrou
 /* The find bar is pinned to the top of the viewport, not to a tab: one bar searches whichever tab is
    open, and with "all tabs" ticked it carries on into the next. It sits above the sticky almanac
    flanks and below the modals. */
+/* Everything in the bar except the query is a control, not text: no selection, no copy/paste
+   callout on a long press, no tap highlight, and `touch-action:manipulation` so a quick second tap
+   on next/prev is another press rather than a double-tap zoom — which is what was blowing the page
+   up and pushing the close button off the edge. */
+.findbar,.findbar *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.findbar input{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 .findbar{position:fixed;top:0;left:0;right:0;z-index:55;display:none;align-items:center;gap:8px;
   padding:8px 12px calc(8px + env(safe-area-inset-top,0));background:var(--surface);
   border-bottom:1px solid var(--border);box-shadow:0 4px 16px rgba(0,0,0,.18)}
@@ -176,6 +185,8 @@ body{overflow-x:clip;font-family:var(--font-sans);font-size:var(--fs-s);backgrou
 .findbar .find-ico{width:16px;height:16px;color:var(--text-muted);flex-shrink:0}
 #findInput{flex:1 1 auto;min-width:0;background:var(--surface2);border:1px solid var(--border);
   color:var(--text);font-family:var(--font-sans);font-size:var(--fs-s);padding:7px 10px;border-radius:var(--r-s)}
+/* 16px is the threshold under which a phone zooms the page when the field takes focus. */
+@media(pointer:coarse){#findInput{font-size:16px}}
 #findInput:focus{outline:2px solid var(--accent-ab);outline-offset:-1px}
 .find-count{font-family:var(--font-mono);font-size:var(--fs-2xs);color:var(--text-dim);white-space:nowrap;flex-shrink:0;min-width:52px;text-align:right}
 .find-count.none{color:var(--danger)}
@@ -194,7 +205,7 @@ mark.find-hit.cur{background:var(--warning);color:var(--bg);box-shadow:0 0 0 2px
 .find-all-short{display:none}
 @media(max-width:700px){.find-all-short{display:inline}}
 
-.to-top{position:fixed;right:16px;bottom:calc(86px + env(safe-area-inset-bottom,0));z-index:45;
+.to-top{position:fixed;right:16px;bottom:calc(86px + env(safe-area-inset-bottom,0) + var(--vv-gap,0px));z-index:45;
   width:42px;height:42px;display:flex;align-items:center;justify-content:center;
   background:var(--surface);color:var(--text-dim);border:1px solid var(--border);border-radius:50%;
   box-shadow:0 3px 12px rgba(0,0,0,.2);cursor:pointer;
@@ -982,10 +993,10 @@ a.syl-meta-tag.link{color:var(--text-dim);text-decoration:none}a.syl-meta-tag.li
   <span class="mi find-ico" style="--ic:var(--ic-search)"></span>
   <input id="findInput" type="text" placeholder="Find…" autocomplete="off" spellcheck="false" aria-label="Find text"/>
   <span class="find-count" id="findCount">—</span>
-  <button class="find-btn" id="findPrev" onclick="findStep(-1)" title="Previous (Shift+Enter)" aria-label="Previous match"><span class="mi" style="--ic:var(--ic-up)"></span></button>
-  <button class="find-btn" id="findNext" onclick="findStep(1)" title="Next (Enter)" aria-label="Next match"><span class="mi find-down" style="--ic:var(--ic-up)"></span></button>
+  <button class="find-btn" id="findPrev" onmousedown="event.preventDefault()" onclick="findStep(-1)" title="Previous (Shift+Enter)" aria-label="Previous match"><span class="mi" style="--ic:var(--ic-up)"></span></button>
+  <button class="find-btn" id="findNext" onmousedown="event.preventDefault()" onclick="findStep(1)" title="Next (Enter)" aria-label="Next match"><span class="mi find-down" style="--ic:var(--ic-up)"></span></button>
   <label class="find-all" title="When the matches in this tab run out, carry on into the next tab"><input type="checkbox" id="findAll" onchange="findAllToggle()"/><span class="find-all-long">all tabs</span><span class="find-all-short">all</span></label>
-  <button class="find-btn" onclick="findClose()" title="Close (Esc)" aria-label="Close find"><span class="mi" style="--ic:var(--ic-x)"></span></button>
+  <button class="find-btn" onmousedown="event.preventDefault()" onclick="findClose()" title="Close (Esc)" aria-label="Close find"><span class="mi" style="--ic:var(--ic-x)"></span></button>
 </div>
 <button class="to-top" id="toTop" onclick="scrollToTop()" title="Back to top" aria-label="Back to top"><span class="mi" style="--ic:var(--ic-up)"></span></button>
 <div class="modal-overlay" id="editModal"><div class="modal"><button class="modal-x" onclick="this.closest('.modal-overlay').classList.remove('open')" aria-label="Close"><span class="mi" style="--ic:var(--ic-x)"></span></button><h3 id="mTitle">Edit Task</h3><label>Name</label><input id="mName" type="text"/><label>Time</label><input id="mTime" type="time"/><label>Category</label><select id="mCat"></select><label>Priority</label><select id="mPri"><option value="normal">Normal</option><option value="high">High</option></select><label>Linked Reading</label><select id="mSyl"><option value="">None</option></select><div class="modal-btns"><button class="btn btn-danger" id="mDel">Delete</button><button class="btn btn-quiet" id="mCanc">Cancel</button><button class="btn btn-primary" id="mSave">Save</button></div></div></div>
@@ -1245,11 +1256,10 @@ function isUserEditing(){const ae=document.activeElement;if(ae){const tag=ae.tag
 // (Whole-blob checkRemoteSync removed — superseded by per-record syncPullAndMerge.)
 
 const $=s=>document.querySelector(s);
-let allocatingId=null,addingDate=null,addingWeekNum=null;
+let allocatingId=null,addingDate=null;
 function isInSprint(lifeId){return state.tasks.some(t=>t.lifeSourceId===lifeId)||state.lifeTasks.find(t=>t.id===lifeId)?.inBank}
 
 function render(){
-  returnExpiredWeekTasks();
   computeEvtColors();
   document.documentElement.setAttribute('data-theme',state.theme);
   updateThemeColor();
@@ -1274,7 +1284,7 @@ function render(){
   // Both navs draw the same slots in the same order — the side nav is the bottom bar stood on end.
   const sideNav=`<nav class="sidenav"><div class="sidenav-title">Planner</div>${NAV_SLOTS.map(sl=>slotBtn('nav-item',sl)).join('')}</nav>`;
   const bottomNav=`<nav class="bottomnav">${NAV_SLOTS.map(sl=>slotBtn('bn-item',sl)).join('')}</nav>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v12.2</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply();updateFindTopPad();updateToTop()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v12.3</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply();updateFindTopPad();updateToTop()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -1946,6 +1956,25 @@ function almFitLabels(){
 let _fitTimer=null;
 window.addEventListener('resize',()=>{clearTimeout(_fitTimer);_fitTimer=setTimeout(()=>{almFitLabels();sylFitTitles()},150)});
 
+/* ---- Keeping the bottom bar on screen ------------------------------------------------------- */
+/* Chrome on Android lays `position:fixed` out against the LAYOUT viewport, which keeps the taller
+   height it had while the URL bar was hidden. Scrolling up brings the URL bar back, the visual
+   viewport shrinks, and a bottom-anchored bar is left hanging below the screen — which is the tab
+   bar looking "collapsed", losing its labels off the bottom edge. Nothing about it is tab-specific;
+   it shows up wherever you happen to scroll up. So measure how far the layout bottom sits below the
+   visible bottom and lift the bar by exactly that.
+   A gap that big is the on-screen keyboard rather than the URL bar: leave the bar at the layout
+   bottom then, instead of launching it into the middle of the screen above the keys. */
+function pinBottomBar(){
+  const vv=window.visualViewport;if(!vv)return;
+  const gap=Math.round(document.documentElement.clientHeight-(vv.height+vv.offsetTop));
+  document.documentElement.style.setProperty('--vv-gap',(gap>0&&gap<160?gap:0)+'px')}
+if(window.visualViewport){
+  visualViewport.addEventListener('resize',pinBottomBar);
+  visualViewport.addEventListener('scroll',pinBottomBar);
+  addEventListener('scroll',pinBottomBar,{passive:true});
+  pinBottomBar()}
+
 /* ---- Back to top ---------------------------------------------------------------------------- */
 /* Shown once there is a screenful or a tenth of the document behind you, whichever is further — the
    tenth alone fires almost immediately on a long Week tab, and a screenful alone never fires on a
@@ -2066,7 +2095,11 @@ function findJumpTab(dir){
   switchTab(to);                                  // re-render paints the marks again (findReapply)
   requestAnimationFrame(()=>{_find.i=dir>0?0:Math.max(0,_find.hits.length-1);findPaint(true)})}
 function findAllToggle(){_find.all=document.getElementById('findAll').checked;
-  document.getElementById('findInput').focus();findPaint()}
+  // Refocusing the query is a convenience with a physical keyboard; on a phone it summons the
+  // on-screen one over the results you just asked to see more of. Enter steps from anywhere in the
+  // bar, so nothing is lost by leaving focus where the finger put it.
+  if(matchMedia('(hover:hover) and (pointer:fine)').matches)document.getElementById('findInput').focus();
+  findPaint()}
 // render() rebuilds #app, which takes the marks with it: put them back on the new DOM.
 function findReapply(){if(!_find.open||!(_find.q||'').trim())return;
   const keep=_find.i;findClear();_find.hits=findMark(_find.q.trim());
@@ -2379,9 +2412,9 @@ const manualHidden=wk.days.filter(d=>(state.hiddenDays||[]).includes(d.date)).le
 const autoHiddenDays=isCur?wk.days.filter(d=>d.date<todayStr&&!expandedPastDays.includes(d.date)):[];
 const totalHidden=manualHidden+autoHiddenDays.length;
 const isAT=allocatingId!==null;
-const weekTasks=state.tasks.filter(t=>t.weekNum===wk.num&&!t.date);
-const weekChipsHtml=weekTasks.map(t=>renderChip(t)).join('');
-let h=`<div class="week-section"><div class="week-hdr ${isAT?'alloc-target':''}" style="grid-row:${hdrRow}" ${isAT?`onclick="placeAllocatedWeek(${wk.num})"`:''} ondragover="event.preventDefault();this.classList.add('alloc-highlight')" ondrop="handleWeekDrop(event,${wk.num})" ondragleave="this.classList.remove('alloc-highlight')"><span class="week-hdr-title">Week ${wk.num}</span><span class="week-hdr-dates">${fmtDateShort(wk.start)} → ${fmtDateShort(wk.end)}</span>${badges.join('')}${totalHidden?`<button class="expand-week-btn" onclick="event.stopPropagation();expandWeek(${wk.num})" title="Show hidden days">▼ ${totalHidden} hidden</button>`:''}${weekChipsHtml}<button class="add-day-btn" onclick="event.stopPropagation();openAddWeekTask(${wk.num})" title="Add week task">+</button></div>`;
+// The week header is a heading and nothing more (v12.3): it no longer takes a dropped pill, offers
+// to add one, or acts as an allocation target. A pill belongs to a day.
+let h=`<div class="week-section"><div class="week-hdr" style="grid-row:${hdrRow}"><span class="week-hdr-title">Week ${wk.num}</span><span class="week-hdr-dates">${fmtDateShort(wk.start)} → ${fmtDateShort(wk.end)}</span>${badges.join('')}${totalHidden?`<button class="expand-week-btn" onclick="event.stopPropagation();expandWeek(${wk.num})" title="Show hidden days">▼ ${totalHidden} hidden</button>`:''}</div>`;
 visDays.forEach((day,di)=>{const dayRow=hdrRow+1+di;const tasks=state.tasks.filter(t=>t.date===day.date),isT=sameDay(day.dateObj,TODAY),note=state.dayNotes[day.date]||'',canHide=isCur&&day.dateObj<=TODAY;
 const dayEvts=getEventsForDate(day.date);const sylChips=getSylForDate(day.date);const SYL_ICON={reading:'book',paper:'paper',exam:'seal',presentation:'present',note:'pen',custom:'pin'};
 // Build unified sorted pill list
@@ -2863,17 +2896,6 @@ function handleChipDragOver(e){e.preventDefault();e.stopPropagation();const area
 function clearDropIndicators(area){area.querySelectorAll('.drop-before,.drop-after').forEach(el=>{el.classList.remove('drop-before','drop-after')})}
 function handleChipDrop(e,date){e.preventDefault();e.stopPropagation();const area=e.currentTarget;clearDropIndicators(area);if(dragEvtId!==null){handleEvtDrop(dragEvtId,date);dragEvtId=null;dragEvtAnchor=null;return}if(dragId===null)return;const t=state.tasks.find(t=>t.id===dragId);if(!t)return;const chips=Array.from(area.querySelectorAll('.chip'));let insertBeforeId=null;for(const c of chips){const r=c.getBoundingClientRect();if(e.clientX<r.left+r.width/2){insertBeforeId=parseInt(c.dataset.id);break}}state.tasks=state.tasks.filter(x=>x.id!==t.id);t.date=date;delete t.weekNum;if(insertBeforeId!==null){const idx=state.tasks.findIndex(x=>x.id===insertBeforeId);state.tasks.splice(idx,0,t)}else{const dayTasks=state.tasks.filter(x=>x.date===date);if(dayTasks.length){const lastIdx=state.tasks.lastIndexOf(dayTasks[dayTasks.length-1]);state.tasks.splice(lastIdx+1,0,t)}else{state.tasks.push(t)}}dragId=null;render();scheduleSave()}
 function deleteTask(id){const t=state.tasks.find(t=>t.id===id);if(!t)return;if(t.lifeSourceId){const lt=state.lifeTasks.find(l=>l.id===t.lifeSourceId);if(lt){lt.inBank=false;lt.done=false}}state.tasks=state.tasks.filter(t=>t.id!==id);render();scheduleSave()}
-function placeAllocatedWeek(weekNum){if(!allocatingId)return;const lt=state.lifeTasks.find(t=>t.id===allocatingId);if(lt){state.tasks.push({id:genId(),date:'',weekNum,cat:'life',name:lt.name,priority:lt.priority==='high'?'high':'normal',done:false,lifeSourceId:lt.id,time:''});lt.inBank=false;allocatingId=null;render();scheduleSave()}}
-function handleWeekDrop(e,weekNum){e.preventDefault();e.currentTarget.classList.remove('alloc-highlight');if(dragId!==null){const t=state.tasks.find(t=>t.id===dragId);if(t){t.date='';t.weekNum=weekNum;render();scheduleSave()}}dragId=null}
-function openAddWeekTask(weekNum){addingDate='';addingWeekNum=weekNum;$('#aName').value='';$('#aTime').value='';$('#aEvtStartTime').value='';fillCatSelect($('#aCat'),'life',['events','life'],false);$('#aPri').value='normal';$('#aPriToggle').className='pri-toggle';$('#aPriToggle').querySelectorAll('.pri-option').forEach((o,i)=>{o.classList.toggle('active',i===0)});$('#aEvtDate').value='';$('#aEvtEndDate').value='';$('#aEvtEndTime').value='';$('#aEvtLoc').value='';$('#aEvtAllDay').checked=false;edResetTouched('aEvtEndDate');toggleAddEvtFields();$('#addModal').classList.add('open')}
-function returnExpiredWeekTasks(){
-  // Determine the current week number directly so this never depends on the
-  // generated week window. Only return tasks tied to a *past* weekNum that have
-  // NO explicit date — dated tasks live on their day and must never be deleted here.
-  let curStart=new Date(TODAY);curStart.setDate(curStart.getDate()-weekStartOffset(curStart));
-  const curWk=semesterWeekNum(curStart);
-  const expired=state.tasks.filter(t=>t.weekNum&&!t.date&&!t.done&&t.weekNum<curWk);
-  expired.forEach(t=>{if(t.lifeSourceId){const lt=state.lifeTasks.find(l=>l.id===t.lifeSourceId);if(lt){lt.inBank=true;lt.done=false}}});if(expired.length){state.tasks=state.tasks.filter(t=>!expired.some(e=>e.id===t.id));scheduleSave()}}
 function inlineEditChip(id,el){const t=state.tasks.find(t=>t.id===id);if(!t)return;el.setAttribute('draggable','false');const acts=el.querySelector('.chip-acts');if(acts)acts.style.display='none';const starSpan=t.priority==='high'?el.querySelector('span[style]'):null;el.innerHTML='';if(starSpan)el.appendChild(starSpan);const nameIn=document.createElement('input');nameIn.type='text';nameIn.value=t.name;nameIn.className='inline-edit-input';nameIn.style.cssText='width:'+Math.max(60,t.name.length*8)+'px;font-size:var(--fs-s);padding:1px 4px;border:1px solid var(--border);border-radius:var(--r-s);background:var(--surface);color:inherit;font-family:inherit;outline:none;';el.appendChild(nameIn);nameIn.focus();nameIn.select();function save(){t.name=nameIn.value.trim()||t.name;render();scheduleSave()}function onKey(e){if(e.key==='Enter'){e.preventDefault();save()}else if(e.key==='Escape'){render()}}nameIn.addEventListener('keydown',onKey);nameIn.addEventListener('blur',()=>setTimeout(()=>{if(!el.contains(document.activeElement))save()},100))}
 
 function sendToBank(id){const t=state.lifeTasks.find(t=>t.id===id);if(t){t.inBank=true;render();scheduleSave()}}
@@ -2919,8 +2941,8 @@ function fillCatSelect(sel,cur,kinds,withCustom){
   if(cur!=null)sel.value=cur;
 }
 function toggleAddEvtFields(){const isEvt=$('#aCat').value==='events';$('#aEvtFields').style.display=isEvt?'':'none';$('#aTimeRow').style.display=isEvt?'none':'';$('#aPriRow').style.display=isEvt?'none':'';if(isEvt&&addingDate){$('#aEvtDate').value=addingDate}}
-function openAddTask(date){addingDate=date;addingWeekNum=null;$('#aName').value='';$('#aTime').value=roundedHour();$('#aEvtStartTime').value=roundedHour();fillCatSelect($('#aCat'),'events',['events','life'],false);$('#aPri').value='normal';$('#aPriToggle').className='pri-toggle';$('#aPriToggle').querySelectorAll('.pri-option').forEach((o,i)=>{o.classList.toggle('active',i===0)});$('#aEvtDate').value=date;$('#aEvtEndDate').value='';$('#aEvtEndTime').value='';$('#aEvtLoc').value='';$('#aEvtAllDay').checked=false;edResetTouched('aEvtEndDate');toggleAddEvtFields();$('#addModal').classList.add('open')}
-$('#aSave').onclick=()=>{const name=$('#aName').value.trim();if(!name){$('#addModal').classList.remove('open');return}const cat=$('#aCat').value;if(cat==='events'){if(!state.events)state.events=[];state.events.push({id:genId(),name,date:$('#aEvtDate').value||addingDate,endDate:$('#aEvtEndDate').value||'',startTime:$('#aEvtStartTime').value||'',endTime:$('#aEvtEndTime').value||'',location:$('#aEvtLoc').value||'',allDay:$('#aEvtAllDay').checked});$('#addModal').classList.remove('open');render();scheduleSave();return}const pri=$('#aPri').value,time=$('#aTime').value||'';let lifeSourceId=null;if(cat==='life'){const ltId=genId();state.lifeTasks.push({id:ltId,name,category:'General',priority:pri==='high'?'high':'med',due:addingDate,done:false,inBank:false});lifeSourceId=ltId}const taskObj={id:genId(),date:addingDate||'',cat,name,priority:pri,done:false,lifeSourceId,syllabusId:null,time};if(addingWeekNum){taskObj.weekNum=addingWeekNum;taskObj.date=''}state.tasks.push(taskObj);addingWeekNum=null;$('#addModal').classList.remove('open');render();scheduleSave()}
+function openAddTask(date){addingDate=date;$('#aName').value='';$('#aTime').value=roundedHour();$('#aEvtStartTime').value=roundedHour();fillCatSelect($('#aCat'),'events',['events','life'],false);$('#aPri').value='normal';$('#aPriToggle').className='pri-toggle';$('#aPriToggle').querySelectorAll('.pri-option').forEach((o,i)=>{o.classList.toggle('active',i===0)});$('#aEvtDate').value=date;$('#aEvtEndDate').value='';$('#aEvtEndTime').value='';$('#aEvtLoc').value='';$('#aEvtAllDay').checked=false;edResetTouched('aEvtEndDate');toggleAddEvtFields();$('#addModal').classList.add('open')}
+$('#aSave').onclick=()=>{const name=$('#aName').value.trim();if(!name){$('#addModal').classList.remove('open');return}const cat=$('#aCat').value;if(cat==='events'){if(!state.events)state.events=[];state.events.push({id:genId(),name,date:$('#aEvtDate').value||addingDate,endDate:$('#aEvtEndDate').value||'',startTime:$('#aEvtStartTime').value||'',endTime:$('#aEvtEndTime').value||'',location:$('#aEvtLoc').value||'',allDay:$('#aEvtAllDay').checked});$('#addModal').classList.remove('open');render();scheduleSave();return}const pri=$('#aPri').value,time=$('#aTime').value||'';let lifeSourceId=null;if(cat==='life'){const ltId=genId();state.lifeTasks.push({id:ltId,name,category:'General',priority:pri==='high'?'high':'med',due:addingDate,done:false,inBank:false});lifeSourceId=ltId}state.tasks.push({id:genId(),date:addingDate||'',cat,name,priority:pri,done:false,lifeSourceId,syllabusId:null,time});$('#addModal').classList.remove('open');render();scheduleSave()}
 $('#aCanc').onclick=()=>{$('#addModal').classList.remove('open')}
 $('#addModal').onclick=e=>{if(e.target.id==='addModal')$('#addModal').classList.remove('open')}
 
