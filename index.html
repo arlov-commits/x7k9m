@@ -1,4 +1,4 @@
-<!-- Academic Planner v12.4 -->
+<!-- Academic Planner v12.5 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -93,7 +93,13 @@ html{background:var(--bg);transition:background var(--t-med) var(--ease)}
    whatever comes next. `clip` rather than `hidden`: it does not make the body a scroll container,
    so the almanac's sticky flanks keep sticking to the viewport. */
 body{overflow-x:clip;font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;transition:background var(--t-med) var(--ease),color var(--t-med) var(--ease)}
-.app{max-width:900px;margin:0 auto;padding:var(--sp-6) var(--sp-4) 80px}
+/* The shell is exactly one viewport tall and never scrolls; .scroll is what moves. `dvh` tracks the
+   viewport as the URL bar comes and goes, so the tab bar rides with it instead of being stranded
+   below it. The `vh` line before it is the fallback for anything without dvh. */
+.shell{height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+.frame{flex:1 1 auto;min-height:0;display:flex;position:relative}
+.scroll{flex:1 1 auto;min-width:0;overflow-y:auto;overflow-x:clip;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
+.app{max-width:900px;margin:0 auto;padding:var(--sp-6) var(--sp-4) 40px}
 .header{display:flex;align-items:center;gap:var(--sp-2);margin-bottom:30px;flex-wrap:wrap}
 .header h1{font-family:var(--font-serif);font-size:var(--fs-xl);font-weight:600;letter-spacing:-.02em}
 .today-badge{font-family:var(--font-mono);font-size:var(--fs-2xs);color:var(--text-dim);background:var(--surface2);padding:3px 9px;border-radius:var(--r-pill)}
@@ -135,7 +141,7 @@ body{overflow-x:clip;font-family:var(--font-sans);font-size:var(--fs-s);backgrou
    adding a fifth pair needs no layout change. Before this it was a list of buttons at the top with
    the last pair marooned at the foot after a spacer, which read as two navigations rather than one.
    The active marker is the bottom bar's rule rotated a quarter turn: a bar on the leading edge. */
-.sidenav{display:none;position:fixed;top:0;left:0;bottom:0;width:208px;background:var(--surface);border-right:1px solid var(--border);flex-direction:column;padding:14px 10px;gap:6px;z-index:40;overflow-y:auto}
+.sidenav{display:none;flex:0 0 208px;background:var(--surface);border-right:1px solid var(--border);flex-direction:column;padding:14px 10px;gap:6px;z-index:40;overflow-y:auto}
 .sidenav-title{font-family:var(--font-sans);font-weight:700;font-size:var(--fs-2xs);color:var(--text-muted);letter-spacing:.05em;text-transform:uppercase;padding:4px 8px 10px;flex:0 0 auto}
 .nav-item{flex:1 1 0;min-height:64px;display:flex;align-items:center;justify-content:center;width:100%;background:0;border:0;border-left:3px solid transparent;color:var(--text-dim);font-family:var(--font-sans);font-size:var(--fs-s);font-weight:600;padding:6px;border-radius:var(--r-m);cursor:pointer;transition:color var(--t-fast) var(--ease)}
 /* The cell divides the height; the FACE is what gets marked. Filling a cell a fifth of the screen
@@ -147,17 +153,16 @@ body{overflow-x:clip;font-family:var(--font-sans);font-size:var(--fs-s);backgrou
 .nav-item:hover{color:var(--text)}
 .nav-item.active{color:var(--text);border-left-color:var(--accent-ab)}
 .nav-item.active .nav-face{background:var(--surface3)}
-/* Pinned to the visual viewport, not just to the layout one — see pinBottomBar(). */
-.bottomnav{transform:translateY(calc(-1 * var(--vv-gap,0px)))}
-.bottomnav{display:flex;position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--border);z-index:40;padding-bottom:env(safe-area-inset-bottom,0)}
+/* In flow at the foot of the shell — not fixed, so there is no viewport for it to be stranded
+   outside of. It keeps the safe-area inset as padding, for a phone with a home indicator. */
+.bottomnav{flex:0 0 auto;display:flex;background:var(--surface);border-top:1px solid var(--border);z-index:40;padding-bottom:env(safe-area-inset-bottom,0)}
 .bn-item{flex:1;display:flex;align-items:center;justify-content:center;background:0;border:0;border-top:2px solid transparent;color:var(--text-dim);font-family:var(--font-sans);font-size:var(--fs-2xs);font-weight:600;padding:8px 2px 7px;cursor:pointer}
 .bn-item.active{color:var(--text);border-top-color:var(--accent-ab)}
 .bn-item .bn-ico{font-size:var(--fs-l);line-height:1}
-.app{padding-bottom:calc(74px + env(safe-area-inset-bottom,0))}
+
 @media(min-width:820px){
   .sidenav{display:flex}
   .bottomnav{display:none}
-  body{padding-left:208px}
   .app{padding-bottom:80px}
 }
 /* A quiet way in, in the header, which every tab already has. */
@@ -178,7 +183,9 @@ body{overflow-x:clip;font-family:var(--font-sans);font-size:var(--fs-s);backgrou
 .findbar,.findbar *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
   -webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .findbar input{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
-.findbar{position:fixed;top:0;left:0;right:0;z-index:55;display:none;align-items:center;gap:8px;
+/* A flex child at the top of the shell rather than an overlay: it takes its own height and the
+   frame below simply gets shorter, so nothing needs padding to compensate. */
+.findbar{flex:0 0 auto;z-index:55;display:none;align-items:center;gap:8px;
   padding:8px 12px calc(8px + env(safe-area-inset-top,0));background:var(--surface);
   border-bottom:1px solid var(--border);box-shadow:0 4px 16px rgba(0,0,0,.18)}
 .findbar.open{display:flex}
@@ -205,7 +212,7 @@ mark.find-hit.cur{background:var(--warning);color:var(--bg);box-shadow:0 0 0 2px
 .find-all-short{display:none}
 @media(max-width:700px){.find-all-short{display:inline}}
 
-.to-top{position:fixed;right:16px;bottom:calc(86px + env(safe-area-inset-bottom,0) + var(--vv-gap,0px));z-index:45;
+.to-top{position:absolute;right:16px;bottom:16px;z-index:45;
   width:42px;height:42px;display:flex;align-items:center;justify-content:center;
   background:var(--surface);color:var(--text-dim);border:1px solid var(--border);border-radius:50%;
   box-shadow:0 3px 12px rgba(0,0,0,.2);cursor:pointer;
@@ -214,7 +221,7 @@ mark.find-hit.cur{background:var(--warning);color:var(--bg);box-shadow:0 0 0 2px
 .to-top.show{opacity:.92;transform:none;pointer-events:auto}
 .to-top:hover{color:var(--text);opacity:1}
 .to-top .mi{width:18px;height:18px}
-@media(min-width:820px){.to-top{bottom:24px;right:24px}.findbar{left:208px}}
+@media(min-width:820px){.to-top{bottom:24px;right:24px}}
 @media(prefers-reduced-motion:reduce){.to-top{transition:opacity var(--t-fast) linear}}
 
 .legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-m);width:fit-content;max-width:100%}
@@ -986,9 +993,17 @@ a.syl-meta-tag.link{color:var(--text-dim);text-decoration:none}a.syl-meta-tag.li
 </style>
 </head>
 <body>
-<div class="app" id="app"></div>
-<!-- Both live outside #app: render() replaces that subtree wholesale, and neither of these may lose
-     its state (a half-typed query, the focus) when a sync merge repaints the page. -->
+<!-- THE SHELL (v12.5). The app is a column exactly one viewport tall: a find bar, a frame, and the
+     tab bar. The frame is a row: the desktop rail, and the one element in the app that scrolls.
+     Nothing here is `position:fixed`, and that is the whole point. A bar fixed to the bottom is
+     positioned against the layout viewport, which is not the viewport you can see on a phone — the
+     browser keeps the taller URL-bar-hidden height there — so the bar hung below the screen with
+     its labels cut off, and no amount of measuring it back into place from JS could win against a
+     compositor that moves fixed elements itself during a fling. In flow at the end of a column
+     100dvh tall, the bar cannot be anywhere but on screen: no listeners, no correction, no race.
+     The cost is that the URL bar no longer auto-hides while scrolling, since the document itself no
+     longer scrolls — and it does not apply at all once the app is installed to the home screen. -->
+<div class="shell">
 <div class="findbar" id="findBar" role="search" aria-label="Find in planner">
   <span class="mi find-ico" style="--ic:var(--ic-search)"></span>
   <input id="findInput" type="text" placeholder="Find…" autocomplete="off" spellcheck="false" aria-label="Find text"/>
@@ -998,7 +1013,15 @@ a.syl-meta-tag.link{color:var(--text-dim);text-decoration:none}a.syl-meta-tag.li
   <label class="find-all" title="When the matches in this tab run out, carry on into the next tab"><input type="checkbox" id="findAll" onchange="findAllToggle()"/><span class="find-all-long">all tabs</span><span class="find-all-short">all</span></label>
   <button class="find-btn" onmousedown="event.preventDefault()" onclick="findClose()" title="Close (Esc)" aria-label="Close find"><span class="mi" style="--ic:var(--ic-x)"></span></button>
 </div>
-<button class="to-top" id="toTop" onclick="scrollToTop()" title="Back to top" aria-label="Back to top"><span class="mi" style="--ic:var(--ic-up)"></span></button>
+<div class="frame">
+  <nav class="sidenav" id="sideNav"></nav>
+  <!-- The scroll container. #app is repainted wholesale by render(); this is not, so the scroll
+       position survives a repaint the way the document's used to. -->
+  <div class="scroll" id="scroll"><div class="app" id="app"></div></div>
+  <button class="to-top" id="toTop" onclick="scrollToTop()" title="Back to top" aria-label="Back to top"><span class="mi" style="--ic:var(--ic-up)"></span></button>
+</div>
+<nav class="bottomnav" id="bottomNav"></nav>
+</div>
 <div class="modal-overlay" id="editModal"><div class="modal"><button class="modal-x" onclick="this.closest('.modal-overlay').classList.remove('open')" aria-label="Close"><span class="mi" style="--ic:var(--ic-x)"></span></button><h3 id="mTitle">Edit Task</h3><label>Name</label><input id="mName" type="text"/><label>Time</label><input id="mTime" type="time"/><label>Category</label><select id="mCat"></select><label>Priority</label><select id="mPri"><option value="normal">Normal</option><option value="high">High</option></select><label>Linked Reading</label><select id="mSyl"><option value="">None</option></select><div class="modal-btns"><button class="btn btn-danger" id="mDel">Delete</button><button class="btn btn-quiet" id="mCanc">Cancel</button><button class="btn btn-primary" id="mSave">Save</button></div></div></div>
 <div class="modal-overlay" id="lifeModal"><div class="modal"><button class="modal-x" onclick="this.closest('.modal-overlay').classList.remove('open')" aria-label="Close"><span class="mi" style="--ic:var(--ic-x)"></span></button><h3>Edit Task</h3><label>Name</label><input id="lName" type="text"/><label>Category</label><select id="lCat"><option value="General">General</option><option value="Email">Email</option><option value="Projects">Projects</option><option value="Income">Income</option><option value="Garden">Garden</option><option value="Correspondence">Correspondence</option></select><label>Priority</label><select id="lPri"><option value="high">High</option><option value="med">Medium</option><option value="low">Low</option></select><label>Due date</label><input id="lDue" type="date"/><div class="modal-btns"><button class="btn btn-danger" id="lDel">Delete</button><button class="btn btn-quiet" id="lCanc">Cancel</button><button class="btn btn-primary" id="lSave">Save</button></div></div></div>
 <!-- Add task modal -->
@@ -1282,9 +1305,11 @@ function render(){
   // place at the foot of the side nav, where Settings used to sit on its own.
 
   // Both navs draw the same slots in the same order — the side nav is the bottom bar stood on end.
-  const sideNav=`<nav class="sidenav"><div class="sidenav-title">Planner</div>${NAV_SLOTS.map(sl=>slotBtn('nav-item',sl)).join('')}</nav>`;
-  const bottomNav=`<nav class="bottomnav">${NAV_SLOTS.map(sl=>slotBtn('bn-item',sl)).join('')}</nav>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v12.4</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply();updateFindTopPad();updateToTop();pinBottomBar()}
+  // The navs are their own elements in the shell, not part of the repainted subtree: they keep
+  // their place in the layout, and only their contents are rewritten.
+  document.getElementById('sideNav').innerHTML=`<div class="sidenav-title">Planner</div>${NAV_SLOTS.map(sl=>slotBtn('nav-item',sl)).join('')}`;
+  document.getElementById('bottomNav').innerHTML=NAV_SLOTS.map(sl=>slotBtn('bn-item',sl)).join('');
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v12.5</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply();updateToTop()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -1956,55 +1981,24 @@ function almFitLabels(){
 let _fitTimer=null;
 window.addEventListener('resize',()=>{clearTimeout(_fitTimer);_fitTimer=setTimeout(()=>{almFitLabels();sylFitTitles()},150)});
 
-/* ---- Keeping the bottom bar on screen ------------------------------------------------------- */
-/* A mobile browser positions `position:fixed` against a viewport that is not the one you can see:
-   Chrome on Android keeps the taller height it had while the URL bar was hidden, so bringing the URL
-   bar back leaves a bottom-anchored bar hanging below the screen with its labels cut off. Page zoom
-   does the same thing for a different reason.
-   The first attempt computed the overhang from documentElement.clientHeight, which assumes which of
-   the several viewport heights the browser reports there — and that assumption was wrong on a real
-   phone, so nothing moved. This measures instead: where is the bar actually drawn, and where does
-   the visible area actually end? The difference is the error, and correcting by exactly it needs no
-   theory of the browser's viewport model at all. One measurement, one correction, and the next
-   event re-checks — the same self-correcting shape as almAlignTo.
-   Two guards: never lift more than a third of the visible height (that is the on-screen keyboard,
-   and the bar belongs behind it, not floating in the middle of the screen), and never push the bar
-   below its resting place. */
-function pinBottomBar(){
-  const vv=window.visualViewport,nav=document.querySelector('.bottomnav');
-  const root=document.documentElement;
-  if(!vv||!nav)return;
-  if(getComputedStyle(nav).display==='none'){root.style.setProperty('--vv-gap','0px');return}
-  const cur=parseFloat(getComputedStyle(root).getPropertyValue('--vv-gap'))||0;
-  const overhang=nav.getBoundingClientRect().bottom-(vv.offsetTop+vv.height);
-  const next=Math.max(0,Math.min(cur+overhang,vv.height*0.34));
-  vvReadout(cur,overhang);   // always, so a bar that is still wrong can be reported as numbers
-  if(Math.abs(overhang)<0.5||Math.abs(next-cur)<0.5)return;
-  root.style.setProperty('--vv-gap',Math.round(next)+'px')}
-function vvReadout(lift,overhang){const el=document.getElementById('vvReadout');if(!el)return;const vv=window.visualViewport;
-  el.textContent=vv?('layout '+document.documentElement.clientHeight+' · visible '+Math.round(vv.height)
-    +' · offset '+Math.round(vv.offsetTop)+' · scale '+vv.scale.toFixed(2)
-    +' · lift '+Math.round(lift)+' · residual '+Math.round(overhang||0)):'unavailable'}
-if(window.visualViewport){
-  visualViewport.addEventListener('resize',pinBottomBar);
-  visualViewport.addEventListener('scroll',pinBottomBar);
-  addEventListener('scroll',()=>{if(_pinRaf)return;_pinRaf=requestAnimationFrame(()=>{_pinRaf=0;pinBottomBar()})},{passive:true});
-  addEventListener('orientationchange',()=>setTimeout(pinBottomBar,250));
-  pinBottomBar()}
-let _pinRaf=0;
+/* The one scrolling element in the app. The document itself no longer scrolls (the shell is exactly
+   a viewport tall), so anything that used to read scrollY or call scrollTo reads and drives this. */
+function scroller(){return document.getElementById('scroll')}
+
 
 /* ---- Back to top ---------------------------------------------------------------------------- */
 /* Three screens down, in every tab. A threshold derived from the document's own height (a tenth of
    it, say) moves with the tab you are in, so the button appeared at a different point in each one
    and read as unpredictable. The button lives outside #app, so a re-render cannot drop it. */
 const TO_TOP_SCREENS=3;
-function toTopThreshold(){return innerHeight*TO_TOP_SCREENS}
-function updateToTop(){const el=document.getElementById('toTop');if(!el)return;
-  el.classList.toggle('show',scrollY>toTopThreshold())}
+function toTopThreshold(){const sc=scroller();return (sc?sc.clientHeight:innerHeight)*TO_TOP_SCREENS}
+function updateToTop(){const el=document.getElementById('toTop'),sc=scroller();if(!el||!sc)return;
+  el.classList.toggle('show',sc.scrollTop>toTopThreshold())}
 function scrollToTop(){const soft=!matchMedia('(prefers-reduced-motion:reduce)').matches;
-  scrollTo({top:0,behavior:soft?'smooth':'auto'})}
-addEventListener('scroll',()=>{if(_toTopRaf)return;_toTopRaf=requestAnimationFrame(()=>{_toTopRaf=0;updateToTop()})},{passive:true});
+  scroller().scrollTo({top:0,behavior:soft?'smooth':'auto'})}
 let _toTopRaf=0;
+addEventListener('DOMContentLoaded',()=>scroller().addEventListener('scroll',()=>{
+  if(_toTopRaf)return;_toTopRaf=requestAnimationFrame(()=>{_toTopRaf=0;updateToTop()})},{passive:true}));
 
 /* ---- Find ------------------------------------------------------------------------------------ */
 /* A find that behaves the way the browser's own does — pinned while open, Enter and Shift+Enter to
@@ -2024,14 +2018,11 @@ function findOpen(){const bar=document.getElementById('findBar');if(!bar)return;
   _find.open=true;bar.classList.add('open');
   const inp=document.getElementById('findInput');inp.focus();inp.select();
   document.getElementById('findAll').checked=_find.all;
-  updateFindTopPad();if(_find.q)findRun(_find.q,true)}
+  if(_find.q)findRun(_find.q,true)}
 function findClose(){const bar=document.getElementById('findBar');if(!bar)return;
-  _find.open=false;bar.classList.remove('open');findClear();updateFindTopPad();
+  _find.open=false;bar.classList.remove('open');findClear();
   document.getElementById('findInput').blur()}
 function findToggle(){_find.open?findClose():findOpen()}
-// The bar overlays the header, so the page is pushed down by exactly its height while it is open.
-function updateFindTopPad(){const bar=document.getElementById('findBar'),app=document.getElementById('app');
-  if(!bar||!app)return;app.style.paddingTop=_find.open?bar.getBoundingClientRect().height+'px':''}
 // Unwrap every mark and stitch the split text nodes back together, so the DOM is exactly as it was.
 function findClear(){document.querySelectorAll('mark.find-hit').forEach(m=>{
     const p=m.parentNode;if(!p)return;p.replaceChild(document.createTextNode(m.textContent),m);p.normalize()});
@@ -2402,7 +2393,7 @@ function almAlignTo(date,top,frames){
   if(!el)return;
   const step=()=>{
     const delta=el.getBoundingClientRect().top-top;
-    if(Math.abs(delta)>=.5)window.scrollTo(0,Math.max(0,window.scrollY+delta));
+    if(Math.abs(delta)>=.5){const sc=scroller();sc.scrollTop=Math.max(0,sc.scrollTop+delta)}
     return Math.abs(delta);
   };
   step();
@@ -2807,8 +2798,7 @@ function renderSettings(){
   <div class="settings-section"><label>Backup to file</label>
   <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Download all your data as a JSON file you can re-import later.</div>
   <button class="btn btn-quiet" onclick="exportState()">Backup</button></div>
-  <div class="settings-section"><label>Viewport</label>
-  <div style="font-size:var(--fs-2xs);color:var(--text-muted)">What the tab bar is being pinned to, live. <span id="vvReadout" style="font-family:var(--font-mono)">—</span></div></div></div>
+  </div></div>
   ${legacyCatSectionHtml()}`}
 
 /* Records left over from a term the workbook no longer defines. v12.0 took the retired classes out
