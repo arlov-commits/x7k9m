@@ -1,4 +1,4 @@
-<!-- Academic Planner v11.7 -->
+<!-- Academic Planner v11.9 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -58,7 +58,6 @@
   --nv-bell:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2.6v1.6'/%3E%3Cpath d='M12 4.2c-3.8 0-5.8 2.7-5.8 6.3v3.4c0 1.9-1 3.1-2.1 4.1h15.8c-1.1-1-2.1-2.2-2.1-4.1v-3.4c0-3.6-2-6.3-5.8-6.3z'/%3E%3Cpath d='M12 18v2.6'/%3E%3C/svg%3E");
   --nv-brush:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16.4 2.8l4.8 4.8'/%3E%3Cpath d='M18.8 5.2L11 13'/%3E%3Cpath d='M11.2 12.8c-2.4.9-3.9 2.9-4.9 7.1 3.6-.7 5.8-2.2 7.3-4.7z'/%3E%3Cpath d='M3.4 20.8c2.8-1.8 5.8-.4 8.8-2'/%3E%3C/svg%3E");
   --nv-grid:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linejoin='round'%3E%3Crect x='4' y='4' width='7' height='7' rx='2'/%3E%3Crect x='13' y='4' width='7' height='7' rx='2'/%3E%3Crect x='4' y='13' width='7' height='7' rx='2'/%3E%3Crect x='13' y='13' width='7' height='7' rx='2'/%3E%3C/svg%3E");
-  --nv-menu:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M4.5 7h15M4.5 12h15M4.5 17h15'/%3E%3C/svg%3E");
   --nv-quill:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7.5 17C10 10 14 6 20 4c-2 8-7 12-12.5 13z'/%3E%3Cpath d='M8 16.5L18.5 6'/%3E%3C/svg%3E");
   --nv-scroll:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='3' width='14' height='3' rx='1.5'/%3E%3Crect x='5' y='18' width='14' height='3' rx='1.5'/%3E%3Cpath d='M7 6v12M17 6v12'/%3E%3Cpath d='M9.5 9.5h5M9.5 12h5M9.5 14.5h3'/%3E%3C/svg%3E");
   /* Week tab (v9.4): a calendar with one week-row picked out. The moon it used to carry moved
@@ -86,7 +85,13 @@
 *{margin:0;padding:0;box-sizing:border-box}
 /* Background also on <html> (carries data-theme): Chrome/Android tints the bottom OS nav bar from the root bg. */
 html{background:var(--bg);transition:background var(--t-med) var(--ease)}
-body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;transition:background var(--t-med) var(--ease),color var(--t-med) var(--ease)}
+/* Nothing may widen the page. One unbreakable token — a URL pasted into a syllabus row — used to
+   stretch a day column past the viewport, and the whole layout scrolled sideways under a bottom bar
+   that is fixed to the viewport, which is what made the tab bar look misplaced and cut off. Long
+   words break (see .evt-title/.syl-pill-title below); this is the guard that holds even for
+   whatever comes next. `clip` rather than `hidden`: it does not make the body a scroll container,
+   so the almanac's sticky flanks keep sticking to the viewport. */
+body{overflow-x:clip;font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;transition:background var(--t-med) var(--ease),color var(--t-med) var(--ease)}
 .app{max-width:900px;margin:0 auto;padding:var(--sp-6) var(--sp-4) 80px}
 .header{display:flex;align-items:center;gap:var(--sp-2);margin-bottom:30px;flex-wrap:wrap}
 .header h1{font-family:var(--font-serif);font-size:var(--fs-xl);font-weight:600;letter-spacing:-.02em}
@@ -122,7 +127,6 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .nav-ico,.bn-ico{flex-shrink:0}
 .nav-icon{display:inline-block;width:22px;height:22px;flex-shrink:0;background-color:var(--text-dim);-webkit-mask:var(--icon) center/contain no-repeat;mask:var(--icon) center/contain no-repeat}
 .bn-item .nav-icon{width:24px;height:24px}
-.more-sheet-item .nav-icon{width:24px;height:24px;background-color:var(--text)}
 .nav-item:hover .nav-icon,.nav-item.active .nav-icon,.bn-item.active .nav-icon{background-color:var(--text)}
 .sidenav{display:none;position:fixed;top:0;left:0;bottom:0;width:208px;background:var(--surface);border-right:1px solid var(--border);flex-direction:column;padding:18px 12px;gap:3px;z-index:40;overflow-y:auto}
 .sidenav-title{font-family:var(--font-sans);font-weight:700;font-size:var(--fs-2xs);color:var(--text-muted);letter-spacing:.05em;text-transform:uppercase;padding:4px 12px 14px}
@@ -135,21 +139,12 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .bn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:0;border:0;border-top:2px solid transparent;color:var(--text-dim);font-family:var(--font-sans);font-size:var(--fs-2xs);font-weight:600;padding:8px 2px 7px;cursor:pointer}
 .bn-item.active{color:var(--text);border-top-color:var(--accent-ab)}
 .bn-item .bn-ico{font-size:var(--fs-l);line-height:1}
-.more-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60}
-.more-overlay.open{display:block}
-.more-sheet{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--border);border-radius:var(--r-l) var(--r-l) 0 0;padding:8px 12px calc(14px + env(safe-area-inset-bottom,0));z-index:61;box-shadow:0 -6px 20px rgba(0,0,0,.3)}
-.more-sheet-grip{width:40px;height:4px;border-radius:var(--r-pill);background:var(--surface3);margin:4px auto 8px}
-.more-sheet-item{display:flex;align-items:center;gap:13px;width:100%;text-align:left;background:0;border:0;color:var(--text);font-family:var(--font-sans);font-size:var(--fs-s);font-weight:600;padding:14px 12px;border-radius:var(--r-m);cursor:pointer}
-.more-sheet-item:hover,.more-sheet-item:active{background:var(--surface2)}
-.more-sheet-item.active{background:var(--surface3)}
-.more-sheet-item .nav-ico{font-size:var(--fs-m);width:24px;text-align:center}
 .app{padding-bottom:calc(74px + env(safe-area-inset-bottom,0))}
 @media(min-width:820px){
   .sidenav{display:flex}
   .bottomnav{display:none}
   body{padding-left:208px}
   .app{padding-bottom:80px}
-  .more-overlay{display:none!important}
 }
 .legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-m);width:fit-content;max-width:100%}
 .legend-item{display:flex;align-items:center;gap:6px;font-size:var(--fs-xs);font-weight:600;color:var(--text-dim)}
@@ -718,7 +713,7 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
    the emblem. The pill does not wrap onto a second line the way a syllabus pill does — an emblem is
    narrow enough to leave the title its width, and reads better beside the title than stranded on a
    line of its own — so the title shrinks past its content width (min-width:0) and wraps inside. */
-.evt-title{flex:1 1 auto;min-width:0;text-align:left}
+.evt-title{flex:1 1 auto;min-width:0;text-align:left;overflow-wrap:anywhere}
 /* The clock is a zone at the end of the title, inside it rather than beside it, so it flows with
    the text like a last word: it never takes width away from the name, and it cannot be stranded on
    a line of its own however narrow the day column gets. */
@@ -761,6 +756,9 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .syl-week-dates{font-family:var(--font-mono);font-size:var(--fs-2xs);color:var(--text-dim)}
 .syl-table{width:100%;border-collapse:collapse;margin-bottom:8px}
 .syl-table td{padding:8px 8px;vertical-align:top;font-size:var(--fs-s)}
+/* The title column takes whatever the fixed-width columns leave: without this it is the column that
+   yields, and on a phone the actions cell alone can squeeze it down to a few characters a line. */
+.syl-title-cell{width:100%}
 .syl-table tr{border-bottom:1px solid var(--border)}
 .syl-table tr.done td{opacity:.4}
 .syl-table tr.done .syl-title-text{text-decoration:line-through}
@@ -769,18 +767,22 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .syl-due-cell{font-family:var(--font-serif);font-size:var(--fs-s);font-weight:600;color:var(--text-dim);width:64px;max-width:72px}
 .syl-due-dow{display:block;font-family:var(--font-mono);font-size:var(--fs-2xs);color:var(--text-muted);font-weight:400}
 .syl-due-cell .days{display:inline-block;margin-top:2px}
-.syl-title-text{font-weight:500}
+.syl-title-text{font-weight:500;overflow-wrap:anywhere}
 .syl-type-tag{font-size:var(--fs-2xs);font-weight:700;text-transform:uppercase;padding:1px 5px;border-radius:var(--r-s);margin-left:6px;vertical-align:middle;display:inline-block}
 .syl-type-tag.reading{background:var(--surface3);color:var(--text-dim)}.syl-type-tag.paper{background:var(--danger-dim);color:var(--danger)}.syl-type-tag.exam{background:var(--warning-dim);color:var(--warning)}.syl-type-tag.presentation{background:var(--accent-ab-dim);color:var(--accent-ab)}.syl-type-tag.custom{background:var(--surface3);color:var(--text-muted)}.syl-type-tag.note{background:transparent;color:var(--text-muted);border:1px solid var(--border)}
 .syl-meta{margin-left:6px;display:inline-flex;gap:4px;flex-wrap:wrap;vertical-align:middle}
 .syl-meta-tag{font-family:var(--font-mono);font-size:var(--fs-2xs);color:var(--text-muted);background:var(--surface2);border-radius:var(--r-s);padding:1px 5px;white-space:nowrap}
 a.syl-meta-tag.link{color:var(--text-dim);text-decoration:none}a.syl-meta-tag.link:hover{color:var(--text)}
 .syl-feed-mark{font-family:var(--font-mono);font-size:var(--fs-2xs);color:var(--text-muted);opacity:.55;cursor:help;letter-spacing:.04em}
+/* "feed" is a quiet provenance note; "edited" is a state, so it is coloured rather than muted. Both
+   are dropped on a phone, where the actions cell has no width to spare and the reset button — which
+   exists only on an edited row — already says the same thing. */
+.syl-feed-mark.edited{color:var(--accent-life);opacity:.9}
 .syl-feed-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:var(--fs-2xs);color:var(--text-muted);font-family:var(--font-mono);margin:-6px 0 12px}
 .syl-feed-bar.err{color:var(--danger)}
 .syl-feed-bar button{background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);border-radius:var(--r-s);padding:2px 8px;font-family:var(--font-mono);font-size:var(--fs-2xs);cursor:pointer}
 .syl-feed-bar button:hover{color:var(--text)}
-.syl-detail-text{font-size:var(--fs-xs);color:var(--text-dim);margin-top:4px;line-height:1.6}
+.syl-detail-text{font-size:var(--fs-xs);color:var(--text-dim);margin-top:4px;line-height:1.6;overflow-wrap:anywhere}
 .syl-detail-edit{width:100%;margin-top:4px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-sans);font-size:var(--fs-s);padding:5px 8px;border-radius:var(--r-s);resize:vertical;min-height:28px;line-height:1.5}
 .syl-detail-edit:focus{outline:0;border-color:var(--text-dim)}
 .syl-title-edit{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-sans);font-size:var(--fs-s);padding:2px 6px;border-radius:var(--r-s);width:100%}
@@ -802,6 +804,11 @@ a.syl-meta-tag.link{color:var(--text-dim);text-decoration:none}a.syl-meta-tag.li
    is left — so it is struck through in place rather than removed. Three classes deep, because the
    .syl-mirror opacity above would otherwise win over .chip.done on source order alone. */
 .chip.syl-mirror.done{opacity:.4;text-decoration:line-through}
+/* The cut mark for a middle-truncated title: dimmer than the text it stands in for, and never
+   broken across a line, so it reads as one piece of punctuation rather than as three characters
+   the spreadsheet happened to contain. */
+.syl-cut{opacity:.55;white-space:nowrap}
+
 /* What a pill says *about* an entry — which class it belongs to, when an event runs — sits in a
    zone of its own: a soft block of the pill's own accent, no border, no second typeface, no
    brackets. It is a part of the pill rather than something stuck onto it, and because the ground is
@@ -823,7 +830,7 @@ a.syl-meta-tag.link{color:var(--text-dim);text-decoration:none}a.syl-meta-tag.li
 .chip.syl-mirror{flex-wrap:wrap;row-gap:1px}
 .syl-tab{display:flex;align-items:center;gap:5px;flex:0 0 auto}
 .syl-tab .mi{width:13px;height:13px}
-.syl-pill-title{flex:1 1 auto;min-width:0;text-align:left}
+.syl-pill-title{flex:1 1 auto;min-width:0;text-align:left;overflow-wrap:anywhere}
 .syl-hl-mark{width:9px;height:9px;vertical-align:0;flex-shrink:0}
 /* --- The syllabus pill's actions live on the pill itself (v11.7). Tapping a pill lifts a rail of
    three targets over it: highlight, complete, open in Syllabus. The rail is absolutely positioned
@@ -942,7 +949,7 @@ const SYNC_COLLECTIONS=[
 // id; sylFeedRange is the feed date range the semester window was last taken from. Both are
 // singletons rather than per-record because neither is a record — they annotate a document that
 // lives in the repo, not in the database.
-const PROFILE_FIELDS=['semesterStart','maxFutureDate','catOrder','dayNotes','hiddenDays','almanacTz','almanacLayers','houList','sylMarks','sylFeedRange'];
+const PROFILE_FIELDS=['semesterStart','maxFutureDate','catOrder','dayNotes','hiddenDays','almanacTz','almanacLayers','houList','sylMarks','sylEdits','sylFeedRange'];
 const SB_HEADERS={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
 const SEED_FLAG=SKEY+'-perrecord-seeded';
 // Collision-resistant, client-generated, immutable record id (large Number; stored as text PK).
@@ -1046,7 +1053,7 @@ function defaultEvents(){return[
 // here in the app, so a new term is a new spreadsheet rather than a new commit.
 function defaultSyllabus(){return[]}
 
-let state={theme:'ember',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],sylMarks:{},sylFeedRange:'',nextId:4000,weekStartDay:6,semesterStart:'2026-01-17',maxFutureDate:'2026-05-30',weekSlot:'sprints',almanacTz:ALM_TZ_DEFAULT,houList:ALM_HOU_DEFAULT,almanacLayers:{...ALM_LAYER_DEFAULT}};
+let state={theme:'ember',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],sylMarks:{},sylEdits:{},sylFeedRange:'',nextId:4000,weekStartDay:6,semesterStart:'2026-01-17',maxFutureDate:'2026-05-30',weekSlot:'sprints',sylSlot:'syllabus',evtSlot:'events',miscSlot:'notes',almanacTz:ALM_TZ_DEFAULT,houList:ALM_HOU_DEFAULT,almanacLayers:{...ALM_LAYER_DEFAULT}};
 let saveTimer=null,lastSaveTime=null,saveStatus='saved';
 // localStorage is the source of truth: write there synchronously, then diff & queue per-record pushes.
 function persistLocal(){try{localStorage.setItem(SKEY,JSON.stringify(state));localStorage.setItem(SKEY+'-time',new Date().toISOString())}catch(e){throw e}}
@@ -1105,11 +1112,15 @@ function stripHoursField(){for(const c of SYNC_COLLECTIONS){const arr=state[c.ke
 // Idempotent: ids already present are never reassigned; deterministic ids keep legacy id-less records
 // consistent across devices so re-seeding never duplicates them.
 function migrateRecordIds(){for(const c of SYNC_COLLECTIONS){const arr=state[c.key];if(!Array.isArray(arr))continue;arr.forEach(rec=>{if(rec.id==null||rec.id===''){rec.id=deterministicId(c.key,rec)}if(rec.updatedAt===undefined)rec.updatedAt=Date.now()})}}
-function applyChosenState(chosen){if(chosen.lifeTasks)chosen.lifeTasks=chosen.lifeTasks.map(t=>({category:'General',priority:'med',inBank:false,...t}));if(chosen.tasks)chosen.tasks=chosen.tasks.map(t=>({lifeSourceId:null,syllabusId:null,...t}));if(!chosen.hiddenDays)chosen.hiddenDays=[];if(!chosen.events)chosen.events=defaultEvents();if(!chosen.syllabus)chosen.syllabus=defaultSyllabus();if(!chosen.notes)chosen.notes=[];if(!chosen.catOrder)chosen.catOrder=[];if(!chosen.sylMarks||typeof chosen.sylMarks!=='object')chosen.sylMarks={};if(typeof chosen.sylFeedRange!=='string')chosen.sylFeedRange='';if(chosen.activeTab==='print')chosen.activeTab='sprints';
+function applyChosenState(chosen){if(chosen.lifeTasks)chosen.lifeTasks=chosen.lifeTasks.map(t=>({category:'General',priority:'med',inBank:false,...t}));if(chosen.tasks)chosen.tasks=chosen.tasks.map(t=>({lifeSourceId:null,syllabusId:null,...t}));if(!chosen.hiddenDays)chosen.hiddenDays=[];if(!chosen.events)chosen.events=defaultEvents();if(!chosen.syllabus)chosen.syllabus=defaultSyllabus();if(!chosen.notes)chosen.notes=[];if(!chosen.catOrder)chosen.catOrder=[];if(!chosen.sylMarks||typeof chosen.sylMarks!=='object')chosen.sylMarks={};if(!chosen.sylEdits||typeof chosen.sylEdits!=='object')chosen.sylEdits={};if(typeof chosen.sylFeedRange!=='string')chosen.sylFeedRange='';if(chosen.activeTab==='print')chosen.activeTab='sprints';
   // Almanac keys are absent in any state saved before v9.0 — default them here so a restored or
   // synced blob can't leave almanacTz undefined (Intl.DateTimeFormat throws on that).
   if(typeof chosen.almanacTz!=='string'||!chosen.almanacTz)chosen.almanacTz=state.almanacTz||ALM_TZ_DEFAULT;
-  chosen.almanacLayers={...ALM_LAYER_DEFAULT,...(state.almanacLayers||{}),...(chosen.almanacLayers||{})};const THEME_REMAP={dark:'ember',midnight:'ember',peacock:'ocean',bodhi:'persia',temple:'persia',spring:'pistachio',pistachio2:'pistachio'};if(chosen.theme&&THEME_REMAP[chosen.theme])chosen.theme=THEME_REMAP[chosen.theme];state={...state,...chosen}}
+  chosen.almanacLayers={...ALM_LAYER_DEFAULT,...(state.almanacLayers||{}),...(chosen.almanacLayers||{})};const THEME_REMAP={dark:'ember',midnight:'ember',peacock:'ocean',bodhi:'persia',temple:'persia',spring:'pistachio',pistachio2:'pistachio'};if(chosen.theme&&THEME_REMAP[chosen.theme])chosen.theme=THEME_REMAP[chosen.theme];state={...state,...chosen};
+  // If the open tab is one of a slot's faces, that slot shows it — an invariant switchTab keeps and
+  // this restores on load, for a device last left on a tab that only became a second face here
+  // (Tasks, Dashboard). Without it the nav opens on the other half of the pair with nothing lit.
+  const _s=slotOf(state.activeTab);if(_s)state[_s.pref]=state.activeTab}
 // Per-id reconciliation of pulled rows into a local array. NEVER wholesale-replaces the array:
 // unchanged records keep their identity; only new/changed/deleted records move. (SYNC_REFERENCE 1.6)
 function mergeCollection(localArr,tomb,rows){const byId=new Map((localArr||[]).map(e=>[String(e.id),e]));let changed=false;for(const r of rows){const rid=String(r.id);const remoteUpdated=Date.parse(r.updated_at)||0;if(r.deleted_at){if(byId.has(rid)){byId.delete(rid);changed=true}const dms=Date.parse(r.deleted_at)||0;if(!(rid in tomb)||tomb[rid]<dms){tomb[rid]=dms;changed=true}continue}
@@ -1173,19 +1184,21 @@ function render(){
   const allTabs=[...tabs,'settings','season'];
   const tn={dashboard:'Dashboard',sprints:'Week',syllabus:'Syllabus',life:'Tasks',events:'Events',notes:'Notes',settings:'Settings',season:'Season'};
   const renderers={dashboard:renderDash,sprints:renderSprints,syllabus:renderSyllabus,life:renderLife,events:renderEvents,notes:renderNotes,settings:renderSettings,season:renderSeason};
-  const navIconTok={sprints:'calendar',season:'moon',syllabus:'scroll',life:'lotus',events:'bell',notes:'quill',dashboard:'grid',settings:'wheel',more:'menu'};
+  const navIconTok={sprints:'calendar',season:'moon',syllabus:'scroll',life:'lotus',events:'bell',notes:'quill',dashboard:'grid',settings:'wheel'};
   const ico=k=>`<span class="nav-icon" style="--icon:var(--nv-${navIconTok[k]})"></span>`;
-  // The first nav slot is Week OR Season — whichever face it currently wears. Pressing it while
-  // already on one of the two flips to the other; pressing it from elsewhere returns to the face
-  // it is showing. There is no separate Season entry: this slot is the way in and out.
-  const slot=almSlot();
-  const slotBtn=(cls)=>`<button class="${cls} ${state.activeTab===slot?'active':''}" onclick="almSlotPress()" title="${slot==='season'?'Season — press again for Week':'Week — press again for Season'}">${ico(slot)}${tn[slot]}</button>`;
-  const sideOrder=['syllabus','life','events','notes','dashboard'];
-  const sideNav=`<nav class="sidenav"><div class="sidenav-title">Planner</div>${slotBtn('nav-item')}${sideOrder.map(k=>`<button class="nav-item ${state.activeTab===k?'active':''}" onclick="switchTab('${k}')">${ico(k)}${tn[k]}</button>`).join('')}<div class="nav-spacer"></div><button class="nav-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></nav>`;
-  const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
-  const bottomNav=`<nav class="bottomnav">${slotBtn('bn-item')}<button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
-  const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v11.7</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
+  // Each of the three nav slots is a pair — Week/Season, Syllabus/Dashboard, Events/Tasks — wearing
+  // whichever face it was last left on. Pressing a slot while on one of its two faces flips to the
+  // other; pressing it from elsewhere returns to the face it is showing. Neither face of a pair has
+  // an entry of its own in these navs: the slot is the way in and out of both.
+  const slotBtn=(cls,s)=>{const f=slotFace(s),other=s.faces.find(x=>x!==f);
+    return `<button class="${cls} ${state.activeTab===f?'active':''}" onclick="slotPress('${s.pref}')" title="${tn[f]} — press again for ${tn[other]}">${ico(f)}${tn[f]}</button>`};
+  // Four slots, eight tabs, and every tab is one press or two from any other: the More sheet it
+  // replaced was a third press and a modal to cross for Notes or Settings. The last slot keeps its
+  // place at the foot of the side nav, where Settings used to sit on its own.
+  const [weekSlotDef,sylSlotDef,evtSlotDef,miscSlotDef]=NAV_SLOTS;
+  const sideNav=`<nav class="sidenav"><div class="sidenav-title">Planner</div>${slotBtn('nav-item',weekSlotDef)}${slotBtn('nav-item',sylSlotDef)}${slotBtn('nav-item',evtSlotDef)}<div class="nav-spacer"></div>${slotBtn('nav-item',miscSlotDef)}</nav>`;
+  const bottomNav=`<nav class="bottomnav">${slotBtn('bn-item',weekSlotDef)}${slotBtn('bn-item',sylSlotDef)}${slotBtn('bn-item',evtSlotDef)}${slotBtn('bn-item',miscSlotDef)}</nav>`;
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v11.9</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}`;updateSI();almFitLabels();sylFitTitles()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -1853,7 +1866,49 @@ function almFitLabels(){
   m2.forEach(([r,lh,ph])=>{if(lh>ph)r.p.classList.add('tight')});
 }
 let _fitTimer=null;
-window.addEventListener('resize',()=>{clearTimeout(_fitTimer);_fitTimer=setTimeout(almFitLabels,150)});
+window.addEventListener('resize',()=>{clearTimeout(_fitTimer);_fitTimer=setTimeout(()=>{almFitLabels();sylFitTitles()},150)});
+
+/* A syllabus title is whatever the spreadsheet says, and one row of it can run to a paragraph with
+   a URL in the middle. In a day column ~150px wide that is a pill twenty lines deep, which buries
+   the rest of the week. So a week pill's title is capped at ten rendered lines — and what comes out
+   is the MIDDLE, not the end: the opening says what the reading is and the closing usually carries
+   the page range, while the middle is the part you can lose. The full text stays in the Syllabus
+   tab (and in the pill's tooltip, for a pointer).
+   Ten *rendered* lines, not a character count, is why this measures instead of slicing: the same
+   entry is four lines on a desktop row and twenty on a phone, so the cap simply never bites on a
+   wide screen — no media query decides it. Binary search on how much text to keep, re-measuring
+   each time, so a title that changes width as it shrinks still converges. Cosmetic only: a missed
+   run leaves a long pill, nothing worse. */
+const SYL_PILL_LINES=10;
+function sylMidTrunc(str,keep){
+  if(keep>=str.length)return str;
+  const head=Math.ceil(keep*0.6),tail=keep-head;
+  let a=str.slice(0,head),b=str.slice(str.length-tail);
+  const ai=a.lastIndexOf(' ');if(ai>head*0.5)a=a.slice(0,ai);            // never cut mid-word
+  const bi=b.indexOf(' ');if(bi>=0&&bi<tail*0.5)b=b.slice(bi+1);
+  return[a.replace(/\s+$/,''),b.replace(/^\s+/,'')];
+}
+function sylFitTitles(){
+  const els=[...document.querySelectorAll('.syl-t')];
+  if(!els.length)return;
+  // Restore anything a previous run cut (writes), then measure every pill (reads) — two passes, one
+  // layout, the same discipline as almFitLabels. Only a pill over the cap pays for a search, and on
+  // a normal week that is none of them.
+  els.forEach(el=>{if(el.dataset.full){el.textContent=el.dataset.full;el.removeAttribute('title');delete el.dataset.full}});
+  const caps=els.map(el=>(parseFloat(getComputedStyle(el).lineHeight)||16)*SYL_PILL_LINES+1);
+  const hs=els.map(el=>el.getBoundingClientRect().height);
+  els.forEach((el,i)=>{
+    if(hs[i]<=caps[i])return;
+    const full=el.textContent,cap=caps[i];
+    el.dataset.full=full;el.title=full;
+    const put=k=>{const[a,b]=sylMidTrunc(full,k);el.textContent='';
+      el.append(a+' ',Object.assign(document.createElement('span'),{className:'syl-cut',textContent:'[…]'}),' '+b)};
+    let lo=24,hi=full.length;                                  // lo is a length known to fit
+    while(lo<hi){const mid=Math.ceil((lo+hi)/2);put(mid);
+      if(el.getBoundingClientRect().height<=cap)lo=mid;else hi=mid-1}
+    put(lo);
+  });
+}
 
 /* ============================================================
    ALMANAC READINGS (v11.0) — one card, four kinds of target.
@@ -2010,10 +2065,32 @@ function almOpenTermLink(i){
    so leaving for another tab and coming back returns to that same face; only pressing the slot
    while already on Week or Season flips it. Stored in state, hence localStorage — it is a
    per-device UI mode, so it is deliberately NOT in PROFILE_FIELDS and never syncs. */
-function almSlot(){return state.weekSlot==='season'?'season':'sprints'}
-function almSlotPress(){
-  if(state.activeTab==='sprints'||state.activeTab==='season')almSwapTab();
-  else switchTab(almSlot());
+/* A nav slot is one button wearing one of two faces. Pressing it while you are on either face
+   flips to the other; pressing it from anywhere else returns to the face it is currently showing.
+   There is no default face and no "primary" of the pair: the slot keeps whichever face you were
+   last on, which is why switchTab records it — arriving at a face by any route (the More sheet, a
+   syllabus pill's "open in Syllabus", the term ribbon) leaves the slot showing where you are.
+   The face lives in per-device state and never syncs: it is where this device's nav is pointing,
+   not anything about the plan. */
+const NAV_SLOTS=[
+  {pref:'weekSlot',faces:['sprints','season']},
+  {pref:'sylSlot', faces:['syllabus','dashboard']},
+  {pref:'evtSlot', faces:['events','life']},
+  {pref:'miscSlot',faces:['notes','settings']}
+];
+function slotOf(tab){return NAV_SLOTS.find(s=>s.faces.includes(tab))||null}
+// The face on show: what was last opened, or the first of the pair for a device that has never
+// touched this slot (and for a stored value that is no longer one of the two).
+function slotFace(s){return s.faces.includes(state[s.pref])?state[s.pref]:s.faces[0]}
+function almSlot(){return slotFace(NAV_SLOTS[0])}
+function slotPress(pref){
+  const s=NAV_SLOTS.find(x=>x.pref===pref);if(!s)return;
+  if(!s.faces.includes(state.activeTab))return switchTab(slotFace(s));
+  const to=s.faces[0]===state.activeTab?s.faces[1]:s.faces[0];
+  // Week and Season draw the same weeks and days, so crossing between them holds your place in the
+  // scroll. The other pairs are different documents with nothing to line up, and just switch.
+  if(pref==='weekSlot')return almSwapTab(to);
+  switchTab(to);
 }
 
 /* Crossing between the two keeps your place. The anchor is the first row fully in view; after the
@@ -2065,10 +2142,9 @@ function almSwapAnchor(view){
   const hit=rows.find(r=>r.getBoundingClientRect().bottom>0)||rows[rows.length-1];
   return hit?{date:hit.dataset.date,top:hit.getBoundingClientRect().top}:null;
 }
-function almSwapTab(){
+function almSwapTab(to){
   const anchor=almSwapAnchor(document.querySelector('.view.active'));
-  state.weekSlot=state.activeTab==='season'?'sprints':'season';   // set before render: the slot's
-  switchTab(state.weekSlot);                                      // own label and icon change too
+  switchTab(to);   // records the slot's face before rendering, so its own label and icon change too
   if(!anchor)return;
   almAlignTo(anchor.date,anchor.top);
 }
@@ -2103,6 +2179,8 @@ const calX=calS?`<button class="evt-cal-x" onclick="event.stopPropagation();calU
 const evWhen=evtWhen(ev);
 pills.push({type:'evt',time:ev.startTime||'',html:`<span class="evt-chip${evPast?' evt-past':''}${calS?' evt-cal '+calS.cls+(calI.obs?' obs':''):''}${calS&&_calFlash===ev.calRef?' cal-flash':''}" data-tip="${ev.tip}" data-evt-id="${ev.evtId}"${dragAttr}${calStyle} onclick="event.stopPropagation();toggleEvtChipMenu(${ev.evtId},this)" ondblclick="event.stopPropagation();openEvtEdit(${ev.evtId})"><span class="mi" style="--ic:var(--ic-${calIco})"></span> <span class="evt-title">${ev.label}${evWhen?' <span class="pill-zone evt-when">'+evWhen+'</span>':''}</span>${calX}<span class="chip-acts"><button class="chip-btn" onclick="event.stopPropagation();openEvtEdit(${ev.evtId})" title="Edit"><span class="mi" style="--ic:var(--ic-edit)"></span></button><button class="chip-btn life-remove" onclick="event.stopPropagation();deleteEvent(${ev.evtId})" title="Delete"><span class="mi" style="--ic:var(--ic-x)"></span></button></span></span>`})});
 sylChips.forEach(sc=>{const s=sc.entry;const sylTime=sc.dueTime||'09:00';const fmtSylTime=fmtPillTime(sylTime);
+// The title goes in its own element so the ten-line fitter can rewrite the text without touching
+// the multi-day counter that follows it.
 // One pill instance per day of a multi-day entry, so the armed key is the entry and the day
 // together: tapping one day's pill must not open the rail on the same entry's other days.
 const sylKey=s.id+'|'+day.date;
@@ -2112,7 +2190,7 @@ const sylTip=escAttr(catName(sc.cat)+' · '+sc.type+(sc.dueTime?' · due '+fmtSy
 // the day's others, and it still reads in the tooltip.
 const sylTab=`<span class="syl-tab"><span class="mi" style="--ic:var(--ic-${SYL_ICON[sc.type]||'pin'})"></span><span class="pill-zone">${escHtml(catShort(sc.cat))}</span>${s.highlighted?'<span class="mi syl-hl-mark" style="--ic:var(--ic-star)"></span>':''}</span>`;
 const sylActs=`<span class="syl-acts" role="group" aria-label="Entry actions"><button class="syl-act${s.highlighted?' on':''}" onclick="event.stopPropagation();toggleSylHL(${s.id})" title="${s.highlighted?'Remove highlight':'Highlight'}" aria-label="${s.highlighted?'Remove highlight':'Highlight'}"><span class="mi" style="--ic:var(--ic-star)"></span></button><button class="syl-act${s.done?' is-done':''}" onclick="event.stopPropagation();sylActDone(${s.id})" title="${s.done?'Mark not done':'Mark done'}" aria-label="${s.done?'Mark not done':'Mark done'}"><span class="mi" style="--ic:var(--ic-${s.done?'up':'check'})"></span></button><button class="syl-act" onclick="event.stopPropagation();sylActOpen(${s.id})" title="Open in Syllabus" aria-label="Open in Syllabus"><span class="mi" style="--ic:var(--ic-book)"></span></button></span>`;
-pills.push({type:'syl',time:sylTime,html:`<span class="chip ${sc.cat} syl-mirror${s.done?' done':''}${_sylActing===sylKey?' acting':''}" data-tip="${sylTip}" onclick="event.stopPropagation();sylPillTap('${sylKey}',this)">${sylTab}<span class="syl-pill-title">${escHtml(sc.title)}${sc.label}</span>${sylActs}</span>`})});
+pills.push({type:'syl',time:sylTime,html:`<span class="chip ${sc.cat} syl-mirror${s.done?' done':''}${_sylActing===sylKey?' acting':''}" data-tip="${sylTip}" onclick="event.stopPropagation();sylPillTap('${sylKey}',this)">${sylTab}<span class="syl-pill-title"><span class="syl-t">${escHtml(sc.title)}</span>${sc.label}</span>${sylActs}</span>`})});
 tasks.forEach(t=>pills.push({type:'task',time:t.time||'',html:renderChip(t)}));
 pills.sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
 const pillsHtml=pills.map(p=>p.html).join('');
@@ -2233,12 +2311,34 @@ function sylCatRank(cat){const c=sylClassOf(cat);return c?c.order:100+(LEGACY_CA
 function sylRealignCats(){let ch=false;(state.syllabus||[]).forEach(e=>{if(!e.clsAlias)return;
   const c=sylClasses().find(x=>x.alias===e.clsAlias);if(c&&e.cat!==c.cat){e.cat=c.cat;ch=true}});return ch}
 function sylMark(id){return (state.sylMarks||{})[String(id)]||null}
+/* A feed row belongs to the spreadsheet, but a row can arrive needing a hand: a paragraph where a
+   title should be, a stray URL, a date the class moved by email. So an edit made here is kept as a
+   PATCH over the feed row rather than as a copy of it — only the fields actually changed — and the
+   row underneath stays whatever the spreadsheet says. Reset drops the patch and the feed's own text
+   is back. Every other field keeps following the spreadsheet in the meantime, which a copy would
+   not do.
+   Keyed by the same derived id the ticks use, so editing that row's title or date in the
+   spreadsheet mints a new id and the patch falls away with the tick — the same accepted trade for
+   having no id column to maintain by hand. */
+function sylEdit(id){const p=(state.sylEdits||{})[String(id)];return p&&Object.keys(p).length?p:null}
+const SYL_EDITABLE=['title','detail','cat','type','due','dueTime'];
+function sylSetEdit(id,patch){const k=String(id),raw=sylFeedRaw(id);if(!state.sylEdits)state.sylEdits={};
+  const p={...(state.sylEdits[k]||{}),...patch};
+  // A field edited back to what the feed says is not an edit: drop it, so Reset stays meaningful
+  // and an untouched entry never carries a patch that pins it against a later spreadsheet change.
+  SYL_EDITABLE.forEach(f=>{if(!(f in p))return;const base=f==='detail'?sylFeedDetail(raw):(raw?(raw[f]||''):'');if((p[f]||'')===base)delete p[f]});
+  if(Object.keys(p).length)state.sylEdits[k]=p;else delete state.sylEdits[k]}
+function sylResetEdit(id){if(state.sylEdits)delete state.sylEdits[String(id)];render();scheduleSave()}
 function sylSetMark(id,field,val){const k=String(id);if(!state.sylMarks)state.sylMarks={};
   const m={...(state.sylMarks[k]||{})};if(val)m[field]=true;else delete m[field];
   if(Object.keys(m).length)state.sylMarks[k]=m;else delete state.sylMarks[k]}
 function sylFeedEntries(){const f=(typeof sylFeed==='function')?sylFeed():null;if(!f)return[];
-  return f.entries.map(e=>{const m=sylMark(e.id);
-    return{...e,feed:true,dueEnd:'',done:!!(m&&m.done),highlighted:!!(m&&m.highlighted)}})}
+  return f.entries.map(e=>{const m=sylMark(e.id),p=sylEdit(e.id);
+    return{...e,...p,feed:true,edited:!!p,dueEnd:'',done:!!(m&&m.done),highlighted:!!(m&&m.highlighted)}})}
+// The feed row as the spreadsheet wrote it, with no edit of the user's on top — what Reset goes
+// back to, and what a saved edit is diffed against so an untouched field stores nothing.
+function sylFeedRaw(id){const f=(typeof sylFeed==='function')?sylFeed():null;
+  return f?(f.entries.find(e=>e.id===id)||null):null}
 // Every read of the syllabus goes through this: feed first, then whatever the user added by hand.
 function sylAll(){return sylFeedEntries().concat(state.syllabus||[])}
 function sylFind(id){return sylAll().find(s=>s.id===id)||null}
@@ -2250,7 +2350,14 @@ function sylMetaHtml(e){if(!e.feed)return'';let h='';
   if(e.link)h+=`<a class="syl-meta-tag link" href="${escHtml(e.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">link ↗</a>`;
   return h?`<span class="syl-meta">${h}</span>`:''}
 // The citation and the transcriber's note, in the app's own bullet convention ('+ ' = sub-bullet).
-function sylDetailSrc(e){return e.feed?[e.detail,e.note?'+ '+e.note:''].filter(Boolean).join('\n'):(e.detail||'')}
+/* What the detail block shows, and — the same string — what an editor opens on. A feed row's detail
+   is its citation with the row's note appended as a sub-bullet; an edited one is whatever the user
+   wrote, note and all, since that is the text they were shown when they started editing. Composing
+   the note back on top of an edited detail is what would duplicate it. */
+function sylDetailSrc(e){if(!e.feed)return e.detail||'';
+  const p=sylEdit(e.id);if(p&&'detail'in p)return p.detail;
+  return sylFeedDetail(e)}
+function sylFeedDetail(e){return e?[e.detail,e.note?'+ '+e.note:''].filter(Boolean).join('\n'):''}
 // The spreadsheet defines the term, so the Week/Syllabus window follows it — but only when the
 // feed's own date range changes. A range already adopted is left alone, so a deliberate change in
 // Settings survives every subsequent load.
@@ -2359,13 +2466,13 @@ weekNums.forEach(wkN=>{
       const detailSrc=sylDetailSrc(e);
       const detailHtml=detailSrc?detailSrc.split('\n').map(line=>line.startsWith('- ')?`<div class="syl-bullet">${escHtml(line.substring(2))}</div>`:line.startsWith('+ ')?`<div class="syl-sub-bullet">${escHtml(line.substring(2))}</div>`:`<div>${escHtml(line)}</div>`).join(''):'';
       const showTypeTag=!(e.cat==='custom'&&e.type==='custom')&&e.type;
-      // A feed row is not editable here: the spreadsheet is where it is written. Only the tick and
-      // the star are the user's, and those go to state.sylMarks.
-      const edT=e.feed?'':` ondblclick="inlineSylEdit(${e.id},'title',this)"`;
-      const edD=e.feed?'':` ondblclick="inlineSylEdit(${e.id},'detail',this)"`;
-      h+=`<td><span class="syl-title-text"${edT}>${escHtml(e.title)}</span>${showTypeTag?`<span class="syl-type-tag ${e.type}">${e.type}</span>`:''}${sylMetaHtml(e)} ${detailHtml?`<div class="syl-detail-text"${edD}>${detailHtml}</div>`:''}</td>`;
+      // A feed row is editable here too — the edit is a patch over the spreadsheet's row, and the
+      // feed mark says whether one is in force, with Reset in the editor to take it back.
+      const edT=` ondblclick="inlineSylEdit(${e.id},'title',this)"`;
+      const edD=` ondblclick="inlineSylEdit(${e.id},'detail',this)"`;
+      h+=`<td class="syl-title-cell"><span class="syl-title-text"${edT}>${escHtml(e.title)}</span>${showTypeTag?`<span class="syl-type-tag ${e.type}">${e.type}</span>`:''}${sylMetaHtml(e)} ${detailHtml?`<div class="syl-detail-text"${edD}>${detailHtml}</div>`:''}</td>`;
       h+=e.feed
-        ?`<td class="syl-btns-cell"><span class="syl-feed-mark" title="From calendars/source/syllabus.xlsx — edit the spreadsheet to change this entry">feed</span></td>`
+        ?`<td class="syl-btns-cell"><button class="btn-ghost xs" onclick="openSylEdit(${e.id})" title="Edit this entry — the spreadsheet is not changed"><span class="mi" style="--ic:var(--ic-edit)"></span></button>${e.edited?`<button class="btn-ghost xs" onclick="sylResetEdit(${e.id})" title="Reset to what the syllabus feed says"><span class="mi" style="--ic:var(--ic-up)"></span></button>`:''}<span class="syl-feed-mark${e.edited?' edited':''}" title="${e.edited?'From calendars/source/syllabus.xlsx, edited here — reset to go back to the spreadsheet\'s text':'From calendars/source/syllabus.xlsx'}">${e.edited?'edited':'feed'}</span></td>`
         :`<td class="syl-btns-cell"><button class="btn-ghost xs" onclick="openSylEdit(${e.id})"><span class="mi" style="--ic:var(--ic-edit)"></span></button><button class="btn-ghost xs del" onclick="deleteSylEntry(${e.id})"><span class="mi" style="--ic:var(--ic-x)"></span></button></td>`;
       h+=`</tr>`;
     });
@@ -2453,10 +2560,9 @@ function openCalPick(targetId){
 }
 
 // ===== INTERACTIONS =====
-let moreOpen=false;
-function openMoreSheet(e){if(e)e.stopPropagation();moreOpen=true;document.getElementById('moreOverlay')?.classList.add('open')}
-function closeMoreSheet(){moreOpen=false;document.getElementById('moreOverlay')?.classList.remove('open')}
-function switchTab(t){moreOpen=false;state.activeTab=t;allocatingId=null;render();scheduleSave();if(t==='notes')setTimeout(restoreNotesCursor,50)}
+// Arriving at a tab that is one of a slot's two faces is what sets that slot's face, wherever the
+// call came from — so the nav always shows the last face you were on, and never a stale one.
+function switchTab(t){state.activeTab=t;const s=slotOf(t);if(s)state[s.pref]=t;allocatingId=null;render();scheduleSave();if(t==='notes')setTimeout(restoreNotesCursor,50)}
 function setTheme(t){state.theme=t;render();scheduleSave()}
 // Sync the mobile system-bar/address-bar tint to the active theme's --bg. Runs on every
 // render (and thus on theme switch) so the bar recolors live. Only the bar background is
@@ -2803,19 +2909,34 @@ function sylClearActing(){_sylActing=null;document.querySelectorAll('.syl-mirror
 function sylActDone(id){sylClearActing();toggleSylDone(id)}
 function sylActOpen(id){sylClearActing();openSylFromWeek(id)}
 function openSylFromWeek(id){const s=sylFind(id);switchTab('syllabus');setTimeout(()=>{const row=document.getElementById('syl-'+id);if(!row)return;if(s)row.style.setProperty('--pulse-color','var(--accent-'+s.cat+'-dim,var(--accent-ab-dim))');row.scrollIntoView({behavior:'smooth',block:'center'});row.classList.remove('syl-pulse');void row.offsetWidth;row.classList.add('syl-pulse');setTimeout(()=>row.classList.remove('syl-pulse'),1700)},90)}
-function inlineSylEdit(id,field,el){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;// feed rows are read-only: only hand-added entries are in state.syllabus
+// Writes to whichever layer owns the entry: the record itself for a hand-added one, a patch over
+// the spreadsheet for a feed one.
+function sylWriteField(s,field,val){if(s.feed)sylSetEdit(s.id,{[field]:val});else s[field]=val}
+function inlineSylEdit(id,field,el){const s=sylFind(id);if(!s)return;
 
-if(field==='title'){const inp=document.createElement('input');inp.type='text';inp.value=s.title;inp.className='syl-title-edit';el.replaceWith(inp);inp.focus();inp.select();function save(){s.title=inp.value.trim()||s.title;render();scheduleSave()}inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();save()}else if(e.key==='Escape')render()});inp.addEventListener('blur',save)}
-else if(field==='detail'){const ta=document.createElement('textarea');ta.value=s.detail||'';ta.className='syl-detail-edit';ta.rows=Math.max(2,(s.detail||'').split('\n').length+1);el.replaceWith(ta);ta.focus();function save(){s.detail=ta.value;render();scheduleSave()}ta.addEventListener('keydown',e=>{if(e.key==='Escape')render()});ta.addEventListener('blur',save)}}
+if(field==='title'){const inp=document.createElement('input');inp.type='text';inp.value=s.title;inp.className='syl-title-edit';el.replaceWith(inp);inp.focus();inp.select();function save(){sylWriteField(s,'title',inp.value.trim()||s.title);render();scheduleSave()}inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();save()}else if(e.key==='Escape')render()});inp.addEventListener('blur',save)}
+else if(field==='detail'){const ta=document.createElement('textarea');ta.value=sylDetailSrc(s);ta.className='syl-detail-edit';ta.rows=Math.max(2,sylDetailSrc(s).split('\n').length+1);el.replaceWith(ta);ta.focus();function save(){sylWriteField(s,'detail',ta.value);render();scheduleSave()}ta.addEventListener('keydown',e=>{if(e.key==='Escape')render()});ta.addEventListener('blur',save)}}
 function deleteSylEntry(id){if(!confirm('Delete syllabus entry?'))return;state.syllabus=(state.syllabus||[]).filter(s=>s.id!==id);render();scheduleSave()}
 function addSylEntry(){const title=$('#sylNewTitle')?.value.trim();if(!title)return;const newId=genId();const dueVal=normalizeDateInput($('#sylNewDue')?.value?.trim())||isoDate(TODAY);const dueEndVal='';const dueTimeVal=$('#sylNewTime')?.value||'';const newCat=$('#sylNewCat').value;const newCls=sylClassOf(newCat);state.syllabus.push({id:newId,cat:newCat,clsAlias:newCls?newCls.alias:'',type:$('#sylNewType').value,title,detail:$('#sylNewDetail')?.value||'',due:dueVal,dueEnd:dueEndVal,dueTime:dueTimeVal,done:false,highlighted:false});$('#sylNewTitle').value='';$('#sylNewDue').value='';$('#sylNewTime').value='';$('#sylNewDetail').value='';render();scheduleSave();setTimeout(()=>{const wk=semesterWeekNum(parseDate(dueVal));const sec=document.querySelector(`.syl-week-section:has(.syl-week-hdr:first-child)`);const sections=document.querySelectorAll('.syl-week-section');for(const s of sections){if(s.querySelector('.syl-week-hdr')?.textContent?.includes('Week '+wk)){s.scrollIntoView({behavior:'smooth',block:'center'});break}}},60)}
 function addSylType(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;const t=prompt('Enter type (reading, paper, exam, presentation, or custom):',s.type);if(t&&t.trim()){s.type=t.trim().toLowerCase();render();scheduleSave()}}
 let editSylId=null;
-function openSylEdit(id){editSylId=id;const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;// feed rows have no editor — the spreadsheet is the editor
+// Both kinds of entry open the same editor. A hand-added one is edited in place; a feed one is
+// edited as a patch over the spreadsheet's row, which is why Delete becomes Reset for it: there is
+// nothing here to delete, only an edit of yours to take back.
+function openSylEdit(id){editSylId=id;const s=sylFind(id);if(!s)return;
   const catSel=$('#sCat');catSel.innerHTML=sylClasses().map(c=>`<option value="${c.cat}">${escHtml(c.name)}</option>`).join('')+(sylClassOf(s.cat)?'':`<option value="${s.cat}">${escHtml(catName(s.cat))}</option>`)+'<option value="custom">Custom</option>';
-  $('#sylModalTitle').textContent='Edit Syllabus Entry';$('#sTitle').value=s.title;$('#sDetail').value=s.detail||'';$('#sCat').value=s.cat;$('#sType').value=s.type;$('#sDue').value=s.due;$('#sDueTime').value=s.dueTime||'';$('#sDueEnd').value=s.dueEnd||'';$('#sDueEnd').min=s.due;edResetTouched('sDueEnd');$('#sylModal').classList.add('open')}
-$('#sSave').onclick=()=>{const s=(state.syllabus||[]).find(s=>s.id===editSylId);if(s){s.title=$('#sTitle').value;s.detail=$('#sDetail').value;s.cat=$('#sCat').value;const _sc=sylClassOf(s.cat);s.clsAlias=_sc?_sc.alias:'';s.type=$('#sType').value;s.due=normalizeDateInput($('#sDue').value)||s.due;s.dueTime=$('#sDueTime').value||'';s.dueEnd=normalizeDateInput($('#sDueEnd').value)||''}$('#sylModal').classList.remove('open');render();scheduleSave()}
-$('#sDel').onclick=()=>{if(!confirm('Delete syllabus entry?'))return;state.syllabus=(state.syllabus||[]).filter(s=>s.id!==editSylId);$('#sylModal').classList.remove('open');render();scheduleSave()}
+  $('#sylModalTitle').textContent=s.feed?'Edit Feed Entry':'Edit Syllabus Entry';
+  const del=$('#sDel');del.textContent=s.feed?'Reset to feed':'Delete';del.classList.toggle('btn-quiet',!!s.feed);del.classList.toggle('btn-danger',!s.feed);
+  del.disabled=!!(s.feed&&!s.edited);del.style.opacity=del.disabled?'.4':'';
+  del.title=s.feed?'Put this entry back to what the spreadsheet says':'';
+  $('#sTitle').value=s.title;$('#sDetail').value=sylDetailSrc(s);$('#sCat').value=s.cat;$('#sType').value=s.type;$('#sDue').value=s.due;$('#sDueTime').value=s.dueTime||'';$('#sDueEnd').value=s.dueEnd||'';$('#sDueEnd').min=s.due;edResetTouched('sDueEnd');$('#sylModal').classList.add('open')}
+$('#sSave').onclick=()=>{const s=sylFind(editSylId);
+  if(s&&s.feed){sylSetEdit(editSylId,{title:$('#sTitle').value,detail:$('#sDetail').value,cat:$('#sCat').value,type:$('#sType').value,due:normalizeDateInput($('#sDue').value)||s.due,dueTime:$('#sDueTime').value||''})}
+  else{const h=(state.syllabus||[]).find(x=>x.id===editSylId);if(h){h.title=$('#sTitle').value;h.detail=$('#sDetail').value;h.cat=$('#sCat').value;const _sc=sylClassOf(h.cat);h.clsAlias=_sc?_sc.alias:'';h.type=$('#sType').value;h.due=normalizeDateInput($('#sDue').value)||h.due;h.dueTime=$('#sDueTime').value||'';h.dueEnd=normalizeDateInput($('#sDueEnd').value)||''}}
+  $('#sylModal').classList.remove('open');render();scheduleSave()}
+$('#sDel').onclick=()=>{const s=sylFind(editSylId);
+  if(s&&s.feed){if(!confirm('Reset this entry to what the syllabus feed says?'))return;$('#sylModal').classList.remove('open');sylResetEdit(editSylId);return}
+  if(!confirm('Delete syllabus entry?'))return;state.syllabus=(state.syllabus||[]).filter(x=>x.id!==editSylId);$('#sylModal').classList.remove('open');render();scheduleSave()}
 $('#sCanc').onclick=()=>{$('#sylModal').classList.remove('open')}
 $('#sylModal').onclick=e=>{if(e.target.id==='sylModal')$('#sylModal').classList.remove('open')}
 
