@@ -39,6 +39,9 @@ A **syllabus** pill carries no clock at all: an entry is due on a day, and the h
 
 A syllabus pill's actions are **on the pill, never in a popup**: tapping it lifts a rail of three targets — highlight, complete, open in Syllabus — over the pill itself. The rail is absolutely positioned and overhangs the pill on every side, which is what lets a target be thumb-sized while **the pill keeps its exact footprint and the day row never reflows**; do not reach for an inline expansion instead. The armed key is `entry.id|date` (one pill per day of a multi-day entry, so tapping one day must not open the rail on the others), transient in `_sylActing` — never persisted, never synced, and cleared by a click anywhere off a pill. It is read back at render time, so the rail survives the re-render a toggle triggers and the button under the finger updates in place. **Completing dismisses the rail and highlighting does not**: the struck-through pill is the confirmation for the one and worth uncovering, while the lit button is the confirmation for the other. Writes still go through `toggleSylDone`/`toggleSylHL` — one per-record write each. A completed entry **stays in the week**, struck through where it sits (`getSylForDate` no longer filters `done`): the week is a record of what was due, not only of what is left, and nothing should vanish out from under the finger that ticked it.
 
+## Nav slots (v11.8)
+The navs hold three **slots**, each one button wearing one of two faces: Week/Season, Syllabus/Dashboard, Events/Tasks. Pressing a slot while on either face flips to the other; pressing it from anywhere else returns to the face it is showing. Neither face of a pair is the "primary" and there is no default to fall back to — the slot keeps **whichever face you were last on**, which is why `switchTab` records it: arriving at a face by any other route (the More sheet, a syllabus pill's "open in Syllabus", the term ribbon) leaves the slot showing where you are. `applyChosenState` restores the same invariant on load, which is what carries a device that was last left on Tasks or Dashboard into the pairing. The faces (`weekSlot`, `sylSlot`, `evtSlot`) are per-device and **never sync** — they say where this device's nav is pointing, not anything about the plan. Adding a pair means one row in `NAV_SLOTS` and nothing else; only the Week pair carries the scroll-anchored crossing (`almSwapTab`), because only it draws the same rows on both sides.
+
 ## Deploy workflow (NON-NEGOTIABLE)
 - **Never commit directly to `main`.** A live user depends on `main`.
 - Work on a branch. Push the branch → Cloudflare builds a **preview URL** automatically.
@@ -48,7 +51,7 @@ A syllabus pill's actions are **on the pill, never in a popup**: tapping it lift
 
 ## Versioning
 - Version lives as an HTML comment on line 1: `<!-- Academic Planner vX.Y -->`, and in a visible `.version-label` in the header, and in the service worker `CACHE_NAME`.
-- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v11.7. All three locations must match.
+- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v11.8. All three locations must match.
 - Bumping the SW `CACHE_NAME` every change is required or installed devices serve stale code.
 
 ## Architecture rules (hard-won — do not violate)

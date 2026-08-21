@@ -1,4 +1,4 @@
-<!-- Academic Planner v11.7 -->
+<!-- Academic Planner v11.8 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1046,7 +1046,7 @@ function defaultEvents(){return[
 // here in the app, so a new term is a new spreadsheet rather than a new commit.
 function defaultSyllabus(){return[]}
 
-let state={theme:'ember',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],sylMarks:{},sylFeedRange:'',nextId:4000,weekStartDay:6,semesterStart:'2026-01-17',maxFutureDate:'2026-05-30',weekSlot:'sprints',almanacTz:ALM_TZ_DEFAULT,houList:ALM_HOU_DEFAULT,almanacLayers:{...ALM_LAYER_DEFAULT}};
+let state={theme:'ember',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],sylMarks:{},sylFeedRange:'',nextId:4000,weekStartDay:6,semesterStart:'2026-01-17',maxFutureDate:'2026-05-30',weekSlot:'sprints',sylSlot:'syllabus',evtSlot:'events',almanacTz:ALM_TZ_DEFAULT,houList:ALM_HOU_DEFAULT,almanacLayers:{...ALM_LAYER_DEFAULT}};
 let saveTimer=null,lastSaveTime=null,saveStatus='saved';
 // localStorage is the source of truth: write there synchronously, then diff & queue per-record pushes.
 function persistLocal(){try{localStorage.setItem(SKEY,JSON.stringify(state));localStorage.setItem(SKEY+'-time',new Date().toISOString())}catch(e){throw e}}
@@ -1109,7 +1109,11 @@ function applyChosenState(chosen){if(chosen.lifeTasks)chosen.lifeTasks=chosen.li
   // Almanac keys are absent in any state saved before v9.0 — default them here so a restored or
   // synced blob can't leave almanacTz undefined (Intl.DateTimeFormat throws on that).
   if(typeof chosen.almanacTz!=='string'||!chosen.almanacTz)chosen.almanacTz=state.almanacTz||ALM_TZ_DEFAULT;
-  chosen.almanacLayers={...ALM_LAYER_DEFAULT,...(state.almanacLayers||{}),...(chosen.almanacLayers||{})};const THEME_REMAP={dark:'ember',midnight:'ember',peacock:'ocean',bodhi:'persia',temple:'persia',spring:'pistachio',pistachio2:'pistachio'};if(chosen.theme&&THEME_REMAP[chosen.theme])chosen.theme=THEME_REMAP[chosen.theme];state={...state,...chosen}}
+  chosen.almanacLayers={...ALM_LAYER_DEFAULT,...(state.almanacLayers||{}),...(chosen.almanacLayers||{})};const THEME_REMAP={dark:'ember',midnight:'ember',peacock:'ocean',bodhi:'persia',temple:'persia',spring:'pistachio',pistachio2:'pistachio'};if(chosen.theme&&THEME_REMAP[chosen.theme])chosen.theme=THEME_REMAP[chosen.theme];state={...state,...chosen};
+  // If the open tab is one of a slot's faces, that slot shows it — an invariant switchTab keeps and
+  // this restores on load, for a device last left on a tab that only became a second face here
+  // (Tasks, Dashboard). Without it the nav opens on the other half of the pair with nothing lit.
+  const _s=slotOf(state.activeTab);if(_s)state[_s.pref]=state.activeTab}
 // Per-id reconciliation of pulled rows into a local array. NEVER wholesale-replaces the array:
 // unchanged records keep their identity; only new/changed/deleted records move. (SYNC_REFERENCE 1.6)
 function mergeCollection(localArr,tomb,rows){const byId=new Map((localArr||[]).map(e=>[String(e.id),e]));let changed=false;for(const r of rows){const rid=String(r.id);const remoteUpdated=Date.parse(r.updated_at)||0;if(r.deleted_at){if(byId.has(rid)){byId.delete(rid);changed=true}const dms=Date.parse(r.deleted_at)||0;if(!(rid in tomb)||tomb[rid]<dms){tomb[rid]=dms;changed=true}continue}
@@ -1175,17 +1179,21 @@ function render(){
   const renderers={dashboard:renderDash,sprints:renderSprints,syllabus:renderSyllabus,life:renderLife,events:renderEvents,notes:renderNotes,settings:renderSettings,season:renderSeason};
   const navIconTok={sprints:'calendar',season:'moon',syllabus:'scroll',life:'lotus',events:'bell',notes:'quill',dashboard:'grid',settings:'wheel',more:'menu'};
   const ico=k=>`<span class="nav-icon" style="--icon:var(--nv-${navIconTok[k]})"></span>`;
-  // The first nav slot is Week OR Season — whichever face it currently wears. Pressing it while
-  // already on one of the two flips to the other; pressing it from elsewhere returns to the face
-  // it is showing. There is no separate Season entry: this slot is the way in and out.
-  const slot=almSlot();
-  const slotBtn=(cls)=>`<button class="${cls} ${state.activeTab===slot?'active':''}" onclick="almSlotPress()" title="${slot==='season'?'Season — press again for Week':'Week — press again for Season'}">${ico(slot)}${tn[slot]}</button>`;
-  const sideOrder=['syllabus','life','events','notes','dashboard'];
-  const sideNav=`<nav class="sidenav"><div class="sidenav-title">Planner</div>${slotBtn('nav-item')}${sideOrder.map(k=>`<button class="nav-item ${state.activeTab===k?'active':''}" onclick="switchTab('${k}')">${ico(k)}${tn[k]}</button>`).join('')}<div class="nav-spacer"></div><button class="nav-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></nav>`;
-  const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
-  const bottomNav=`<nav class="bottomnav">${slotBtn('bn-item')}<button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
+  // Each of the three nav slots is a pair — Week/Season, Syllabus/Dashboard, Events/Tasks — wearing
+  // whichever face it was last left on. Pressing a slot while on one of its two faces flips to the
+  // other; pressing it from elsewhere returns to the face it is showing. Neither face of a pair has
+  // an entry of its own in these navs: the slot is the way in and out of both.
+  const slotBtn=(cls,s)=>{const f=slotFace(s),other=s.faces.find(x=>x!==f);
+    return `<button class="${cls} ${state.activeTab===f?'active':''}" onclick="slotPress('${s.pref}')" title="${tn[f]} — press again for ${tn[other]}">${ico(f)}${tn[f]}</button>`};
+  const [weekSlotDef,sylSlotDef,evtSlotDef]=NAV_SLOTS;
+  const sideNav=`<nav class="sidenav"><div class="sidenav-title">Planner</div>${slotBtn('nav-item',weekSlotDef)}${slotBtn('nav-item',sylSlotDef)}${slotBtn('nav-item',evtSlotDef)}<button class="nav-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><div class="nav-spacer"></div><button class="nav-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></nav>`;
+  // More keeps its direct entries for Tasks and Dashboard — a second way in costs nothing and the
+  // pairing is new — but they are faces of their slots now, so when one is open it is that slot,
+  // not More, that reads as active. More is only itself when Notes or Settings is open.
+  const moreActive=['notes','settings'].includes(state.activeTab);
+  const bottomNav=`<nav class="bottomnav">${slotBtn('bn-item',weekSlotDef)}${slotBtn('bn-item',sylSlotDef)}${slotBtn('bn-item',evtSlotDef)}<button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
   const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v11.7</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v11.8</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -2010,10 +2018,31 @@ function almOpenTermLink(i){
    so leaving for another tab and coming back returns to that same face; only pressing the slot
    while already on Week or Season flips it. Stored in state, hence localStorage — it is a
    per-device UI mode, so it is deliberately NOT in PROFILE_FIELDS and never syncs. */
-function almSlot(){return state.weekSlot==='season'?'season':'sprints'}
-function almSlotPress(){
-  if(state.activeTab==='sprints'||state.activeTab==='season')almSwapTab();
-  else switchTab(almSlot());
+/* A nav slot is one button wearing one of two faces. Pressing it while you are on either face
+   flips to the other; pressing it from anywhere else returns to the face it is currently showing.
+   There is no default face and no "primary" of the pair: the slot keeps whichever face you were
+   last on, which is why switchTab records it — arriving at a face by any route (the More sheet, a
+   syllabus pill's "open in Syllabus", the term ribbon) leaves the slot showing where you are.
+   The face lives in per-device state and never syncs: it is where this device's nav is pointing,
+   not anything about the plan. */
+const NAV_SLOTS=[
+  {pref:'weekSlot',faces:['sprints','season']},
+  {pref:'sylSlot', faces:['syllabus','dashboard']},
+  {pref:'evtSlot', faces:['events','life']}
+];
+function slotOf(tab){return NAV_SLOTS.find(s=>s.faces.includes(tab))||null}
+// The face on show: what was last opened, or the first of the pair for a device that has never
+// touched this slot (and for a stored value that is no longer one of the two).
+function slotFace(s){return s.faces.includes(state[s.pref])?state[s.pref]:s.faces[0]}
+function almSlot(){return slotFace(NAV_SLOTS[0])}
+function slotPress(pref){
+  const s=NAV_SLOTS.find(x=>x.pref===pref);if(!s)return;
+  if(!s.faces.includes(state.activeTab))return switchTab(slotFace(s));
+  const to=s.faces[0]===state.activeTab?s.faces[1]:s.faces[0];
+  // Week and Season draw the same weeks and days, so crossing between them holds your place in the
+  // scroll. The other pairs are different documents with nothing to line up, and just switch.
+  if(pref==='weekSlot')return almSwapTab(to);
+  switchTab(to);
 }
 
 /* Crossing between the two keeps your place. The anchor is the first row fully in view; after the
@@ -2065,10 +2094,9 @@ function almSwapAnchor(view){
   const hit=rows.find(r=>r.getBoundingClientRect().bottom>0)||rows[rows.length-1];
   return hit?{date:hit.dataset.date,top:hit.getBoundingClientRect().top}:null;
 }
-function almSwapTab(){
+function almSwapTab(to){
   const anchor=almSwapAnchor(document.querySelector('.view.active'));
-  state.weekSlot=state.activeTab==='season'?'sprints':'season';   // set before render: the slot's
-  switchTab(state.weekSlot);                                      // own label and icon change too
+  switchTab(to);   // records the slot's face before rendering, so its own label and icon change too
   if(!anchor)return;
   almAlignTo(anchor.date,anchor.top);
 }
@@ -2456,7 +2484,9 @@ function openCalPick(targetId){
 let moreOpen=false;
 function openMoreSheet(e){if(e)e.stopPropagation();moreOpen=true;document.getElementById('moreOverlay')?.classList.add('open')}
 function closeMoreSheet(){moreOpen=false;document.getElementById('moreOverlay')?.classList.remove('open')}
-function switchTab(t){moreOpen=false;state.activeTab=t;allocatingId=null;render();scheduleSave();if(t==='notes')setTimeout(restoreNotesCursor,50)}
+// Arriving at a tab that is one of a slot's two faces is what sets that slot's face, wherever the
+// call came from — so the nav always shows the last face you were on, and never a stale one.
+function switchTab(t){moreOpen=false;state.activeTab=t;const s=slotOf(t);if(s)state[s.pref]=t;allocatingId=null;render();scheduleSave();if(t==='notes')setTimeout(restoreNotesCursor,50)}
 function setTheme(t){state.theme=t;render();scheduleSave()}
 // Sync the mobile system-bar/address-bar tint to the active theme's --bg. Runs on every
 // render (and thus on theme switch) so the bar recolors live. Only the bar background is
