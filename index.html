@@ -1,4 +1,4 @@
-<!-- Academic Planner v12.3 -->
+<!-- Academic Planner v12.4 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -148,7 +148,7 @@ body{overflow-x:clip;font-family:var(--font-sans);font-size:var(--fs-s);backgrou
 .nav-item.active{color:var(--text);border-left-color:var(--accent-ab)}
 .nav-item.active .nav-face{background:var(--surface3)}
 /* Pinned to the visual viewport, not just to the layout one — see pinBottomBar(). */
-.bottomnav{transform:translateY(calc(-1 * var(--vv-gap,0px)));transition:transform 90ms linear}
+.bottomnav{transform:translateY(calc(-1 * var(--vv-gap,0px)))}
 .bottomnav{display:flex;position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--border);z-index:40;padding-bottom:env(safe-area-inset-bottom,0)}
 .bn-item{flex:1;display:flex;align-items:center;justify-content:center;background:0;border:0;border-top:2px solid transparent;color:var(--text-dim);font-family:var(--font-sans);font-size:var(--fs-2xs);font-weight:600;padding:8px 2px 7px;cursor:pointer}
 .bn-item.active{color:var(--text);border-top-color:var(--accent-ab)}
@@ -1284,7 +1284,7 @@ function render(){
   // Both navs draw the same slots in the same order — the side nav is the bottom bar stood on end.
   const sideNav=`<nav class="sidenav"><div class="sidenav-title">Planner</div>${NAV_SLOTS.map(sl=>slotBtn('nav-item',sl)).join('')}</nav>`;
   const bottomNav=`<nav class="bottomnav">${NAV_SLOTS.map(sl=>slotBtn('bn-item',sl)).join('')}</nav>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v12.3</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply();updateFindTopPad();updateToTop()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v12.4</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply();updateFindTopPad();updateToTop();pinBottomBar()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -1957,32 +1957,48 @@ let _fitTimer=null;
 window.addEventListener('resize',()=>{clearTimeout(_fitTimer);_fitTimer=setTimeout(()=>{almFitLabels();sylFitTitles()},150)});
 
 /* ---- Keeping the bottom bar on screen ------------------------------------------------------- */
-/* Chrome on Android lays `position:fixed` out against the LAYOUT viewport, which keeps the taller
-   height it had while the URL bar was hidden. Scrolling up brings the URL bar back, the visual
-   viewport shrinks, and a bottom-anchored bar is left hanging below the screen — which is the tab
-   bar looking "collapsed", losing its labels off the bottom edge. Nothing about it is tab-specific;
-   it shows up wherever you happen to scroll up. So measure how far the layout bottom sits below the
-   visible bottom and lift the bar by exactly that.
-   A gap that big is the on-screen keyboard rather than the URL bar: leave the bar at the layout
-   bottom then, instead of launching it into the middle of the screen above the keys. */
+/* A mobile browser positions `position:fixed` against a viewport that is not the one you can see:
+   Chrome on Android keeps the taller height it had while the URL bar was hidden, so bringing the URL
+   bar back leaves a bottom-anchored bar hanging below the screen with its labels cut off. Page zoom
+   does the same thing for a different reason.
+   The first attempt computed the overhang from documentElement.clientHeight, which assumes which of
+   the several viewport heights the browser reports there — and that assumption was wrong on a real
+   phone, so nothing moved. This measures instead: where is the bar actually drawn, and where does
+   the visible area actually end? The difference is the error, and correcting by exactly it needs no
+   theory of the browser's viewport model at all. One measurement, one correction, and the next
+   event re-checks — the same self-correcting shape as almAlignTo.
+   Two guards: never lift more than a third of the visible height (that is the on-screen keyboard,
+   and the bar belongs behind it, not floating in the middle of the screen), and never push the bar
+   below its resting place. */
 function pinBottomBar(){
-  const vv=window.visualViewport;if(!vv)return;
-  const gap=Math.round(document.documentElement.clientHeight-(vv.height+vv.offsetTop));
-  document.documentElement.style.setProperty('--vv-gap',(gap>0&&gap<160?gap:0)+'px')}
+  const vv=window.visualViewport,nav=document.querySelector('.bottomnav');
+  const root=document.documentElement;
+  if(!vv||!nav)return;
+  if(getComputedStyle(nav).display==='none'){root.style.setProperty('--vv-gap','0px');return}
+  const cur=parseFloat(getComputedStyle(root).getPropertyValue('--vv-gap'))||0;
+  const overhang=nav.getBoundingClientRect().bottom-(vv.offsetTop+vv.height);
+  const next=Math.max(0,Math.min(cur+overhang,vv.height*0.34));
+  vvReadout(cur,overhang);   // always, so a bar that is still wrong can be reported as numbers
+  if(Math.abs(overhang)<0.5||Math.abs(next-cur)<0.5)return;
+  root.style.setProperty('--vv-gap',Math.round(next)+'px')}
+function vvReadout(lift,overhang){const el=document.getElementById('vvReadout');if(!el)return;const vv=window.visualViewport;
+  el.textContent=vv?('layout '+document.documentElement.clientHeight+' · visible '+Math.round(vv.height)
+    +' · offset '+Math.round(vv.offsetTop)+' · scale '+vv.scale.toFixed(2)
+    +' · lift '+Math.round(lift)+' · residual '+Math.round(overhang||0)):'unavailable'}
 if(window.visualViewport){
   visualViewport.addEventListener('resize',pinBottomBar);
   visualViewport.addEventListener('scroll',pinBottomBar);
-  addEventListener('scroll',pinBottomBar,{passive:true});
+  addEventListener('scroll',()=>{if(_pinRaf)return;_pinRaf=requestAnimationFrame(()=>{_pinRaf=0;pinBottomBar()})},{passive:true});
+  addEventListener('orientationchange',()=>setTimeout(pinBottomBar,250));
   pinBottomBar()}
+let _pinRaf=0;
 
 /* ---- Back to top ---------------------------------------------------------------------------- */
-/* Shown once there is a screenful or a tenth of the document behind you, whichever is further — the
-   tenth alone fires almost immediately on a long Week tab, and a screenful alone never fires on a
-   short one. The button lives outside #app, so a re-render cannot drop it mid-scroll. */
-function toTopThreshold(){const max=document.documentElement.scrollHeight-innerHeight;
-  // …and never later than a screen and a half: on the Week tab a tenth of the document is several
-  // screens, which is long past the point where you want the way back.
-  return Math.min(Math.max(innerHeight*0.5,max*0.1),innerHeight*1.5)}
+/* Three screens down, in every tab. A threshold derived from the document's own height (a tenth of
+   it, say) moves with the tab you are in, so the button appeared at a different point in each one
+   and read as unpredictable. The button lives outside #app, so a re-render cannot drop it. */
+const TO_TOP_SCREENS=3;
+function toTopThreshold(){return innerHeight*TO_TOP_SCREENS}
 function updateToTop(){const el=document.getElementById('toTop');if(!el)return;
   el.classList.toggle('show',scrollY>toTopThreshold())}
 function scrollToTop(){const soft=!matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -2115,8 +2131,20 @@ document.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&k==='f'){e.preventDefault();findOpen();return}
   if(!_find.open)return;
   if(k==='escape'){e.preventDefault();findClose();return}
-  const inBar=document.activeElement&&document.activeElement.closest&&document.activeElement.closest('.findbar');
-  if(k==='enter'&&inBar){e.preventDefault();findStep(e.shiftKey?-1:1)}
+  if(k!=='enter')return;
+  const ae=document.activeElement,inp=document.getElementById('findInput');
+  // Enter belongs to some other editor if that is where the caret is.
+  if(ae&&ae!==inp&&(ae.isContentEditable||ae.tagName==='TEXTAREA'||ae.tagName==='SELECT'||ae.tagName==='INPUT'))return;
+  e.preventDefault();
+  const touch=matchMedia('(pointer:coarse)').matches;
+  if(ae===inp&&touch){
+    // On a phone the query is typed with half the screen under the keyboard. Enter puts the keyboard
+    // away and lands on the match you already have (typing selected the first one), rather than
+    // stepping past it — the step is what the next Enter is for.
+    inp.blur();
+    if(_find.i>=0&&!e.shiftKey){findPaint(true);return}
+  }
+  findStep(e.shiftKey?-1:1)
 });
 
 
@@ -2778,7 +2806,9 @@ function renderSettings(){
   <button class="btn btn-quiet" onclick="importState()">Restore</button></div>
   <div class="settings-section"><label>Backup to file</label>
   <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Download all your data as a JSON file you can re-import later.</div>
-  <button class="btn btn-quiet" onclick="exportState()">Backup</button></div></div>
+  <button class="btn btn-quiet" onclick="exportState()">Backup</button></div>
+  <div class="settings-section"><label>Viewport</label>
+  <div style="font-size:var(--fs-2xs);color:var(--text-muted)">What the tab bar is being pinned to, live. <span id="vvReadout" style="font-family:var(--font-mono)">—</span></div></div></div>
   ${legacyCatSectionHtml()}`}
 
 /* Records left over from a term the workbook no longer defines. v12.0 took the retired classes out
