@@ -1,4 +1,4 @@
-<!-- Academic Planner v11.6 -->
+<!-- Academic Planner v11.7 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -617,11 +617,6 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 .pop-detail{font-size:var(--fs-s);color:var(--text-dim);white-space:pre-line;border-left:2px solid var(--border);padding-left:var(--sp-3);margin:var(--sp-3) 0 var(--sp-4);line-height:1.5}
 .pop-detail .syl-bullet{padding-left:10px}.pop-detail .syl-sub-bullet{padding-left:22px;opacity:.85}
 .pop-actions{display:flex;gap:var(--sp-2);flex-wrap:wrap}
-.pop-btn{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-sans);font-size:var(--fs-s);font-weight:600;padding:8px 13px;border-radius:var(--r-s);border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;transition:background var(--t-fast) var(--ease)}
-.pop-btn:hover{background:var(--surface3)}
-.pop-btn.primary{background:var(--ok);border-color:var(--ok);color:#fff}
-.pop-btn.on{background:var(--warning-dim);border-color:var(--warning);color:var(--warning)}
-.pop-btn .mi{width:15px;height:15px}
 .mi-lg{width:22px;height:22px}
 .days.urgent{color:var(--danger)}.days.soon{color:var(--warning)}.days.ok{color:var(--ok)}.days.past{color:var(--text-muted);text-decoration:line-through}
 .days{font-family:var(--font-mono);font-size:var(--fs-2xs);font-weight:600}
@@ -718,6 +713,16 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
 
 /* Event chips in sprint */
 .evt-chip{font-size:var(--fs-2xs);padding:6px 10px;border-radius:var(--r-m);font-weight:500;line-height:1.3;display:inline-flex;align-items:center;gap:4px;background:var(--warning-dim);color:var(--warning);border:1px dashed var(--warning);cursor:default;position:relative;user-select:none}
+/* Same construction as the syllabus pill: the title is its own item, so a title too long for a
+   phone's day column wraps against a straight left edge rather than setting itself ragged around
+   the emblem. The pill does not wrap onto a second line the way a syllabus pill does — an emblem is
+   narrow enough to leave the title its width, and reads better beside the title than stranded on a
+   line of its own — so the title shrinks past its content width (min-width:0) and wraps inside. */
+.evt-title{flex:1 1 auto;min-width:0;text-align:left}
+/* The clock is a zone at the end of the title, inside it rather than beside it, so it flows with
+   the text like a last word: it never takes width away from the name, and it cannot be stranded on
+   a line of its own however narrow the day column gets. */
+.pill-zone.evt-when{white-space:nowrap;margin-left:2px;font-weight:500}
 .evt-chip[draggable="true"]{cursor:grab}
 .evt-chip.dragging{opacity:.4}
 .evt-chip.evt-past{opacity:.35;text-decoration:line-through}
@@ -728,9 +733,13 @@ body{font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);col
    ground for an observance, so a mirrored item is recognisably the same object in both tabs. */
 .evt-chip.evt-cal.obs{background:transparent!important;box-shadow:inset 0 0 0 1px currentColor}
 .evt-chip.evt-cal{transition:box-shadow var(--t-med) var(--ease)}
-.evt-cal-x{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;
-  margin-left:4px;padding:0;border:0;border-radius:var(--r-s);background:0;color:inherit;
-  opacity:.55;cursor:pointer;vertical-align:-3px}
+/* The x rides in the pill's top-right corner rather than in the text flow: now that a title can
+   take a line of its own, a trailing button in flow lands stranded on a line below it. The pill
+   reserves the width on its right, so the x never sits on the title. */
+.evt-chip.evt-cal{padding-right:26px}
+.evt-cal-x{position:absolute;top:3px;right:3px;display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;
+  padding:0;border:0;border-radius:var(--r-s);background:0;color:inherit;
+  opacity:.55;cursor:pointer;z-index:2}
 .evt-cal-x:hover{opacity:1;background:var(--surface3)}
 .evt-cal-x .mi{width:10px;height:10px;vertical-align:0}
 .evt-chip .chip-acts{display:none;position:absolute;top:-5px;right:-5px;gap:2px;z-index:10}
@@ -789,6 +798,47 @@ a.syl-meta-tag.link{color:var(--text-dim);text-decoration:none}a.syl-meta-tag.li
 .chip.syl-mirror{cursor:pointer;opacity:.75;font-size:var(--fs-2xs);padding:5px 9px;border:1px dashed}
 .chip.syl-mirror:hover{opacity:1}
 .chip.syl-mirror .chip-acts{display:none!important}
+/* A completed entry stays on the Week tab — the week is a record of what was due, not only of what
+   is left — so it is struck through in place rather than removed. Three classes deep, because the
+   .syl-mirror opacity above would otherwise win over .chip.done on source order alone. */
+.chip.syl-mirror.done{opacity:.4;text-decoration:line-through}
+/* What a pill says *about* an entry — which class it belongs to, when an event runs — sits in a
+   zone of its own: a soft block of the pill's own accent, no border, no second typeface, no
+   brackets. It is a part of the pill rather than something stuck onto it, and because the ground is
+   the accent the pill is already tinted with, the zone reads as the same object at a different
+   depth. Both pill kinds use it, which is what makes them look like one family. */
+.pill-zone{display:inline-block;padding:1px 6px;border-radius:var(--r-s);font-size:var(--fs-2xs);font-weight:600;letter-spacing:.01em;
+  background:var(--surface2);background:color-mix(in srgb,currentColor 16%,transparent)}
+
+/* A syllabus pill is a tag and a title, not one run of inline scraps. The tag — the type's symbol,
+   the class's alias from the workbook in its own zone, and the star if the entry carries one —
+   holds everything that says *which* entry this is, apart from *what* it is.
+   The pill wraps, and that is what makes it work in a day column barely 150px wide on a phone: the
+   title's base size is its own width, so where the pill has room the tag and the title sit inline,
+   and where it does not the title takes a line of its own at the pill's full width with the tag
+   above it as an eyebrow. One rule, no media query, and the title is never squeezed into the ragged
+   two-word column that made these unreadable. (Do not pin the title to a fixed flex-basis to force
+   the break: an intrinsically-sized pill then measures itself against that basis instead of its
+   text, and short titles wrap while long ones stay inline — exactly backwards.) */
+.chip.syl-mirror{flex-wrap:wrap;row-gap:1px}
+.syl-tab{display:flex;align-items:center;gap:5px;flex:0 0 auto}
+.syl-tab .mi{width:13px;height:13px}
+.syl-pill-title{flex:1 1 auto;min-width:0;text-align:left}
+.syl-hl-mark{width:9px;height:9px;vertical-align:0;flex-shrink:0}
+/* --- The syllabus pill's actions live on the pill itself (v11.7). Tapping a pill lifts a rail of
+   three targets over it: highlight, complete, open in Syllabus. The rail is absolutely positioned
+   and overhangs the pill on every side, so it can be thumb-sized without the pill changing size and
+   without reflowing the day row — the pill under it keeps its exact footprint. --- */
+.chip.syl-mirror.acting{opacity:1;z-index:14}
+.chip.syl-mirror.acting[data-tip]::after{display:none}
+.syl-acts{position:absolute;left:-3px;right:-3px;top:-7px;bottom:-7px;min-height:42px;z-index:15;display:flex;gap:3px;padding:3px;border-radius:var(--r-m);background:var(--surface);border:1px solid currentColor;box-shadow:0 7px 20px rgba(0,0,0,.3);opacity:0;transform:scale(.94);pointer-events:none;transition:opacity var(--t-fast) var(--ease),transform var(--t-fast) var(--ease)}
+.chip.syl-mirror.acting .syl-acts{opacity:1;transform:none;pointer-events:auto}
+.syl-act{flex:1;min-width:38px;display:flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:var(--r-s);background:var(--surface2);color:var(--text-dim);cursor:pointer;transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease)}
+.syl-act:hover{background:var(--surface3);color:var(--text)}
+.syl-act .mi{width:15px;height:15px}
+.syl-act.on{background:var(--warning-dim);color:var(--warning)}
+.syl-act.is-done{background:var(--ok);color:#fff}
+@media(prefers-reduced-motion:reduce){.syl-acts{transition:none}}
 @keyframes halo-breathe{0%,100%{box-shadow:0 0 4px 1px var(--halo-color)}50%{box-shadow:0 0 8px 3px var(--halo-color)}}
 .chip.task-halo{--halo-color:rgba(201,162,39,.5);border-left:3px solid #c9a227;animation:halo-breathe 3s ease-in-out infinite}
 .settings-section{margin-bottom:18px}
@@ -860,8 +910,6 @@ a.syl-meta-tag.link{color:var(--text-dim);text-decoration:none}a.syl-meta-tag.li
 
 <!-- Event edit modal -->
 <div class="modal-overlay" id="evtModal"><div class="modal"><button class="modal-x" onclick="this.closest('.modal-overlay').classList.remove('open')" aria-label="Close"><span class="mi" style="--ic:var(--ic-x)"></span></button><h3 id="evtModalTitle">Edit Event</h3><label>Name</label><input id="eName" type="text"/><label>Start Date</label><input id="eDate" type="date" onchange="edStartChange('eDate','eEndDate')"/><label>Start Time</label><input id="eStart" type="time"/><label>End Date (for multi-day)</label><input id="eEndDate" type="date" onfocus="edEndFocus('eDate','eEndDate')" onchange="edEndChange('eEndDate')"/><label>End Time</label><input id="eEnd" type="time"/><label>Location</label><input id="eLoc" type="text"/><div style="margin-top:8px"><label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="eAllDay"/> All day event</label></div><div class="modal-btns"><button class="btn btn-danger" id="eDel">Delete</button><button class="btn btn-quiet" id="eCanc">Cancel</button><button class="btn btn-primary" id="eSave">Save</button></div></div></div>
-<!-- Syllabus quick-view popup (read-only view of a syllabus record by id) -->
-<div class="pop-scrim" id="sylPop" onclick="if(event.target.id==='sylPop')closeSylPop()"><div class="pop" id="sylPopPanel" role="dialog" aria-label="Syllabus entry"></div></div>
 <div class="pop-scrim" id="almPop" onclick="if(event.target.id==='almPop')closeAlmPop()"><div class="pop" id="almPopPanel" role="dialog" aria-label="Almanac reading"></div></div>
 
 <!-- Almanac: name tables first, then the engine (data has no dependencies, engine has none either,
@@ -1137,7 +1185,7 @@ function render(){
   const moreActive=['life','dashboard','notes','settings'].includes(state.activeTab);
   const bottomNav=`<nav class="bottomnav">${slotBtn('bn-item')}<button class="bn-item ${state.activeTab==='syllabus'?'active':''}" onclick="switchTab('syllabus')">${ico('syllabus')}Syllabus</button><button class="bn-item ${state.activeTab==='events'?'active':''}" onclick="switchTab('events')">${ico('events')}Events</button><button class="bn-item ${moreActive?'active':''}" onclick="openMoreSheet(event)">${ico('more')}More</button></nav>`;
   const moreSheet=`<div class="more-overlay ${moreOpen?'open':''}" id="moreOverlay" onclick="closeMoreSheet()"><div class="more-sheet" onclick="event.stopPropagation()"><div class="more-sheet-grip"></div><button class="more-sheet-item ${state.activeTab==='life'?'active':''}" onclick="switchTab('life')">${ico('life')}Tasks</button><button class="more-sheet-item ${state.activeTab==='dashboard'?'active':''}" onclick="switchTab('dashboard')">${ico('dashboard')}Dashboard</button><button class="more-sheet-item ${state.activeTab==='notes'?'active':''}" onclick="switchTab('notes')">${ico('notes')}Notes</button><button class="more-sheet-item ${state.activeTab==='settings'?'active':''}" onclick="switchTab('settings')">${ico('settings')}Settings</button></div></div>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v11.6</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v11.7</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}${moreSheet}`;updateSI();almFitLabels()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -2049,24 +2097,48 @@ const calI=ev.calRef?calRefInfo(ev.calRef):null;const calS=calI?calI.S:null;
 const calIco=calS?calS.icon:'bell';
 const calStyle=calS?` style="background:${calI.obs?'transparent':`var(--accent-${calS.accent}-dim)`};color:var(--accent-${calS.accent});border-color:var(--accent-${calS.accent})"`:evtStyle;
 const calX=calS?`<button class="evt-cal-x" onclick="event.stopPropagation();calUnsendEvent(${ev.evtId})" title="Remove from the Week tab — the ${calS.name} calendar entry stays" aria-label="Remove this mirrored event"><span class="mi" style="--ic:var(--ic-x)"></span></button>`:'';
-pills.push({type:'evt',time:ev.startTime||'',html:`<span class="evt-chip${evPast?' evt-past':''}${calS?' evt-cal '+calS.cls+(calI.obs?' obs':''):''}${calS&&_calFlash===ev.calRef?' cal-flash':''}" data-tip="${ev.tip}" data-evt-id="${ev.evtId}"${dragAttr}${calStyle} onclick="event.stopPropagation();toggleEvtChipMenu(${ev.evtId},this)" ondblclick="event.stopPropagation();openEvtEdit(${ev.evtId})"><span class="mi" style="--ic:var(--ic-${calIco})"></span> ${ev.label}${calX}<span class="chip-acts"><button class="chip-btn" onclick="event.stopPropagation();openEvtEdit(${ev.evtId})" title="Edit"><span class="mi" style="--ic:var(--ic-edit)"></span></button><button class="chip-btn life-remove" onclick="event.stopPropagation();deleteEvent(${ev.evtId})" title="Delete"><span class="mi" style="--ic:var(--ic-x)"></span></button></span></span>`})});
-sylChips.forEach(sc=>{const sylTime=sc.dueTime||'09:00';const fmtSylTime=((h,m)=>{const hr=parseInt(h);return(hr>12?hr-12:hr||12)+':'+m+(hr>=12?'p':'a')})(sylTime.split(':')[0],sylTime.split(':')[1]);pills.push({type:'syl',time:sylTime,html:`<span class="chip ${sc.cat} syl-mirror" data-tip="${catName(sc.cat)} · ${sc.type}${sc.dueTime?' · due '+fmtSylTime:''}" onclick="event.stopPropagation();openSylPopup(${sc.entry.id})"><span class="mi" style="--ic:var(--ic-${SYL_ICON[sc.type]||'pin'})"></span> ${sc.dueTime?'<span class="t">'+fmtSylTime+'</span> ':''}${escHtml(sc.title)}${sc.label}</span>`})});
+// The clock reads on the pill, not only in the tooltip — a tooltip is unreachable on a phone. An
+// all-day event has no time to state, and on the later days of a multi-day run the start time has
+// already passed, so both show none.
+const evWhen=evtWhen(ev);
+pills.push({type:'evt',time:ev.startTime||'',html:`<span class="evt-chip${evPast?' evt-past':''}${calS?' evt-cal '+calS.cls+(calI.obs?' obs':''):''}${calS&&_calFlash===ev.calRef?' cal-flash':''}" data-tip="${ev.tip}" data-evt-id="${ev.evtId}"${dragAttr}${calStyle} onclick="event.stopPropagation();toggleEvtChipMenu(${ev.evtId},this)" ondblclick="event.stopPropagation();openEvtEdit(${ev.evtId})"><span class="mi" style="--ic:var(--ic-${calIco})"></span> <span class="evt-title">${ev.label}${evWhen?' <span class="pill-zone evt-when">'+evWhen+'</span>':''}</span>${calX}<span class="chip-acts"><button class="chip-btn" onclick="event.stopPropagation();openEvtEdit(${ev.evtId})" title="Edit"><span class="mi" style="--ic:var(--ic-edit)"></span></button><button class="chip-btn life-remove" onclick="event.stopPropagation();deleteEvent(${ev.evtId})" title="Delete"><span class="mi" style="--ic:var(--ic-x)"></span></button></span></span>`})});
+sylChips.forEach(sc=>{const s=sc.entry;const sylTime=sc.dueTime||'09:00';const fmtSylTime=fmtPillTime(sylTime);
+// One pill instance per day of a multi-day entry, so the armed key is the entry and the day
+// together: tapping one day's pill must not open the rail on the same entry's other days.
+const sylKey=s.id+'|'+day.date;
+const sylTip=escAttr(catName(sc.cat)+' · '+sc.type+(sc.dueTime?' · due '+fmtSylTime:'')+(s.done?' · done':''));
+// No clock on a syllabus pill: an entry is due on a day, and the hour is a detail of the class's
+// own making that only crowds the title out of the width a phone has. It still sorts the pill among
+// the day's others, and it still reads in the tooltip.
+const sylTab=`<span class="syl-tab"><span class="mi" style="--ic:var(--ic-${SYL_ICON[sc.type]||'pin'})"></span><span class="pill-zone">${escHtml(catShort(sc.cat))}</span>${s.highlighted?'<span class="mi syl-hl-mark" style="--ic:var(--ic-star)"></span>':''}</span>`;
+const sylActs=`<span class="syl-acts" role="group" aria-label="Entry actions"><button class="syl-act${s.highlighted?' on':''}" onclick="event.stopPropagation();toggleSylHL(${s.id})" title="${s.highlighted?'Remove highlight':'Highlight'}" aria-label="${s.highlighted?'Remove highlight':'Highlight'}"><span class="mi" style="--ic:var(--ic-star)"></span></button><button class="syl-act${s.done?' is-done':''}" onclick="event.stopPropagation();sylActDone(${s.id})" title="${s.done?'Mark not done':'Mark done'}" aria-label="${s.done?'Mark not done':'Mark done'}"><span class="mi" style="--ic:var(--ic-${s.done?'up':'check'})"></span></button><button class="syl-act" onclick="event.stopPropagation();sylActOpen(${s.id})" title="Open in Syllabus" aria-label="Open in Syllabus"><span class="mi" style="--ic:var(--ic-book)"></span></button></span>`;
+pills.push({type:'syl',time:sylTime,html:`<span class="chip ${sc.cat} syl-mirror${s.done?' done':''}${_sylActing===sylKey?' acting':''}" data-tip="${sylTip}" onclick="event.stopPropagation();sylPillTap('${sylKey}',this)">${sylTab}<span class="syl-pill-title">${escHtml(sc.title)}${sc.label}</span>${sylActs}</span>`})});
 tasks.forEach(t=>pills.push({type:'task',time:t.time||'',html:renderChip(t)}));
 pills.sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
 const pillsHtml=pills.map(p=>p.html).join('');
 h+=`<div class="day-row ${isT?'is-today':''} ${isAT?'alloc-target':''}" style="grid-row:${dayRow}" data-date="${day.date}" ondragover="event.preventDefault();this.classList.add('alloc-highlight')" ondrop="handleDrop(event,'${day.date}')" ondragleave="this.classList.remove('alloc-highlight')" ${isAT?`onclick="placeAllocated('${day.date}')"`:''}><div class="day-left"><span class="day-name">${fmtDate(day.dateObj)}</span>${canHide?`<button class="hide-day-btn" onclick="event.stopPropagation();hideDay('${day.date}')" title="Hide this day">hide</button>`:''}</div><div class="day-tasks-area" ondragover="handleChipDragOver(event)" ondrop="handleChipDrop(event,'${day.date}')" ondragleave="clearDropIndicators(this)">${pillsHtml}</div><div class="day-right"><button class="add-day-btn" onclick="event.stopPropagation();openAddTask('${day.date}')" title="Add">+</button></div><div class="day-note-row"><button class="day-note-btn" onclick="event.stopPropagation();toggleEl('dn-${day.date}')">${note?'<span class=\'mi\' style=\'--ic:var(--ic-pen)\'></span>':'+ note'}</button><textarea class="day-note-input" id="dn-${day.date}" style="display:${note?'block':'none'}" onclick="event.stopPropagation()" oninput="state.dayNotes['${day.date}']=this.value;scheduleSave()" placeholder="Notes...">${note}</textarea></div>${almDayFooterHtml(alm,day.date)}</div>`});
 h+='</div>';return h}
 
+// The Week tab's clock, in the column form a task pill sets it in.
+function fmtPillTime(t){if(!t)return'';const[h,m]=t.split(':');const hr=parseInt(h);return(hr>12?hr-12:hr||12)+':'+m+(hr>=12?'p':'a')}
+// An event states its time in a zone at the end of its own title — "Go shopping 5–7pm". Minutes
+// only when it is not on the hour, and a meridiem the two ends share is said once, at the end.
+function fmtEvtClock(t,mer){const[h,m]=t.split(':');const hr=parseInt(h);return(hr>12?hr-12:hr||12)+(m==='00'?'':':'+m)+(mer===false?'':(hr>=12?'pm':'am'))}
+function evtWhen(ev){if(ev.allDay||!ev.isStart||!ev.startTime)return'';
+  if(!ev.endTime)return fmtEvtClock(ev.startTime);
+  const same=(parseInt(ev.startTime)>=12)===(parseInt(ev.endTime)>=12);
+  return fmtEvtClock(ev.startTime,!same)+'–'+fmtEvtClock(ev.endTime)}
 function renderChip(t){const isLife=t.cat==='life'&&t.lifeSourceId;let acts='';
 if(isLife){acts=`<span class="chip-acts"><button class="chip-btn life-return" onclick="event.stopPropagation();returnToBank(${t.id})" title="Return to bank"><span class="mi" style="--ic:var(--ic-up)"></span></button><button class="chip-btn" onclick="event.stopPropagation();toggleTaskDone(${t.id})" title="${t.done?'Undo':'Done'}">${t.done?'<span class="mi" style="--ic:var(--ic-up)"></span>':'<span class="mi" style="--ic:var(--ic-check)"></span>'}</button><button class="chip-btn" onclick="event.stopPropagation();openTaskEdit(${t.id})" title="Edit"><span class="mi" style="--ic:var(--ic-edit)"></span></button><button class="chip-btn" onclick="event.stopPropagation();duplicateTask(${t.id})" title="Duplicate"><span class="mi" style="--ic:var(--ic-dup)"></span></button><button class="chip-btn life-remove" onclick="event.stopPropagation();deleteTask(${t.id})" title="Delete"><span class="mi" style="--ic:var(--ic-x)"></span></button></span>`}
 else{acts=`<span class="chip-acts"><button class="chip-btn" onclick="event.stopPropagation();toggleTaskDone(${t.id})" title="${t.done?'Undo':'Done'}">${t.done?'<span class="mi" style="--ic:var(--ic-up)"></span>':'<span class="mi" style="--ic:var(--ic-check)"></span>'}</button><button class="chip-btn" onclick="event.stopPropagation();openTaskEdit(${t.id})" title="Edit"><span class="mi" style="--ic:var(--ic-edit)"></span></button><button class="chip-btn" onclick="event.stopPropagation();duplicateTask(${t.id})" title="Duplicate"><span class="mi" style="--ic:var(--ic-dup)"></span></button><button class="chip-btn life-remove" onclick="event.stopPropagation();deleteTask(${t.id})" title="Delete"><span class="mi" style="--ic:var(--ic-x)"></span></button></span>`}
 const _sylT=t.syllabusId?sylFind(t.syllabusId):null;const _tip=(CAT_NAMES[t.cat]||t.cat)+(_sylT?' · '+_sylT.title:'');
-const fmtChipTime=t.time?((h,m)=>{const hr=parseInt(h);return(hr>12?hr-12:hr||12)+':'+m+(hr>=12?'p':'a')})(t.time.split(':')[0],t.time.split(':')[1]):'';
+const fmtChipTime=fmtPillTime(t.time);
 const _haloEnd=isoDate(new Date(TODAY.getTime()+7*864e5));const taskHalo=!t.done&&t.date>=isoDate(TODAY)&&t.date<=_haloEnd?' task-halo':'';
 return`<span class="chip ${t.cat} ${t.priority==='high'?'high':''} ${t.done?'done':''}${taskHalo}" draggable="true" data-id="${t.id}" data-tip="${_tip}" onclick="event.stopPropagation();toggleChipMenu(${t.id},this)" ondblclick="event.stopPropagation();inlineEditChip(${t.id},this)" ondragstart="dragId=${t.id};event.dataTransfer.setData('text/plain','${t.id}');event.dataTransfer.effectAllowed='move';this.classList.add('dragging')" ondragend="this.classList.remove('dragging')">${t.priority==='high'?'<span class="mi" style="--ic:var(--ic-star);width:9px;height:9px;vertical-align:0"></span> ':''}${fmtChipTime?'<span class="t">'+fmtChipTime+'</span> ':''}${t.name}${acts}</span>`}
 
 function toggleChipMenu(id,el){const wasOpen=el.classList.contains('menu-open');document.querySelectorAll('.chip.menu-open').forEach(c=>{if(c!==el)c.classList.remove('menu-open')});el.classList.toggle('menu-open');if(!wasOpen){el.classList.add('menu-activating');setTimeout(()=>el.classList.remove('menu-activating'),250)}}
-document.addEventListener('click',e=>{if(!e.target.closest('.chip')&&!e.target.closest('.evt-chip')){document.querySelectorAll('.chip.menu-open,.evt-chip.menu-open').forEach(c=>c.classList.remove('menu-open'))}if(!e.target.closest('.dash-cell'))document.querySelectorAll('.dash-cell.dc-active').forEach(c=>c.classList.remove('dc-active'))});
+document.addEventListener('click',e=>{if(!e.target.closest('.chip')&&!e.target.closest('.evt-chip')){document.querySelectorAll('.chip.menu-open,.evt-chip.menu-open').forEach(c=>c.classList.remove('menu-open'))}
+  if(!e.target.closest('.syl-mirror'))sylClearActing();if(!e.target.closest('.dash-cell'))document.querySelectorAll('.dash-cell.dc-active').forEach(c=>c.classList.remove('dc-active'))});
 let _lastTapTime=0,_lastTapEl=null;
 document.addEventListener('touchend',e=>{const now=Date.now();const chip=e.target.closest('.evt-chip');const taskChip=e.target.closest('.chip:not(.evt-chip):not(.syl-mirror)');const target=chip||taskChip;if(!target){_lastTapTime=0;_lastTapEl=null;return}if(target===_lastTapEl&&now-_lastTapTime<400){e.preventDefault();if(chip){const evtId=parseInt(chip.dataset.evtId);if(evtId)openEvtEdit(evtId)}else if(taskChip){const id=parseInt(taskChip.dataset.id);if(id)inlineEditChip(id,taskChip)}_lastTapTime=0;_lastTapEl=null}else{_lastTapTime=now;_lastTapEl=target}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){const pop=document.querySelector('.pop-scrim.open');if(pop){e.preventDefault();pop.classList.remove('open');return}const open=document.querySelector('.modal-overlay.open');if(open){e.preventDefault();open.classList.remove('open')}}});
@@ -2141,7 +2213,7 @@ const isMulti=end!==start;
 if(isMulti){const s=parseDate(start),en=parseDate(end),c=parseDate(dateStr);const total=Math.round((en-s)/864e5)+1;const day=Math.round((c-s)/864e5)+1;label+=` (${day}/${total})`}
 const tip=[e.allDay?'All day':(e.startTime?fmtT(e.startTime)+(e.endTime?'–'+fmtT(e.endTime):''):''),e.location].filter(Boolean).join(' · ');
 const isStart=dateStr===start,isEnd=dateStr===end;
-chips.push({evtId:e.id,label,tip:tip||e.name,calRef:e.calRef||'',startTime:e.startTime||'',endTime:e.endTime||'',endDate:end,isMulti,isStart,isEnd,draggable:isStart||isEnd,colorN:evtColorN(e.id)})}});
+chips.push({evtId:e.id,label,tip:tip||e.name,calRef:e.calRef||'',startTime:e.startTime||'',endTime:e.endTime||'',endDate:end,allDay:!!e.allDay,isMulti,isStart,isEnd,draggable:isStart||isEnd,colorN:evtColorN(e.id)})}});
 return chips}
 
 // ===== SYLLABUS FEED (v11.5) =====
@@ -2345,8 +2417,9 @@ function renderSettings(){
 
 function getSylForDate(dateStr){
   const chips=[];
+  // Done entries are kept: completing one from the Week tab strikes it through where it sits
+  // rather than making it vanish out from under the finger that ticked it.
   sylAll().forEach(s=>{
-    if(s.done)return;
     const start=s.due,end=s.dueEnd||s.due;
     if(dateStr>=start&&dateStr<=end){
       const startD=parseDate(start),endD=parseDate(end),curD=parseDate(dateStr);
@@ -2499,6 +2572,8 @@ let _pasteOpen=false,_pasteText='';
 // Ephemeral UI state for the inline "add task" form so a re-render preserves typed-but-unsaved input.
 let _lifeAdd={name:'',due:'',cat:'',pri:''};
 function escHtml(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+// Same, for text going into a double-quoted attribute (class names and titles are spreadsheet text).
+function escAttr(s){return escHtml(s).replace(/"/g,'&quot;')}
 const MONTHS={january:0,february:1,march:2,april:3,may:4,june:5,july:6,august:7,september:8,october:9,november:10,december:11,jan:0,feb:1,mar:2,apr:3,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
 const DAYS={sunday:0,monday:1,tuesday:2,wednesday:3,thursday:4,friday:5,saturday:6,sun:0,mon:1,tue:2,tues:2,wed:3,weds:3,thu:4,thur:4,thurs:4,fri:5,sat:6};
 const MONTH_PAT=Object.keys(MONTHS).sort((a,b)=>b.length-a.length).join('|');
@@ -2713,25 +2788,21 @@ function expandSylDays(wkN){const weeks=generateWeeks();const wk=weeks.find(w=>w
 // state.sylMarks rather than to the entry (which is regenerated from the spreadsheet every fetch).
 function toggleSylHL(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',!s.highlighted);else s.highlighted=!s.highlighted;render();scheduleSave()}
 function toggleSylDone(id){const s=sylFind(id);if(!s)return;const nv=!s.done;if(s.feed)sylSetMark(id,'done',nv);else s.done=nv;if(nv){state.tasks.forEach(t=>{if(t.syllabusId===id)t.done=true})}render();scheduleSave()}
-// --- Live syllabus-mirror popup (Week tab). Read-only view of a syllabus record by id; all writes
-// reuse toggleSylDone/toggleSylHL (one per-record write each, per SYNC_REFERENCE). ---
-let _sylPopId=null;
-function openSylPopup(id){const s=sylFind(id);if(!s)return;_sylPopId=id;
-  const SYL_ICON={reading:'book',paper:'paper',exam:'seal',presentation:'present',note:'pen',custom:'pin'};const icon=SYL_ICON[s.type]||'pin';
-  const dueD=parseDate(s.due),endD=s.dueEnd?parseDate(s.dueEnd):null;const dlRef=daysBetween(TODAY,endD||dueD);
-  const uc=s.done?'past':(dlRef<0?'past':dlRef<=3?'urgent':dlRef<=7?'soon':'ok');
-  const daysStr=s.done?'done':(dlRef<0?Math.abs(dlRef)+'d ago':dlRef===0?'today':dlRef+'d');
-  const dueStr=endD?fmtDate(dueD)+' → '+fmtDate(endD):fmtDate(dueD);
-  const fmtDueTime=s.dueTime?((h,m)=>{const hr=parseInt(h);return(hr>12?hr-12:hr||12)+':'+m+(hr>=12?'p':'a')})(s.dueTime.split(':')[0],s.dueTime.split(':')[1]):'';
-  const showType=!(s.cat==='custom'&&s.type==='custom')&&s.type;const tagText=catShort(s.cat)+(showType?' · '+s.type:'');
-  const popSrc=sylDetailSrc(s);
-  const detailHtml=popSrc?popSrc.split('\n').map(line=>line.startsWith('- ')?`<div class="syl-bullet">${escHtml(line.substring(2))}</div>`:line.startsWith('+ ')?`<div class="syl-sub-bullet">${escHtml(line.substring(2))}</div>`:`<div>${line?escHtml(line):'&nbsp;'}</div>`).join(''):'<span style="opacity:.5">No detail on this entry.</span>';
-  document.getElementById('sylPopPanel').innerHTML=`<div class="pop-head"><span class="mi mi-lg" style="--ic:var(--ic-${icon});color:var(--accent-${s.cat},var(--text-dim));margin-top:3px"></span><div class="pop-title">${escHtml(s.title)}</div><button class="pop-x" onclick="closeSylPop()" aria-label="Close"><span class="mi" style="--ic:var(--ic-x)"></span></button></div><div class="pop-meta"><span class="pop-tag" style="background:var(--accent-${s.cat}-dim,var(--surface3));color:var(--accent-${s.cat},var(--text-dim))">${tagText}</span><span class="pop-due">${dueStr}${fmtDueTime?' · '+fmtDueTime:''}</span><span class="days ${uc}">${daysStr}</span></div><div class="pop-detail">${detailHtml}${sylMetaHtml(s)}</div><div class="pop-actions"><button class="pop-btn ${s.done?'':'primary'}" onclick="sylPopComplete()"><span class="mi" style="--ic:var(--ic-${s.done?'up':'check'})"></span> ${s.done?'Undo':'Complete'}</button><button class="pop-btn ${s.highlighted?'on':''}" onclick="sylPopHighlight()"><span class="mi" style="--ic:var(--ic-star)"></span> ${s.highlighted?'Highlighted':'Highlight'}</button><button class="pop-btn" onclick="openSylFromWeek(${id})">Open in Syllabus →</button></div>`;
-  document.getElementById('sylPop').classList.add('open');}
-function closeSylPop(){document.getElementById('sylPop').classList.remove('open')}
-function sylPopComplete(){const id=_sylPopId;toggleSylDone(id);openSylPopup(id)}
-function sylPopHighlight(){const id=_sylPopId;toggleSylHL(id);openSylPopup(id)}
-function openSylFromWeek(id){const s=sylFind(id);closeSylPop();switchTab('syllabus');setTimeout(()=>{const row=document.getElementById('syl-'+id);if(!row)return;if(s)row.style.setProperty('--pulse-color','var(--accent-'+s.cat+'-dim,var(--accent-ab-dim))');row.scrollIntoView({behavior:'smooth',block:'center'});row.classList.remove('syl-pulse');void row.offsetWidth;row.classList.add('syl-pulse');setTimeout(()=>row.classList.remove('syl-pulse'),1700)},90)}
+// --- Week-tab syllabus pill actions (v11.7). The pill is the interface: tapping it lifts an action
+// rail over the pill itself, so highlight / complete / open are one thumb-reach away and nothing
+// covers the week. The armed key is transient — never persisted, never synced — but it is read back
+// when the pills render, so the rail stays open across the re-render a toggle triggers and the
+// button under the finger updates in place. All writes still go through toggleSylDone/toggleSylHL
+// (one per-record write each, per SYNC_REFERENCE). ---
+let _sylActing=null;
+function sylPillTap(key,el){const wasOn=el.classList.contains('acting');sylClearActing();if(!wasOn){_sylActing=key;el.classList.add('acting')}}
+function sylClearActing(){_sylActing=null;document.querySelectorAll('.syl-mirror.acting').forEach(c=>c.classList.remove('acting'))}
+// Completing dismisses the rail: the struck-through pill underneath is the confirmation, and it is
+// worth uncovering. Highlighting does not — its button lights up in place, and the star is usually
+// one of two things you came to do.
+function sylActDone(id){sylClearActing();toggleSylDone(id)}
+function sylActOpen(id){sylClearActing();openSylFromWeek(id)}
+function openSylFromWeek(id){const s=sylFind(id);switchTab('syllabus');setTimeout(()=>{const row=document.getElementById('syl-'+id);if(!row)return;if(s)row.style.setProperty('--pulse-color','var(--accent-'+s.cat+'-dim,var(--accent-ab-dim))');row.scrollIntoView({behavior:'smooth',block:'center'});row.classList.remove('syl-pulse');void row.offsetWidth;row.classList.add('syl-pulse');setTimeout(()=>row.classList.remove('syl-pulse'),1700)},90)}
 function inlineSylEdit(id,field,el){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;// feed rows are read-only: only hand-added entries are in state.syllabus
 
 if(field==='title'){const inp=document.createElement('input');inp.type='text';inp.value=s.title;inp.className='syl-title-edit';el.replaceWith(inp);inp.focus();inp.select();function save(){s.title=inp.value.trim()||s.title;render();scheduleSave()}inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();save()}else if(e.key==='Escape')render()});inp.addEventListener('blur',save)}
