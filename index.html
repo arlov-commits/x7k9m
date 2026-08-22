@@ -1,4 +1,4 @@
-<!-- Academic Planner v12.1 -->
+<!-- Academic Planner v12.8 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -49,6 +49,7 @@
   --ic-edit:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20l1-3.8L16 5.1l2.9 2.9L7.8 19z'/%3E%3Cpath d='M14.5 6.6l2.9 2.9'/%3E%3C/svg%3E");
   --ic-dup:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='9' width='11' height='11' rx='2'/%3E%3Cpath d='M5 15V6a2 2 0 0 1 2-2h9'/%3E%3C/svg%3E");
   --ic-up:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 14.5l6-6 6 6'/%3E%3C/svg%3E");
+  --ic-search:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='M16 16l4.5 4.5'/%3E%3C/svg%3E");
   --ic-star:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 2.8l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L12 16.8l-5.4 2.8 1.1-6.1-4.5-4.3 6.1-.8z'/%3E%3C/svg%3E");
   --ic-merge:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 4v5c0 2 1.5 3 3.5 3H17'/%3E%3Cpath d='M7 20v-5c0-2 1.5-3 3.5-3'/%3E%3Cpath d='M14 9l3 3-3 3'/%3E%3C/svg%3E");
   --nv-wheel:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='8.6'/%3E%3Ccircle cx='12' cy='12' r='2.3'/%3E%3Cpath d='M12 3.4v6M12 14.6v6M3.4 12h6M14.6 12h6M5.9 5.9l4.3 4.3M13.8 13.8l4.3 4.3M18.1 5.9l-4.3 4.3M10.2 13.8l-4.3 4.3'/%3E%3C/svg%3E");
@@ -92,7 +93,13 @@ html{background:var(--bg);transition:background var(--t-med) var(--ease)}
    whatever comes next. `clip` rather than `hidden`: it does not make the body a scroll container,
    so the almanac's sticky flanks keep sticking to the viewport. */
 body{overflow-x:clip;font-family:var(--font-sans);font-size:var(--fs-s);background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;transition:background var(--t-med) var(--ease),color var(--t-med) var(--ease)}
-.app{max-width:900px;margin:0 auto;padding:var(--sp-6) var(--sp-4) 80px}
+/* The shell is exactly one viewport tall and never scrolls; .scroll is what moves. `dvh` tracks the
+   viewport as the URL bar comes and goes, so the tab bar rides with it instead of being stranded
+   below it. The `vh` line before it is the fallback for anything without dvh. */
+.shell{height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+.frame{flex:1 1 auto;min-height:0;display:flex;position:relative}
+.scroll{flex:1 1 auto;min-width:0;overflow-y:auto;overflow-x:clip;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
+.app{position:relative;max-width:900px;margin:0 auto;padding:var(--sp-6) var(--sp-4) 40px}
 .header{display:flex;align-items:center;gap:var(--sp-2);margin-bottom:30px;flex-wrap:wrap}
 .header h1{font-family:var(--font-serif);font-size:var(--fs-xl);font-weight:600;letter-spacing:-.02em}
 .today-badge{font-family:var(--font-mono);font-size:var(--fs-2xs);color:var(--text-dim);background:var(--surface2);padding:3px 9px;border-radius:var(--r-pill)}
@@ -127,25 +134,85 @@ body{overflow-x:clip;font-family:var(--font-sans);font-size:var(--fs-s);backgrou
 .nav-ico,.bn-ico{flex-shrink:0}
 .nav-icon{display:inline-block;width:22px;height:22px;flex-shrink:0;background-color:var(--text-dim);-webkit-mask:var(--icon) center/contain no-repeat;mask:var(--icon) center/contain no-repeat}
 .bn-item .nav-icon{width:24px;height:24px}
+.bn-item .nav-face{gap:3px;padding:0}
 .nav-item:hover .nav-icon,.nav-item.active .nav-icon,.bn-item.active .nav-icon{background-color:var(--text)}
-.sidenav{display:none;position:fixed;top:0;left:0;bottom:0;width:208px;background:var(--surface);border-right:1px solid var(--border);flex-direction:column;padding:18px 12px;gap:3px;z-index:40;overflow-y:auto}
-.sidenav-title{font-family:var(--font-sans);font-weight:700;font-size:var(--fs-2xs);color:var(--text-muted);letter-spacing:.05em;text-transform:uppercase;padding:4px 12px 14px}
-.nav-item{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:0;border:0;border-left:3px solid transparent;color:var(--text-dim);font-family:var(--font-sans);font-size:var(--fs-s);font-weight:600;padding:11px 12px;border-radius:var(--r-m);cursor:pointer;transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease)}
-.nav-item:hover{background:var(--surface2);color:var(--text)}
-.nav-item.active{background:var(--surface3);color:var(--text);border-left-color:var(--accent-ab)}
-.nav-item .nav-ico{font-size:var(--fs-m);width:22px;text-align:center}
-.nav-spacer{flex:1 1 auto;min-height:8px}
-.bottomnav{display:flex;position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--border);z-index:40;padding-bottom:env(safe-area-inset-bottom,0)}
-.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:0;border:0;border-top:2px solid transparent;color:var(--text-dim);font-family:var(--font-sans);font-size:var(--fs-2xs);font-weight:600;padding:8px 2px 7px;cursor:pointer}
+/* The side nav is the bottom bar transposed (v12.2): the same slots, the same faces, one cell each,
+   dividing the full height between them however many there are — `flex:1` and nothing hardcoded, so
+   adding a fifth pair needs no layout change. Before this it was a list of buttons at the top with
+   the last pair marooned at the foot after a spacer, which read as two navigations rather than one.
+   The active marker is the bottom bar's rule rotated a quarter turn: a bar on the leading edge. */
+.sidenav{display:none;flex:0 0 208px;background:var(--surface);border-right:1px solid var(--border);flex-direction:column;padding:14px 10px;gap:6px;z-index:40;overflow-y:auto}
+.sidenav-title{font-family:var(--font-sans);font-weight:700;font-size:var(--fs-2xs);color:var(--text-muted);letter-spacing:.05em;text-transform:uppercase;padding:4px 8px 10px;flex:0 0 auto}
+.nav-item{flex:1 1 0;min-height:64px;display:flex;align-items:center;justify-content:center;width:100%;background:0;border:0;border-left:3px solid transparent;color:var(--text-dim);font-family:var(--font-sans);font-size:var(--fs-s);font-weight:600;padding:6px;border-radius:var(--r-m);cursor:pointer;transition:color var(--t-fast) var(--ease)}
+/* The cell divides the height; the FACE is what gets marked. Filling a cell a fifth of the screen
+   tall with the active colour reads as a slab, so the ground sits on the icon-and-label group and
+   the cell keeps only the leading bar — the bottom bar's active rule, rotated. */
+.nav-face{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 20px;border-radius:var(--r-m);transition:background var(--t-fast) var(--ease)}
+.nav-item .nav-icon{width:26px;height:26px}
+.nav-item:hover .nav-face{background:var(--surface2)}
+.nav-item:hover{color:var(--text)}
+.nav-item.active{color:var(--text);border-left-color:var(--accent-ab)}
+.nav-item.active .nav-face{background:var(--surface3)}
+/* In flow at the foot of the shell — not fixed, so there is no viewport for it to be stranded
+   outside of. It keeps the safe-area inset as padding, for a phone with a home indicator. */
+.bottomnav{flex:0 0 auto;display:flex;background:var(--surface);border-top:1px solid var(--border);z-index:40;padding-bottom:env(safe-area-inset-bottom,0)}
+.bn-item{flex:1;display:flex;align-items:center;justify-content:center;background:0;border:0;border-top:2px solid transparent;color:var(--text-dim);font-family:var(--font-sans);font-size:var(--fs-2xs);font-weight:600;padding:8px 2px 7px;cursor:pointer}
 .bn-item.active{color:var(--text);border-top-color:var(--accent-ab)}
 .bn-item .bn-ico{font-size:var(--fs-l);line-height:1}
-.app{padding-bottom:calc(74px + env(safe-area-inset-bottom,0))}
+
 @media(min-width:820px){
   .sidenav{display:flex}
   .bottomnav{display:none}
-  body{padding-left:208px}
   .app{padding-bottom:80px}
 }
+/* A quiet way in, in the header, which every tab already has. */
+.hdr-icon-btn{display:flex;align-items:center;justify-content:center;width:30px;height:30px;flex-shrink:0;
+  background:0;border:1px solid var(--border);border-radius:var(--r-s);color:var(--text-dim);cursor:pointer;
+  transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease)}
+.hdr-icon-btn:hover{background:var(--surface2);color:var(--text)}
+.hdr-icon-btn .mi{width:15px;height:15px}
+
+/* ---- Find (v12.2) ---------------------------------------------------------------------------- */
+/* The find bar is pinned to the top of the viewport, not to a tab: one bar searches whichever tab is
+   open, and with "all tabs" ticked it carries on into the next. It sits above the sticky almanac
+   flanks and below the modals. */
+/* Everything in the bar except the query is a control, not text: no selection, no copy/paste
+   callout on a long press, no tap highlight, and `touch-action:manipulation` so a quick second tap
+   on next/prev is another press rather than a double-tap zoom — which is what was blowing the page
+   up and pushing the close button off the edge. */
+.findbar,.findbar *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.findbar input{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+/* A flex child at the top of the shell rather than an overlay: it takes its own height and the
+   frame below simply gets shorter, so nothing needs padding to compensate. */
+.findbar{flex:0 0 auto;z-index:55;display:none;align-items:center;gap:8px;
+  padding:8px 12px calc(8px + env(safe-area-inset-top,0));background:var(--surface);
+  border-bottom:1px solid var(--border);box-shadow:0 4px 16px rgba(0,0,0,.18)}
+.findbar.open{display:flex}
+.findbar .find-ico{width:16px;height:16px;color:var(--text-muted);flex-shrink:0}
+#findInput{flex:1 1 auto;min-width:0;background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);font-family:var(--font-sans);font-size:var(--fs-s);padding:7px 10px;border-radius:var(--r-s)}
+/* 16px is the threshold under which a phone zooms the page when the field takes focus. */
+@media(pointer:coarse){#findInput{font-size:16px}}
+#findInput:focus{outline:2px solid var(--accent-ab);outline-offset:-1px}
+.find-count{font-family:var(--font-mono);font-size:var(--fs-2xs);color:var(--text-dim);white-space:nowrap;flex-shrink:0;min-width:52px;text-align:right}
+.find-count.none{color:var(--danger)}
+.find-btn{display:flex;align-items:center;justify-content:center;width:30px;height:30px;flex-shrink:0;
+  background:0;border:1px solid var(--border);border-radius:var(--r-s);color:var(--text-dim);cursor:pointer}
+.find-btn:hover{background:var(--surface2);color:var(--text)}
+.find-btn .mi{width:14px;height:14px}
+.find-down{transform:rotate(180deg)}
+.find-all{display:flex;align-items:center;gap:5px;font-size:var(--fs-2xs);color:var(--text-dim);white-space:nowrap;cursor:pointer;flex-shrink:0}
+/* Body-scoped so a mark can be found inside any tab; the current one is the only strong colour, so
+   the eye lands on it and the rest read as a trail. */
+mark.find-hit{background:var(--warning-dim);color:inherit;border-radius:2px;padding:0 1px}
+mark.find-hit.cur{background:var(--warning);color:var(--bg);box-shadow:0 0 0 2px var(--warning)}
+@media(max-width:700px){.findbar{gap:6px;padding-left:8px;padding-right:8px}.findbar .find-ico{display:none}
+  .find-count{min-width:40px}.find-all{gap:3px}.find-all .find-all-long{display:none}}
+.find-all-short{display:none}
+@media(max-width:700px){.find-all-short{display:inline}}
+
+
 .legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-m);width:fit-content;max-width:100%}
 .legend-item{display:flex;align-items:center;gap:6px;font-size:var(--fs-xs);font-weight:600;color:var(--text-dim)}
 .legend-dot{width:10px;height:10px;border-radius:var(--r-s)}
@@ -797,7 +864,13 @@ a.syl-meta-tag.link{color:var(--text-dim);text-decoration:none}a.syl-meta-tag.li
 .syl-add-form input,.syl-add-form select{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--font-sans);font-size:var(--fs-s);padding:7px 10px;border-radius:var(--r-s)}
 .syl-hl-btn{background:0;border:0;cursor:pointer;font-size:var(--fs-2xs);padding:1px 3px;border-radius:var(--r-s);opacity:.3;transition:opacity var(--t-fast) var(--ease);line-height:1}
 .syl-hl-btn:hover{opacity:.7}.syl-hl-btn.on{opacity:1}
-.syl-row-hl{background:var(--warning-dim)}
+/* A starred entry is marked on its OWN cell, never on the whole row. A day's entries are grouped
+   and share their class and due cells through `rowspan`, so a row-wide tint belongs to whichever
+   row owns those shared cells: starring the first entry of a group bled the tint down the entire
+   group (every entry looked starred), and starring a later one left a hole across the middle where
+   the shared cells sit. The title cell is the one cell that is the entry itself, so the tint and
+   its accent edge go there — correct for the first row of a group and for every row after it. */
+.syl-table tr.syl-row-hl>.syl-title-cell{background:var(--warning-dim);box-shadow:inset 3px 0 0 var(--warning)}
 .syl-bullet{display:block;padding-left:14px;position:relative}.syl-bullet::before{content:'•';position:absolute;left:4px}
 .syl-sub-bullet{display:block;padding-left:28px;position:relative;font-size:var(--fs-2xs)}.syl-sub-bullet::before{content:'◦';position:absolute;left:16px}
 .chip.syl-mirror{cursor:pointer;opacity:.75;font-size:var(--fs-2xs);padding:5px 9px;border:1px dashed}
@@ -909,7 +982,34 @@ a.syl-meta-tag.link{color:var(--text-dim);text-decoration:none}a.syl-meta-tag.li
 </style>
 </head>
 <body>
-<div class="app" id="app"></div>
+<!-- THE SHELL (v12.5). The app is a column exactly one viewport tall: a find bar, a frame, and the
+     tab bar. The frame is a row: the desktop rail, and the one element in the app that scrolls.
+     Nothing here is `position:fixed`, and that is the whole point. A bar fixed to the bottom is
+     positioned against the layout viewport, which is not the viewport you can see on a phone — the
+     browser keeps the taller URL-bar-hidden height there — so the bar hung below the screen with
+     its labels cut off, and no amount of measuring it back into place from JS could win against a
+     compositor that moves fixed elements itself during a fling. In flow at the end of a column
+     100dvh tall, the bar cannot be anywhere but on screen: no listeners, no correction, no race.
+     The cost is that the URL bar no longer auto-hides while scrolling, since the document itself no
+     longer scrolls — and it does not apply at all once the app is installed to the home screen. -->
+<div class="shell">
+<div class="findbar" id="findBar" role="search" aria-label="Find in planner">
+  <span class="mi find-ico" style="--ic:var(--ic-search)"></span>
+  <input id="findInput" type="text" placeholder="Find…" autocomplete="off" spellcheck="false" aria-label="Find text"/>
+  <span class="find-count" id="findCount">—</span>
+  <button class="find-btn" id="findPrev" onmousedown="event.preventDefault()" onclick="findStep(-1)" title="Previous (Shift+Enter)" aria-label="Previous match"><span class="mi" style="--ic:var(--ic-up)"></span></button>
+  <button class="find-btn" id="findNext" onmousedown="event.preventDefault()" onclick="findStep(1)" title="Next (Enter)" aria-label="Next match"><span class="mi find-down" style="--ic:var(--ic-up)"></span></button>
+  <label class="find-all" title="When the matches in this tab run out, carry on into the next tab"><input type="checkbox" id="findAll" onchange="findAllToggle()"/><span class="find-all-long">all tabs</span><span class="find-all-short">all</span></label>
+  <button class="find-btn" onmousedown="event.preventDefault()" onclick="findClose()" title="Close (Esc)" aria-label="Close find"><span class="mi" style="--ic:var(--ic-x)"></span></button>
+</div>
+<div class="frame">
+  <nav class="sidenav" id="sideNav"></nav>
+  <!-- The scroll container. #app is repainted wholesale by render(); this is not, so the scroll
+       position survives a repaint the way the document's used to. -->
+  <div class="scroll" id="scroll"><div class="app" id="app"></div></div>
+</div>
+<nav class="bottomnav" id="bottomNav"></nav>
+</div>
 <div class="modal-overlay" id="editModal"><div class="modal"><button class="modal-x" onclick="this.closest('.modal-overlay').classList.remove('open')" aria-label="Close"><span class="mi" style="--ic:var(--ic-x)"></span></button><h3 id="mTitle">Edit Task</h3><label>Name</label><input id="mName" type="text"/><label>Time</label><input id="mTime" type="time"/><label>Category</label><select id="mCat"></select><label>Priority</label><select id="mPri"><option value="normal">Normal</option><option value="high">High</option></select><label>Linked Reading</label><select id="mSyl"><option value="">None</option></select><div class="modal-btns"><button class="btn btn-danger" id="mDel">Delete</button><button class="btn btn-quiet" id="mCanc">Cancel</button><button class="btn btn-primary" id="mSave">Save</button></div></div></div>
 <div class="modal-overlay" id="lifeModal"><div class="modal"><button class="modal-x" onclick="this.closest('.modal-overlay').classList.remove('open')" aria-label="Close"><span class="mi" style="--ic:var(--ic-x)"></span></button><h3>Edit Task</h3><label>Name</label><input id="lName" type="text"/><label>Category</label><select id="lCat"><option value="General">General</option><option value="Email">Email</option><option value="Projects">Projects</option><option value="Income">Income</option><option value="Garden">Garden</option><option value="Correspondence">Correspondence</option></select><label>Priority</label><select id="lPri"><option value="high">High</option><option value="med">Medium</option><option value="low">Low</option></select><label>Due date</label><input id="lDue" type="date"/><div class="modal-btns"><button class="btn btn-danger" id="lDel">Delete</button><button class="btn btn-quiet" id="lCanc">Cancel</button><button class="btn btn-primary" id="lSave">Save</button></div></div></div>
 <!-- Add task modal -->
@@ -1167,11 +1267,10 @@ function isUserEditing(){const ae=document.activeElement;if(ae){const tag=ae.tag
 // (Whole-blob checkRemoteSync removed — superseded by per-record syncPullAndMerge.)
 
 const $=s=>document.querySelector(s);
-let allocatingId=null,addingDate=null,addingWeekNum=null;
+let allocatingId=null,addingDate=null;
 function isInSprint(lifeId){return state.tasks.some(t=>t.lifeSourceId===lifeId)||state.lifeTasks.find(t=>t.id===lifeId)?.inBank}
 
 function render(){
-  returnExpiredWeekTasks();
   computeEvtColors();
   document.documentElement.setAttribute('data-theme',state.theme);
   updateThemeColor();
@@ -1179,7 +1278,7 @@ function render(){
   // Season sits after Settings in both navs (v9.4): it is a reference view, not part of the
   // academic run of tabs, and the term ribbon in either tab jumps straight across to the other.
   const allTabs=[...tabs,'settings','season'];
-  const tn={dashboard:'Dashboard',sprints:'Week',syllabus:'Syllabus',life:'Tasks',events:'Events',notes:'Notes',settings:'Settings',season:'Season'};
+  const tn=TAB_LABEL;
   const renderers={dashboard:renderDash,sprints:renderSprints,syllabus:renderSyllabus,life:renderLife,events:renderEvents,notes:renderNotes,settings:renderSettings,season:renderSeason};
   const navIconTok={sprints:'calendar',season:'moon',syllabus:'scroll',life:'lotus',events:'bell',notes:'quill',dashboard:'grid',settings:'wheel'};
   const ico=k=>`<span class="nav-icon" style="--icon:var(--nv-${navIconTok[k]})"></span>`;
@@ -1188,14 +1287,17 @@ function render(){
   // other; pressing it from elsewhere returns to the face it is showing. Neither face of a pair has
   // an entry of its own in these navs: the slot is the way in and out of both.
   const slotBtn=(cls,s)=>{const f=slotFace(s),other=s.faces.find(x=>x!==f);
-    return `<button class="${cls} ${state.activeTab===f?'active':''}" onclick="slotPress('${s.pref}')" title="${tn[f]} — press again for ${tn[other]}">${ico(f)}${tn[f]}</button>`};
+    return `<button class="${cls} ${state.activeTab===f?'active':''}" onclick="slotPress('${s.pref}')" title="${tn[f]} — press again for ${tn[other]}"><span class="nav-face">${ico(f)}${tn[f]}</span></button>`};
   // Four slots, eight tabs, and every tab is one press or two from any other: the More sheet it
   // replaced was a third press and a modal to cross for Notes or Settings. The last slot keeps its
   // place at the foot of the side nav, where Settings used to sit on its own.
-  const [weekSlotDef,sylSlotDef,evtSlotDef,miscSlotDef]=NAV_SLOTS;
-  const sideNav=`<nav class="sidenav"><div class="sidenav-title">Planner</div>${slotBtn('nav-item',weekSlotDef)}${slotBtn('nav-item',sylSlotDef)}${slotBtn('nav-item',evtSlotDef)}<div class="nav-spacer"></div>${slotBtn('nav-item',miscSlotDef)}</nav>`;
-  const bottomNav=`<nav class="bottomnav">${slotBtn('bn-item',weekSlotDef)}${slotBtn('bn-item',sylSlotDef)}${slotBtn('bn-item',evtSlotDef)}${slotBtn('bn-item',miscSlotDef)}</nav>`;
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><button class="theme-toggle" onclick="cycleTheme()" style="margin-left:auto"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v12.1</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}${sideNav}${bottomNav}`;updateSI();almFitLabels();sylFitTitles()}
+
+  // Both navs draw the same slots in the same order — the side nav is the bottom bar stood on end.
+  // The navs are their own elements in the shell, not part of the repainted subtree: they keep
+  // their place in the layout, and only their contents are rewritten.
+  document.getElementById('sideNav').innerHTML=`<div class="sidenav-title">Planner</div>${NAV_SLOTS.map(sl=>slotBtn('nav-item',sl)).join('')}`;
+  document.getElementById('bottomNav').innerHTML=NAV_SLOTS.map(sl=>slotBtn('bn-item',sl)).join('');
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v12.8</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -1867,6 +1969,151 @@ function almFitLabels(){
 let _fitTimer=null;
 window.addEventListener('resize',()=>{clearTimeout(_fitTimer);_fitTimer=setTimeout(()=>{almFitLabels();sylFitTitles()},150)});
 
+/* The one scrolling element in the app. The document itself no longer scrolls (the shell is exactly
+   a viewport tall), so anything that used to read scrollY or call scrollTo reads and drives this. */
+function scroller(){return document.getElementById('scroll')}
+
+
+
+/* ---- Find ------------------------------------------------------------------------------------ */
+/* A find that behaves the way the browser's own does — pinned while open, Enter and Shift+Enter to
+   cycle, Escape to close, every match marked and the current one carried into view — but scoped to
+   the planner's own tabs, which is what the browser's cannot do: seven of the eight tabs are in the
+   DOM but display:none, so Ctrl+F finds nothing in them. With "all tabs" ticked, running past the
+   last match in this tab opens the next tab that has one and continues there.
+   Matching folds diacritics (Śūraṅgama matches "surangama") one character at a time, so the folded
+   haystack stays the same length as the original and a hit's offsets still address the real text. */
+const FIND_MAX=400;
+let _find={open:false,q:'',hits:[],i:-1,tabCounts:{},all:false};
+function findFold(str){let out='';
+  for(const ch of str){const d=ch.normalize('NFD').replace(/[̀-ͯ]/g,'');
+    out+=(d[0]||ch).toLowerCase()}
+  return out}
+function findOpen(){const bar=document.getElementById('findBar');if(!bar)return;
+  _find.open=true;bar.classList.add('open');
+  const inp=document.getElementById('findInput');inp.focus();inp.select();
+  document.getElementById('findAll').checked=_find.all;
+  if(_find.q)findRun(_find.q,true)}
+function findClose(){const bar=document.getElementById('findBar');if(!bar)return;
+  _find.open=false;bar.classList.remove('open');findClear();
+  document.getElementById('findInput').blur()}
+function findToggle(){_find.open?findClose():findOpen()}
+// Unwrap every mark and stitch the split text nodes back together, so the DOM is exactly as it was.
+function findClear(){document.querySelectorAll('mark.find-hit').forEach(m=>{
+    const p=m.parentNode;if(!p)return;p.replaceChild(document.createTextNode(m.textContent),m);p.normalize()});
+  _find.hits=[];_find.i=-1}
+const FIND_SKIP={SCRIPT:1,STYLE:1,INPUT:1,TEXTAREA:1,SELECT:1,OPTION:1,MARK:1};
+function findTextNodes(root){const out=[];
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode(n){
+    if(!n.nodeValue||!n.nodeValue.trim())return NodeFilter.FILTER_REJECT;
+    const p=n.parentElement;if(!p||FIND_SKIP[p.tagName])return NodeFilter.FILTER_REJECT;
+    if(p.closest('.findbar'))return NodeFilter.FILTER_REJECT;
+    // Hidden subtrees hold no matches a reader could see (collapsed weeks, the seven other tabs).
+    if(!p.offsetParent&&getComputedStyle(p).position!=='fixed')return NodeFilter.FILTER_REJECT;
+    return NodeFilter.FILTER_ACCEPT}});
+  let n;while((n=w.nextNode()))out.push(n);return out}
+// Marks every match in the open tab and returns them in document order.
+function findMark(q){const root=document.querySelector('.view.active');if(!root||!q)return[];
+  const fq=findFold(q),hits=[];
+  for(const node of findTextNodes(root)){
+    const text=node.nodeValue,folded=findFold(text);
+    let from=0,idx;const ranges=[];
+    while((idx=folded.indexOf(fq,from))!==-1){ranges.push(idx);from=idx+fq.length;
+      if(hits.length+ranges.length>=FIND_MAX)break}
+    if(!ranges.length)continue;
+    // Split back to front so earlier offsets stay valid.
+    let tail=node;
+    for(let k=ranges.length-1;k>=0;k--){
+      const start=ranges[k];const mid=tail.splitText(start);mid.splitText(fq.length);
+      const mk=document.createElement('mark');mk.className='find-hit';
+      mid.parentNode.replaceChild(mk,mid);mk.appendChild(mid);hits.unshift(mk)}
+    if(hits.length>=FIND_MAX)break}
+  return hits}
+// Counts matches per tab without touching the DOM — used for "all tabs" and for the counter.
+function findTabCounts(q){const out={};if(!q)return out;const fq=findFold(q);
+  document.querySelectorAll('.view').forEach((v,i)=>{const t=FIND_TABS[i];if(!t)return;
+    const folded=findFold(v.textContent||'');let n=0,from=0,idx;
+    while((idx=folded.indexOf(fq,from))!==-1){n++;from=idx+fq.length;if(n>=FIND_MAX)break}
+    if(n)out[t]=n});
+  return out}
+let FIND_TABS=[];   // filled by render(), in the order the .view elements are emitted
+function findRun(q,keepIndex){
+  findClear();_find.q=q;
+  const trimmed=(q||'').trim();
+  if(!trimmed){findPaint();return}
+  _find.hits=findMark(trimmed);
+  _find.tabCounts=findTabCounts(trimmed);
+  if(_find.hits.length)_find.i=keepIndex&&_find.i>=0?Math.min(_find.i,_find.hits.length-1):0;
+  else _find.i=-1;
+  findPaint(true)}
+function findPaint(scroll){
+  const cnt=document.getElementById('findCount');
+  _find.hits.forEach((m,k)=>m.classList.toggle('cur',k===_find.i));
+  const cur=_find.hits[_find.i];
+  if(cur&&scroll)cur.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'});
+  if(!cnt)return;
+  const total=Object.values(_find.tabCounts).reduce((a,b)=>a+b,0);
+  const here=_find.hits.length;
+  const elsewhere=_find.all?Math.max(0,total-here):0;
+  cnt.textContent=!(_find.q||'').trim()?'—':here?(_find.i+1)+'/'+here+(elsewhere?' (+'+elsewhere+')':''):(elsewhere?'0 here':'none');
+  cnt.title=_find.all&&total?Object.entries(_find.tabCounts).map(([t,n])=>TAB_LABEL[t]+': '+n).join(' · '):'';
+  cnt.classList.toggle('none',!!(_find.q||'').trim()&&!here&&!elsewhere)}
+// Cycles within the tab, and — with "all tabs" on — into the next tab that has a match. Wraps.
+function findStep(dir){
+  if(!(_find.q||'').trim())return;
+  if(_find.hits.length){
+    const next=_find.i+dir;
+    if(next>=0&&next<_find.hits.length){_find.i=next;findPaint(true);return}
+    if(!_find.all){_find.i=(next+_find.hits.length)%_find.hits.length;findPaint(true);return}
+  }else if(!_find.all)return;
+  findJumpTab(dir)}
+function findJumpTab(dir){
+  const order=FIND_TABS.filter(t=>_find.tabCounts[t]);
+  if(!order.length)return;
+  const at=order.indexOf(state.activeTab);
+  const to=order[((at+dir)%order.length+order.length)%order.length];
+  if(to===state.activeTab&&_find.hits.length){   // nowhere else to go: wrap inside this tab
+    _find.i=dir>0?0:_find.hits.length-1;findPaint(true);return}
+  switchTab(to);                                  // re-render paints the marks again (findReapply)
+  requestAnimationFrame(()=>{_find.i=dir>0?0:Math.max(0,_find.hits.length-1);findPaint(true)})}
+function findAllToggle(){_find.all=document.getElementById('findAll').checked;
+  // Refocusing the query is a convenience with a physical keyboard; on a phone it summons the
+  // on-screen one over the results you just asked to see more of. Enter steps from anywhere in the
+  // bar, so nothing is lost by leaving focus where the finger put it.
+  if(matchMedia('(hover:hover) and (pointer:fine)').matches)document.getElementById('findInput').focus();
+  findPaint()}
+// render() rebuilds #app, which takes the marks with it: put them back on the new DOM.
+function findReapply(){if(!_find.open||!(_find.q||'').trim())return;
+  const keep=_find.i;findClear();_find.hits=findMark(_find.q.trim());
+  _find.tabCounts=findTabCounts(_find.q.trim());
+  _find.i=_find.hits.length?Math.min(Math.max(keep,0),_find.hits.length-1):-1;
+  findPaint()}
+let _findTimer=null;
+document.getElementById('findInput').addEventListener('input',function(){
+  clearTimeout(_findTimer);const v=this.value;
+  _findTimer=setTimeout(()=>findRun(v),140)});
+document.addEventListener('keydown',e=>{
+  const k=(e.key||'').toLowerCase();
+  if((e.ctrlKey||e.metaKey)&&k==='f'){e.preventDefault();findOpen();return}
+  if(!_find.open)return;
+  if(k==='escape'){e.preventDefault();findClose();return}
+  if(k!=='enter')return;
+  const ae=document.activeElement,inp=document.getElementById('findInput');
+  // Enter belongs to some other editor if that is where the caret is.
+  if(ae&&ae!==inp&&(ae.isContentEditable||ae.tagName==='TEXTAREA'||ae.tagName==='SELECT'||ae.tagName==='INPUT'))return;
+  e.preventDefault();
+  const touch=matchMedia('(pointer:coarse)').matches;
+  if(ae===inp&&touch){
+    // On a phone the query is typed with half the screen under the keyboard. Enter puts the keyboard
+    // away and lands on the match you already have (typing selected the first one), rather than
+    // stepping past it — the step is what the next Enter is for.
+    inp.blur();
+    if(_find.i>=0&&!e.shiftKey){findPaint(true);return}
+  }
+  findStep(e.shiftKey?-1:1)
+});
+
+
 /* A syllabus title is whatever the spreadsheet says, and one row of it can run to a paragraph with
    a URL in the middle. In a day column ~150px wide that is a pill twenty lines deep, which buries
    the rest of the week. So a week pill's title is capped at ten rendered lines — and what comes out
@@ -2071,6 +2318,8 @@ function almOpenTermLink(i){
    syllabus pill's "open in Syllabus", the term ribbon) leaves the slot showing where you are.
    The face lives in per-device state and never syncs: it is where this device's nav is pointing,
    not anything about the plan. */
+// One name per tab, shared by both navs and by the find bar's per-tab tally.
+const TAB_LABEL={dashboard:'Dashboard',sprints:'Week',syllabus:'Syllabus',life:'Tasks',events:'Events',notes:'Notes',settings:'Settings',season:'Season'};
 const NAV_SLOTS=[
   {pref:'weekSlot',faces:['sprints','season']},
   {pref:'sylSlot', faces:['syllabus','dashboard']},
@@ -2119,7 +2368,7 @@ function almAlignTo(date,top,frames){
   if(!el)return;
   const step=()=>{
     const delta=el.getBoundingClientRect().top-top;
-    if(Math.abs(delta)>=.5)window.scrollTo(0,Math.max(0,window.scrollY+delta));
+    if(Math.abs(delta)>=.5){const sc=scroller();sc.scrollTop=Math.max(0,sc.scrollTop+delta)}
     return Math.abs(delta);
   };
   step();
@@ -2157,9 +2406,9 @@ const manualHidden=wk.days.filter(d=>(state.hiddenDays||[]).includes(d.date)).le
 const autoHiddenDays=isCur?wk.days.filter(d=>d.date<todayStr&&!expandedPastDays.includes(d.date)):[];
 const totalHidden=manualHidden+autoHiddenDays.length;
 const isAT=allocatingId!==null;
-const weekTasks=state.tasks.filter(t=>t.weekNum===wk.num&&!t.date);
-const weekChipsHtml=weekTasks.map(t=>renderChip(t)).join('');
-let h=`<div class="week-section"><div class="week-hdr ${isAT?'alloc-target':''}" style="grid-row:${hdrRow}" ${isAT?`onclick="placeAllocatedWeek(${wk.num})"`:''} ondragover="event.preventDefault();this.classList.add('alloc-highlight')" ondrop="handleWeekDrop(event,${wk.num})" ondragleave="this.classList.remove('alloc-highlight')"><span class="week-hdr-title">Week ${wk.num}</span><span class="week-hdr-dates">${fmtDateShort(wk.start)} → ${fmtDateShort(wk.end)}</span>${badges.join('')}${totalHidden?`<button class="expand-week-btn" onclick="event.stopPropagation();expandWeek(${wk.num})" title="Show hidden days">▼ ${totalHidden} hidden</button>`:''}${weekChipsHtml}<button class="add-day-btn" onclick="event.stopPropagation();openAddWeekTask(${wk.num})" title="Add week task">+</button></div>`;
+// The week header is a heading and nothing more (v12.3): it no longer takes a dropped pill, offers
+// to add one, or acts as an allocation target. A pill belongs to a day.
+let h=`<div class="week-section"><div class="week-hdr" style="grid-row:${hdrRow}"><span class="week-hdr-title">Week ${wk.num}</span><span class="week-hdr-dates">${fmtDateShort(wk.start)} → ${fmtDateShort(wk.end)}</span>${badges.join('')}${totalHidden?`<button class="expand-week-btn" onclick="event.stopPropagation();expandWeek(${wk.num})" title="Show hidden days">▼ ${totalHidden} hidden</button>`:''}</div>`;
 visDays.forEach((day,di)=>{const dayRow=hdrRow+1+di;const tasks=state.tasks.filter(t=>t.date===day.date),isT=sameDay(day.dateObj,TODAY),note=state.dayNotes[day.date]||'',canHide=isCur&&day.dateObj<=TODAY;
 const dayEvts=getEventsForDate(day.date);const sylChips=getSylForDate(day.date);const SYL_ICON={reading:'book',paper:'paper',exam:'seal',presentation:'present',note:'pen',custom:'pin'};
 // Build unified sorted pill list
@@ -2523,7 +2772,8 @@ function renderSettings(){
   <button class="btn btn-quiet" onclick="importState()">Restore</button></div>
   <div class="settings-section"><label>Backup to file</label>
   <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Download all your data as a JSON file you can re-import later.</div>
-  <button class="btn btn-quiet" onclick="exportState()">Backup</button></div></div>
+  <button class="btn btn-quiet" onclick="exportState()">Backup</button></div>
+  </div></div>
   ${legacyCatSectionHtml()}`}
 
 /* Records left over from a term the workbook no longer defines. v12.0 took the retired classes out
@@ -2641,17 +2891,6 @@ function handleChipDragOver(e){e.preventDefault();e.stopPropagation();const area
 function clearDropIndicators(area){area.querySelectorAll('.drop-before,.drop-after').forEach(el=>{el.classList.remove('drop-before','drop-after')})}
 function handleChipDrop(e,date){e.preventDefault();e.stopPropagation();const area=e.currentTarget;clearDropIndicators(area);if(dragEvtId!==null){handleEvtDrop(dragEvtId,date);dragEvtId=null;dragEvtAnchor=null;return}if(dragId===null)return;const t=state.tasks.find(t=>t.id===dragId);if(!t)return;const chips=Array.from(area.querySelectorAll('.chip'));let insertBeforeId=null;for(const c of chips){const r=c.getBoundingClientRect();if(e.clientX<r.left+r.width/2){insertBeforeId=parseInt(c.dataset.id);break}}state.tasks=state.tasks.filter(x=>x.id!==t.id);t.date=date;delete t.weekNum;if(insertBeforeId!==null){const idx=state.tasks.findIndex(x=>x.id===insertBeforeId);state.tasks.splice(idx,0,t)}else{const dayTasks=state.tasks.filter(x=>x.date===date);if(dayTasks.length){const lastIdx=state.tasks.lastIndexOf(dayTasks[dayTasks.length-1]);state.tasks.splice(lastIdx+1,0,t)}else{state.tasks.push(t)}}dragId=null;render();scheduleSave()}
 function deleteTask(id){const t=state.tasks.find(t=>t.id===id);if(!t)return;if(t.lifeSourceId){const lt=state.lifeTasks.find(l=>l.id===t.lifeSourceId);if(lt){lt.inBank=false;lt.done=false}}state.tasks=state.tasks.filter(t=>t.id!==id);render();scheduleSave()}
-function placeAllocatedWeek(weekNum){if(!allocatingId)return;const lt=state.lifeTasks.find(t=>t.id===allocatingId);if(lt){state.tasks.push({id:genId(),date:'',weekNum,cat:'life',name:lt.name,priority:lt.priority==='high'?'high':'normal',done:false,lifeSourceId:lt.id,time:''});lt.inBank=false;allocatingId=null;render();scheduleSave()}}
-function handleWeekDrop(e,weekNum){e.preventDefault();e.currentTarget.classList.remove('alloc-highlight');if(dragId!==null){const t=state.tasks.find(t=>t.id===dragId);if(t){t.date='';t.weekNum=weekNum;render();scheduleSave()}}dragId=null}
-function openAddWeekTask(weekNum){addingDate='';addingWeekNum=weekNum;$('#aName').value='';$('#aTime').value='';$('#aEvtStartTime').value='';fillCatSelect($('#aCat'),'life',['events','life'],false);$('#aPri').value='normal';$('#aPriToggle').className='pri-toggle';$('#aPriToggle').querySelectorAll('.pri-option').forEach((o,i)=>{o.classList.toggle('active',i===0)});$('#aEvtDate').value='';$('#aEvtEndDate').value='';$('#aEvtEndTime').value='';$('#aEvtLoc').value='';$('#aEvtAllDay').checked=false;edResetTouched('aEvtEndDate');toggleAddEvtFields();$('#addModal').classList.add('open')}
-function returnExpiredWeekTasks(){
-  // Determine the current week number directly so this never depends on the
-  // generated week window. Only return tasks tied to a *past* weekNum that have
-  // NO explicit date — dated tasks live on their day and must never be deleted here.
-  let curStart=new Date(TODAY);curStart.setDate(curStart.getDate()-weekStartOffset(curStart));
-  const curWk=semesterWeekNum(curStart);
-  const expired=state.tasks.filter(t=>t.weekNum&&!t.date&&!t.done&&t.weekNum<curWk);
-  expired.forEach(t=>{if(t.lifeSourceId){const lt=state.lifeTasks.find(l=>l.id===t.lifeSourceId);if(lt){lt.inBank=true;lt.done=false}}});if(expired.length){state.tasks=state.tasks.filter(t=>!expired.some(e=>e.id===t.id));scheduleSave()}}
 function inlineEditChip(id,el){const t=state.tasks.find(t=>t.id===id);if(!t)return;el.setAttribute('draggable','false');const acts=el.querySelector('.chip-acts');if(acts)acts.style.display='none';const starSpan=t.priority==='high'?el.querySelector('span[style]'):null;el.innerHTML='';if(starSpan)el.appendChild(starSpan);const nameIn=document.createElement('input');nameIn.type='text';nameIn.value=t.name;nameIn.className='inline-edit-input';nameIn.style.cssText='width:'+Math.max(60,t.name.length*8)+'px;font-size:var(--fs-s);padding:1px 4px;border:1px solid var(--border);border-radius:var(--r-s);background:var(--surface);color:inherit;font-family:inherit;outline:none;';el.appendChild(nameIn);nameIn.focus();nameIn.select();function save(){t.name=nameIn.value.trim()||t.name;render();scheduleSave()}function onKey(e){if(e.key==='Enter'){e.preventDefault();save()}else if(e.key==='Escape'){render()}}nameIn.addEventListener('keydown',onKey);nameIn.addEventListener('blur',()=>setTimeout(()=>{if(!el.contains(document.activeElement))save()},100))}
 
 function sendToBank(id){const t=state.lifeTasks.find(t=>t.id===id);if(t){t.inBank=true;render();scheduleSave()}}
@@ -2697,8 +2936,8 @@ function fillCatSelect(sel,cur,kinds,withCustom){
   if(cur!=null)sel.value=cur;
 }
 function toggleAddEvtFields(){const isEvt=$('#aCat').value==='events';$('#aEvtFields').style.display=isEvt?'':'none';$('#aTimeRow').style.display=isEvt?'none':'';$('#aPriRow').style.display=isEvt?'none':'';if(isEvt&&addingDate){$('#aEvtDate').value=addingDate}}
-function openAddTask(date){addingDate=date;addingWeekNum=null;$('#aName').value='';$('#aTime').value=roundedHour();$('#aEvtStartTime').value=roundedHour();fillCatSelect($('#aCat'),'events',['events','life'],false);$('#aPri').value='normal';$('#aPriToggle').className='pri-toggle';$('#aPriToggle').querySelectorAll('.pri-option').forEach((o,i)=>{o.classList.toggle('active',i===0)});$('#aEvtDate').value=date;$('#aEvtEndDate').value='';$('#aEvtEndTime').value='';$('#aEvtLoc').value='';$('#aEvtAllDay').checked=false;edResetTouched('aEvtEndDate');toggleAddEvtFields();$('#addModal').classList.add('open')}
-$('#aSave').onclick=()=>{const name=$('#aName').value.trim();if(!name){$('#addModal').classList.remove('open');return}const cat=$('#aCat').value;if(cat==='events'){if(!state.events)state.events=[];state.events.push({id:genId(),name,date:$('#aEvtDate').value||addingDate,endDate:$('#aEvtEndDate').value||'',startTime:$('#aEvtStartTime').value||'',endTime:$('#aEvtEndTime').value||'',location:$('#aEvtLoc').value||'',allDay:$('#aEvtAllDay').checked});$('#addModal').classList.remove('open');render();scheduleSave();return}const pri=$('#aPri').value,time=$('#aTime').value||'';let lifeSourceId=null;if(cat==='life'){const ltId=genId();state.lifeTasks.push({id:ltId,name,category:'General',priority:pri==='high'?'high':'med',due:addingDate,done:false,inBank:false});lifeSourceId=ltId}const taskObj={id:genId(),date:addingDate||'',cat,name,priority:pri,done:false,lifeSourceId,syllabusId:null,time};if(addingWeekNum){taskObj.weekNum=addingWeekNum;taskObj.date=''}state.tasks.push(taskObj);addingWeekNum=null;$('#addModal').classList.remove('open');render();scheduleSave()}
+function openAddTask(date){addingDate=date;$('#aName').value='';$('#aTime').value=roundedHour();$('#aEvtStartTime').value=roundedHour();fillCatSelect($('#aCat'),'events',['events','life'],false);$('#aPri').value='normal';$('#aPriToggle').className='pri-toggle';$('#aPriToggle').querySelectorAll('.pri-option').forEach((o,i)=>{o.classList.toggle('active',i===0)});$('#aEvtDate').value=date;$('#aEvtEndDate').value='';$('#aEvtEndTime').value='';$('#aEvtLoc').value='';$('#aEvtAllDay').checked=false;edResetTouched('aEvtEndDate');toggleAddEvtFields();$('#addModal').classList.add('open')}
+$('#aSave').onclick=()=>{const name=$('#aName').value.trim();if(!name){$('#addModal').classList.remove('open');return}const cat=$('#aCat').value;if(cat==='events'){if(!state.events)state.events=[];state.events.push({id:genId(),name,date:$('#aEvtDate').value||addingDate,endDate:$('#aEvtEndDate').value||'',startTime:$('#aEvtStartTime').value||'',endTime:$('#aEvtEndTime').value||'',location:$('#aEvtLoc').value||'',allDay:$('#aEvtAllDay').checked});$('#addModal').classList.remove('open');render();scheduleSave();return}const pri=$('#aPri').value,time=$('#aTime').value||'';let lifeSourceId=null;if(cat==='life'){const ltId=genId();state.lifeTasks.push({id:ltId,name,category:'General',priority:pri==='high'?'high':'med',due:addingDate,done:false,inBank:false});lifeSourceId=ltId}state.tasks.push({id:genId(),date:addingDate||'',cat,name,priority:pri,done:false,lifeSourceId,syllabusId:null,time});$('#addModal').classList.remove('open');render();scheduleSave()}
 $('#aCanc').onclick=()=>{$('#addModal').classList.remove('open')}
 $('#addModal').onclick=e=>{if(e.target.id==='addModal')$('#addModal').classList.remove('open')}
 
