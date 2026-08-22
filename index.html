@@ -1,4 +1,4 @@
-<!-- Academic Planner v12.7 -->
+<!-- Academic Planner v12.8 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -100,13 +100,6 @@ body{overflow-x:clip;font-family:var(--font-sans);font-size:var(--fs-s);backgrou
 .frame{flex:1 1 auto;min-height:0;display:flex;position:relative}
 .scroll{flex:1 1 auto;min-width:0;overflow-y:auto;overflow-x:clip;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
 .app{position:relative;max-width:900px;margin:0 auto;padding:var(--sp-6) var(--sp-4) 40px}
-/* The back-to-top sentinel. It is a REGION, not a point: it starts three screens down and runs to
-   the end of the content, so "scrolled more than three screens" is exactly "this element is in
-   view". A one-pixel marker cannot do that job — jumping past it (a fling, or scrollTop set
-   outright) takes the intersection ratio from 0 to 0 and the observer never fires at all.
-   `top` is clamped to the content's own height so a tab shorter than three screens gives the
-   element zero height, which never intersects: correct, and no phantom scroll room either. */
-.to-top-mark{position:absolute;left:0;width:1px;top:min(300dvh,100%);bottom:0;pointer-events:none}
 .header{display:flex;align-items:center;gap:var(--sp-2);margin-bottom:30px;flex-wrap:wrap}
 .header h1{font-family:var(--font-serif);font-size:var(--fs-xl);font-weight:600;letter-spacing:-.02em}
 .today-badge{font-family:var(--font-mono);font-size:var(--fs-2xs);color:var(--text-dim);background:var(--surface2);padding:3px 9px;border-radius:var(--r-pill)}
@@ -179,7 +172,7 @@ body{overflow-x:clip;font-family:var(--font-sans);font-size:var(--fs-s);backgrou
 .hdr-icon-btn:hover{background:var(--surface2);color:var(--text)}
 .hdr-icon-btn .mi{width:15px;height:15px}
 
-/* ---- Find (v12.2) and back-to-top ---------------------------------------------------------- */
+/* ---- Find (v12.2) ---------------------------------------------------------------------------- */
 /* The find bar is pinned to the top of the viewport, not to a tab: one bar searches whichever tab is
    open, and with "all tabs" ticked it carries on into the next. It sits above the sticky almanac
    flanks and below the modals. */
@@ -219,17 +212,6 @@ mark.find-hit.cur{background:var(--warning);color:var(--bg);box-shadow:0 0 0 2px
 .find-all-short{display:none}
 @media(max-width:700px){.find-all-short{display:inline}}
 
-.to-top{position:absolute;right:16px;bottom:16px;z-index:45;
-  width:42px;height:42px;display:flex;align-items:center;justify-content:center;
-  background:var(--surface);color:var(--text-dim);border:1px solid var(--border);border-radius:50%;
-  box-shadow:0 3px 12px rgba(0,0,0,.2);cursor:pointer;
-  opacity:0;transform:translateY(8px);pointer-events:none;
-  transition:opacity var(--t-med) var(--ease),transform var(--t-med) var(--ease),color var(--t-fast) var(--ease)}
-.to-top.show{opacity:.92;transform:none;pointer-events:auto}
-.to-top:hover{color:var(--text);opacity:1}
-.to-top .mi{width:18px;height:18px}
-@media(min-width:820px){.to-top{bottom:24px;right:24px}}
-@media(prefers-reduced-motion:reduce){.to-top{transition:opacity var(--t-fast) linear}}
 
 .legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-m);width:fit-content;max-width:100%}
 .legend-item{display:flex;align-items:center;gap:6px;font-size:var(--fs-xs);font-weight:600;color:var(--text-dim)}
@@ -1025,7 +1007,6 @@ a.syl-meta-tag.link{color:var(--text-dim);text-decoration:none}a.syl-meta-tag.li
   <!-- The scroll container. #app is repainted wholesale by render(); this is not, so the scroll
        position survives a repaint the way the document's used to. -->
   <div class="scroll" id="scroll"><div class="app" id="app"></div></div>
-  <button class="to-top" id="toTop" onclick="scrollToTop()" title="Back to top" aria-label="Back to top"><span class="mi" style="--ic:var(--ic-up)"></span></button>
 </div>
 <nav class="bottomnav" id="bottomNav"></nav>
 </div>
@@ -1316,7 +1297,7 @@ function render(){
   // their place in the layout, and only their contents are rewritten.
   document.getElementById('sideNav').innerHTML=`<div class="sidenav-title">Planner</div>${NAV_SLOTS.map(sl=>slotBtn('nav-item',sl)).join('')}`;
   document.getElementById('bottomNav').innerHTML=NAV_SLOTS.map(sl=>slotBtn('bn-item',sl)).join('');
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v12.7</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}<div class="to-top-mark" id="toTopMark" aria-hidden="true"></div>`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply();toTopObserve()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v12.8</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -1993,35 +1974,6 @@ window.addEventListener('resize',()=>{clearTimeout(_fitTimer);_fitTimer=setTimeo
 function scroller(){return document.getElementById('scroll')}
 
 
-/* ---- Back to top ---------------------------------------------------------------------------- */
-/* Whether the button belongs on screen is a fact about where the scroll is — so it is OBSERVED, not
-   computed from scroll events. Three versions of this were driven by events and each failed the same
-   way: a scroll handler throttled to one reading a frame is right for a finger (hundreds of events)
-   and wrong for a programmatic scroll, which ends at one definite moment. If a frame was pending at
-   that moment, its mid-flight reading was the last word and the button stayed on screen at the top
-   of the page. Locks, `scrollend` and timed re-checks each patched one path and left the next.
-
-   An IntersectionObserver has none of that shape. A sentinel region covers everything from three
-   screens down to the end of the content, so "more than three screens down" is exactly "that region
-   is in view". The browser evaluates it against the real layout and reports the final state — for a
-   fling, a smooth scroll, an interrupted one, a resize, a tab change, all the same. There is
-   nothing left to be stale, and no timing to get right.
-   The sentinel is inside #app, which render() rebuilds, so the observer is re-attached there. Its
-   position is clamped to the content's own height, so a tab shorter than three screens cannot gain
-   three screens of empty scroll from it. */
-const TO_TOP_SCREENS=3;
-let _toTopIO=null;
-function toTopObserve(){
-  const mark=document.getElementById('toTopMark'),sc=scroller(),el=document.getElementById('toTop');
-  if(!mark||!sc||!el)return;
-  if(_toTopIO)_toTopIO.disconnect();
-  // Real overlap, not `isIntersecting`: on a tab shorter than three screens the region has zero
-  // height, and a zero-area rect sitting inside the root still counts as intersecting.
-  _toTopIO=new IntersectionObserver(([e])=>{
-    el.classList.toggle('show',e.intersectionRect.height>0)},{root:sc});
-  _toTopIO.observe(mark)}
-function scrollToTop(){const soft=!matchMedia('(prefers-reduced-motion:reduce)').matches;
-  scroller().scrollTo({top:0,behavior:soft?'smooth':'auto'})}
 
 /* ---- Find ------------------------------------------------------------------------------------ */
 /* A find that behaves the way the browser's own does — pinned while open, Enter and Shift+Enter to
