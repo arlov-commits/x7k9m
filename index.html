@@ -1,4 +1,4 @@
-<!-- Academic Planner v12.6 -->
+<!-- Academic Planner v12.7 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -99,7 +99,14 @@ body{overflow-x:clip;font-family:var(--font-sans);font-size:var(--fs-s);backgrou
 .shell{height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
 .frame{flex:1 1 auto;min-height:0;display:flex;position:relative}
 .scroll{flex:1 1 auto;min-width:0;overflow-y:auto;overflow-x:clip;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
-.app{max-width:900px;margin:0 auto;padding:var(--sp-6) var(--sp-4) 40px}
+.app{position:relative;max-width:900px;margin:0 auto;padding:var(--sp-6) var(--sp-4) 40px}
+/* The back-to-top sentinel. It is a REGION, not a point: it starts three screens down and runs to
+   the end of the content, so "scrolled more than three screens" is exactly "this element is in
+   view". A one-pixel marker cannot do that job — jumping past it (a fling, or scrollTop set
+   outright) takes the intersection ratio from 0 to 0 and the observer never fires at all.
+   `top` is clamped to the content's own height so a tab shorter than three screens gives the
+   element zero height, which never intersects: correct, and no phantom scroll room either. */
+.to-top-mark{position:absolute;left:0;width:1px;top:min(300dvh,100%);bottom:0;pointer-events:none}
 .header{display:flex;align-items:center;gap:var(--sp-2);margin-bottom:30px;flex-wrap:wrap}
 .header h1{font-family:var(--font-serif);font-size:var(--fs-xl);font-weight:600;letter-spacing:-.02em}
 .today-badge{font-family:var(--font-mono);font-size:var(--fs-2xs);color:var(--text-dim);background:var(--surface2);padding:3px 9px;border-radius:var(--r-pill)}
@@ -1309,7 +1316,7 @@ function render(){
   // their place in the layout, and only their contents are rewritten.
   document.getElementById('sideNav').innerHTML=`<div class="sidenav-title">Planner</div>${NAV_SLOTS.map(sl=>slotBtn('nav-item',sl)).join('')}`;
   document.getElementById('bottomNav').innerHTML=NAV_SLOTS.map(sl=>slotBtn('bn-item',sl)).join('');
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v12.6</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply();updateToTop()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v12.7</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}<div class="to-top-mark" id="toTopMark" aria-hidden="true"></div>`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply();toTopObserve()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -1987,40 +1994,34 @@ function scroller(){return document.getElementById('scroll')}
 
 
 /* ---- Back to top ---------------------------------------------------------------------------- */
-/* Three screens down, in every tab. A threshold derived from the document's own height (a tenth of
-   it, say) moves with the tab you are in, so the button appeared at a different point in each one
-   and read as unpredictable. The button lives outside #app, so a re-render cannot drop it. */
+/* Whether the button belongs on screen is a fact about where the scroll is — so it is OBSERVED, not
+   computed from scroll events. Three versions of this were driven by events and each failed the same
+   way: a scroll handler throttled to one reading a frame is right for a finger (hundreds of events)
+   and wrong for a programmatic scroll, which ends at one definite moment. If a frame was pending at
+   that moment, its mid-flight reading was the last word and the button stayed on screen at the top
+   of the page. Locks, `scrollend` and timed re-checks each patched one path and left the next.
+
+   An IntersectionObserver has none of that shape. A sentinel region covers everything from three
+   screens down to the end of the content, so "more than three screens down" is exactly "that region
+   is in view". The browser evaluates it against the real layout and reports the final state — for a
+   fling, a smooth scroll, an interrupted one, a resize, a tab change, all the same. There is
+   nothing left to be stale, and no timing to get right.
+   The sentinel is inside #app, which render() rebuilds, so the observer is re-attached there. Its
+   position is clamped to the content's own height, so a tab shorter than three screens cannot gain
+   three screens of empty scroll from it. */
 const TO_TOP_SCREENS=3;
-function toTopThreshold(){const sc=scroller();return (sc?sc.clientHeight:innerHeight)*TO_TOP_SCREENS}
-function updateToTop(){const el=document.getElementById('toTop'),sc=scroller();if(!el||!sc)return;
-  if(_toTopLock>Date.now())return;
-  el.classList.toggle('show',sc.scrollTop>toTopThreshold())}
-/* The scroll handler is throttled to one reading a frame, which is right for a finger-driven scroll
-   (hundreds of events) and wrong for a programmatic one: a smooth scroll ends at a definite moment,
-   and if that moment falls while a frame is already pending, the pending read happens mid-flight and
-   is the LAST word — leaving the button on screen at the top of the page. So the state is settled
-   three ways: the press itself says where we are going, `scrollend` is the authoritative last word
-   where the browser has it, and a late re-check covers the browsers that do not (and the case where
-   the smooth scroll was interrupted by a finger on the way up). */
-let _toTopRaf=0,_toTopLock=0,_toTopLastY=0;
-function toTopSettle(){_toTopLock=0;if(_toTopRaf)cancelAnimationFrame(_toTopRaf);_toTopRaf=0;updateToTop()}
-function scrollToTop(){
-  const el=document.getElementById('toTop');if(el)el.classList.remove('show');
-  // The destination is known from the press, so readings taken on the way there say nothing worth
-  // acting on — without this, the first mid-flight scroll event puts the button straight back.
-  _toTopLock=Date.now()+900;
-  const soft=!matchMedia('(prefers-reduced-motion:reduce)').matches;
-  scroller().scrollTo({top:0,behavior:soft?'smooth':'auto'});
-  setTimeout(toTopSettle,700)}
-addEventListener('DOMContentLoaded',()=>{const sc=scroller();
-  sc.addEventListener('scroll',()=>{
-    const y=sc.scrollTop;
-    // A finger going the other way ends the press's claim at once, so the button comes back the
-    // moment you scroll down again rather than after the lock times out.
-    if(_toTopLock&&y>_toTopLastY+2)_toTopLock=0;
-    _toTopLastY=y;
-    if(_toTopRaf)return;_toTopRaf=requestAnimationFrame(()=>{_toTopRaf=0;updateToTop()})},{passive:true});
-  sc.addEventListener('scrollend',toTopSettle)});
+let _toTopIO=null;
+function toTopObserve(){
+  const mark=document.getElementById('toTopMark'),sc=scroller(),el=document.getElementById('toTop');
+  if(!mark||!sc||!el)return;
+  if(_toTopIO)_toTopIO.disconnect();
+  // Real overlap, not `isIntersecting`: on a tab shorter than three screens the region has zero
+  // height, and a zero-area rect sitting inside the root still counts as intersecting.
+  _toTopIO=new IntersectionObserver(([e])=>{
+    el.classList.toggle('show',e.intersectionRect.height>0)},{root:sc});
+  _toTopIO.observe(mark)}
+function scrollToTop(){const soft=!matchMedia('(prefers-reduced-motion:reduce)').matches;
+  scroller().scrollTo({top:0,behavior:soft?'smooth':'auto'})}
 
 /* ---- Find ------------------------------------------------------------------------------------ */
 /* A find that behaves the way the browser's own does — pinned while open, Enter and Shift+Enter to
