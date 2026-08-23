@@ -1,4 +1,4 @@
-<!-- Academic Planner v12.8 -->
+<!-- Academic Planner v12.9 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -296,11 +296,6 @@ mark.find-hit.cur{background:var(--warning);color:var(--bg);box-shadow:0 0 0 2px
 .chip-btn.life-complete{background:var(--ok);color:#fff}
 .chip-btn.life-remove{background:var(--danger-dim);color:var(--danger)}.chip-btn.life-remove:hover{background:var(--danger);color:#fff}
 .chip.drop-before{box-shadow:-3px 0 0 0 var(--accent-bh)}.chip.drop-after{box-shadow:3px 0 0 0 var(--accent-bh)}
-
-.day-note-row{grid-column:1/-1;margin-top:1px}
-.day-note-btn{font-size:var(--fs-2xs);color:var(--text-muted);cursor:pointer;background:0;border:0;font-family:var(--font-sans);padding:1px 0}.day-note-btn:hover{color:var(--text-dim)}
-.day-note-input{width:100%;margin-top:3px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-sans);font-size:var(--fs-s);padding:5px 9px;border-radius:var(--r-s);resize:vertical;min-height:28px}
-.day-note-input:focus{outline:0;border-color:var(--text-dim)}
 
 /* ---- Almanac (v9.1): day-cell footers + the continuous solar-term ribbon ----
    Every week lives in one .weeks-grid so a term ribbon can span week headers. Column-1
@@ -1052,6 +1047,11 @@ const SYNC_COLLECTIONS=[
 // id; sylFeedRange is the feed date range the semester window was last taken from. Both are
 // singletons rather than per-record because neither is a record — they annotate a document that
 // lives in the repo, not in the database.
+/* 'dayNotes' is dead as of v12.9 — the Week tab's '+ note' button and its textarea are gone and
+   nothing reads or writes it any more. It stays listed here (and stays in the state initializer)
+   only so the profile blob keeps round-tripping whatever notes a device already stored: dropping
+   the key would let the next profile push overwrite them with nothing. It is the user's data, and
+   clearing it is theirs to authorise. */
 const PROFILE_FIELDS=['semesterStart','maxFutureDate','catOrder','dayNotes','hiddenDays','almanacTz','almanacLayers','houList','sylMarks','sylEdits','sylFeedRange'];
 const SB_HEADERS={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
 const SEED_FLAG=SKEY+'-perrecord-seeded';
@@ -1150,7 +1150,7 @@ function defaultEvents(){return[]}
 // here in the app, so a new term is a new spreadsheet rather than a new commit.
 function defaultSyllabus(){return[]}
 
-let state={theme:'ember',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{},hiddenDays:[],sylMarks:{},sylEdits:{},sylFeedRange:'',nextId:4000,weekStartDay:6,semesterStart:'2026-01-17',maxFutureDate:'2026-05-30',weekSlot:'sprints',sylSlot:'syllabus',evtSlot:'events',miscSlot:'notes',almanacTz:ALM_TZ_DEFAULT,houList:ALM_HOU_DEFAULT,almanacLayers:{...ALM_LAYER_DEFAULT}};
+let state={theme:'ember',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{}/* retired, kept for sync — see PROFILE_FIELDS */,hiddenDays:[],sylMarks:{},sylEdits:{},sylFeedRange:'',nextId:4000,weekStartDay:6,semesterStart:'2026-01-17',maxFutureDate:'2026-05-30',weekSlot:'sprints',sylSlot:'syllabus',evtSlot:'events',miscSlot:'notes',almanacTz:ALM_TZ_DEFAULT,houList:ALM_HOU_DEFAULT,almanacLayers:{...ALM_LAYER_DEFAULT}};
 let saveTimer=null,lastSaveTime=null,saveStatus='saved';
 // localStorage is the source of truth: write there synchronously, then diff & queue per-record pushes.
 function persistLocal(){try{localStorage.setItem(SKEY,JSON.stringify(state));localStorage.setItem(SKEY+'-time',new Date().toISOString())}catch(e){throw e}}
@@ -1297,7 +1297,7 @@ function render(){
   // their place in the layout, and only their contents are rewritten.
   document.getElementById('sideNav').innerHTML=`<div class="sidenav-title">Planner</div>${NAV_SLOTS.map(sl=>slotBtn('nav-item',sl)).join('')}`;
   document.getElementById('bottomNav').innerHTML=NAV_SLOTS.map(sl=>slotBtn('bn-item',sl)).join('');
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v12.8</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v12.9</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -2409,7 +2409,7 @@ const isAT=allocatingId!==null;
 // The week header is a heading and nothing more (v12.3): it no longer takes a dropped pill, offers
 // to add one, or acts as an allocation target. A pill belongs to a day.
 let h=`<div class="week-section"><div class="week-hdr" style="grid-row:${hdrRow}"><span class="week-hdr-title">Week ${wk.num}</span><span class="week-hdr-dates">${fmtDateShort(wk.start)} → ${fmtDateShort(wk.end)}</span>${badges.join('')}${totalHidden?`<button class="expand-week-btn" onclick="event.stopPropagation();expandWeek(${wk.num})" title="Show hidden days">▼ ${totalHidden} hidden</button>`:''}</div>`;
-visDays.forEach((day,di)=>{const dayRow=hdrRow+1+di;const tasks=state.tasks.filter(t=>t.date===day.date),isT=sameDay(day.dateObj,TODAY),note=state.dayNotes[day.date]||'',canHide=isCur&&day.dateObj<=TODAY;
+visDays.forEach((day,di)=>{const dayRow=hdrRow+1+di;const tasks=state.tasks.filter(t=>t.date===day.date),isT=sameDay(day.dateObj,TODAY),canHide=isCur&&day.dateObj<=TODAY;
 const dayEvts=getEventsForDate(day.date);const sylChips=getSylForDate(day.date);const SYL_ICON={reading:'book',paper:'paper',exam:'seal',presentation:'present',note:'pen',custom:'pin'};
 // Build unified sorted pill list
 const pills=[];
@@ -2442,7 +2442,7 @@ pills.push({type:'syl',time:sylTime,html:`<span class="chip ${catClass(sc.cat)} 
 tasks.forEach(t=>pills.push({type:'task',time:t.time||'',html:renderChip(t)}));
 pills.sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
 const pillsHtml=pills.map(p=>p.html).join('');
-h+=`<div class="day-row ${isT?'is-today':''} ${isAT?'alloc-target':''}" style="grid-row:${dayRow}" data-date="${day.date}" ondragover="event.preventDefault();this.classList.add('alloc-highlight')" ondrop="handleDrop(event,'${day.date}')" ondragleave="this.classList.remove('alloc-highlight')" ${isAT?`onclick="placeAllocated('${day.date}')"`:''}><div class="day-left"><span class="day-name">${fmtDate(day.dateObj)}</span>${canHide?`<button class="hide-day-btn" onclick="event.stopPropagation();hideDay('${day.date}')" title="Hide this day">hide</button>`:''}</div><div class="day-tasks-area" ondragover="handleChipDragOver(event)" ondrop="handleChipDrop(event,'${day.date}')" ondragleave="clearDropIndicators(this)">${pillsHtml}</div><div class="day-right"><button class="add-day-btn" onclick="event.stopPropagation();openAddTask('${day.date}')" title="Add">+</button></div><div class="day-note-row"><button class="day-note-btn" onclick="event.stopPropagation();toggleEl('dn-${day.date}')">${note?'<span class=\'mi\' style=\'--ic:var(--ic-pen)\'></span>':'+ note'}</button><textarea class="day-note-input" id="dn-${day.date}" style="display:${note?'block':'none'}" onclick="event.stopPropagation()" oninput="state.dayNotes['${day.date}']=this.value;scheduleSave()" placeholder="Notes...">${note}</textarea></div>${almDayFooterHtml(alm,day.date)}</div>`});
+h+=`<div class="day-row ${isT?'is-today':''} ${isAT?'alloc-target':''}" style="grid-row:${dayRow}" data-date="${day.date}" ondragover="event.preventDefault();this.classList.add('alloc-highlight')" ondrop="handleDrop(event,'${day.date}')" ondragleave="this.classList.remove('alloc-highlight')" ${isAT?`onclick="placeAllocated('${day.date}')"`:''}><div class="day-left"><span class="day-name">${fmtDate(day.dateObj)}</span>${canHide?`<button class="hide-day-btn" onclick="event.stopPropagation();hideDay('${day.date}')" title="Hide this day">hide</button>`:''}</div><div class="day-tasks-area" ondragover="handleChipDragOver(event)" ondrop="handleChipDrop(event,'${day.date}')" ondragleave="clearDropIndicators(this)">${pillsHtml}</div><div class="day-right"><button class="add-day-btn" onclick="event.stopPropagation();openAddTask('${day.date}')" title="Add">+</button></div>${almDayFooterHtml(alm,day.date)}</div>`});
 h+='</div>';return h}
 
 // The Week tab's clock, in the column form a task pill sets it in.
