@@ -85,7 +85,7 @@ A week pill's title is capped at **ten rendered lines** (`sylFitTitles`, `SYL_PI
 
 ## Versioning
 - Version lives as an HTML comment on line 1: `<!-- Academic Planner vX.Y -->`, and in a visible `.version-label` in the header, and in the service worker `CACHE_NAME`.
-- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v13.2. All three locations must match.
+- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v13.3. All three locations must match.
 - Bumping the SW `CACHE_NAME` every change is required or installed devices serve stale code.
 
 ## Architecture rules (hard-won — do not violate)
@@ -94,6 +94,7 @@ A week pill's title is capped at **ten rendered lines** (`sylFitTitles`, `SYL_PI
 - Sync reconciliation is **per-record, by immutable client-generated id**, with a DB-owned `updated_at` and `deleted_at` tombstones. Merge by id; never wholesale-replace arrays.
 - Re-renders must not clobber in-progress user input. Never swap the entire state object out from under an open editor/text field mid-typing.
 - Per-device cosmetic prefs (theme, UI modes) stay in localStorage and are NEVER synced. Only data-meaningful state syncs.
+- **A device that has not PULLED the profile must not PUSH one** (v13.3). The profile is the one place this app still does last-write-wins over a whole blob, so a push built on never-pulled state replaces the real row with this device's defaults. That is not theoretical: a Cloudflare **preview URL is a fresh origin**, so localStorage is empty, and the syllabus feed (same host, edge-cached) beats Supabase every time — the feed landed, `sylAdoptRange` dirtied the profile, and the queued push went out carrying `sylMarks:{}`, wiping every star and feed edit on every device. `detectAndQueue` stamped `profileTs` on the way, so the pull that finally arrived was declined as "not newer" and the emptiness stuck. `PROFILE_PULLED` gates the push on this origin having pulled once (an absent or older remote row counts — a genuinely first device must still be able to push); the change is held locally, `_snap.profile` is deliberately left un-advanced so it is re-detected, and `syncPullAndMerge` flushes it once the gate opens. Never push a profile-shaped singleton before reading one.
 
 ## Service worker
 - Bump `CACHE_NAME` every meaningful change.

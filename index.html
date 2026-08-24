@@ -1,4 +1,4 @@
-<!-- Academic Planner v13.2 -->
+<!-- Academic Planner v13.3 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1051,6 +1051,19 @@ const SYNC_COLLECTIONS=[
 const PROFILE_FIELDS=['semesterStart','maxFutureDate','catOrder','hiddenDays','almanacTz','almanacLayers','houList','sylMarks','sylEdits','sylFeedRange'];
 const SB_HEADERS={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
 const SEED_FLAG=SKEY+'-perrecord-seeded';
+/* The profile is one last-write-wins blob, so a device that has never PULLED it must never push
+   one: its push replaces the real row with this device's defaults. That is not hypothetical — a
+   Cloudflare preview URL is a fresh ORIGIN, so localStorage is empty, and the syllabus feed (same
+   host, edge-cached) beats Supabase every time. The feed lands, sylAdoptRange dirties the profile,
+   and the queued push goes out carrying sylMarks:{} — every star and every feed edit gone, on every
+   device. Worse, detectAndQueue stamps profileTs on the way, so the pull that finally arrives is
+   declined as "not newer" and the emptiness sticks.
+   So: hold the profile push until this origin has pulled once. An absent or older remote row still
+   counts as pulled — a genuinely first device must be able to push. The change is kept locally and
+   goes out as soon as the gate opens. */
+const PROFILE_PULLED=SKEY+'-profilePulled';
+function profilePullDone(){try{return !!localStorage.getItem(PROFILE_PULLED)}catch(e){return false}}
+function markProfilePulled(){try{localStorage.setItem(PROFILE_PULLED,'1')}catch(e){}}
 // Collision-resistant, client-generated, immutable record id (large Number; stored as text PK).
 // Monotonic within a session (no same-device collisions); time+random keeps it unique across devices.
 let _lastGen=0;
@@ -1164,7 +1177,11 @@ function contentSig(rec){const c={};for(const k in rec){if(k!=='updatedAt'&&k!==
 function isDetId(key,id){return String(id).startsWith(key+'_')}
 function canonProfile(){const o={};PROFILE_FIELDS.forEach(k=>{o[k]=state[k]});return JSON.stringify(o)}
 function rebuildSnapshot(){_snap={profile:canonProfile()};for(const c of SYNC_COLLECTIONS){const m=new Map();(state[c.key]||[]).forEach(r=>{if(r.id!=null)m.set(String(r.id),canonRec(r))});_snap[c.key]=m}}
-function detectAndQueue(){if(!_snap)rebuildSnapshot();for(const c of SYNC_COLLECTIONS){const arr=state[c.key];if(!Array.isArray(arr))continue;const snapMap=_snap[c.key]||(_snap[c.key]=new Map());const seen=new Set();arr.forEach(rec=>{if(rec.id==null)rec.id=deterministicId(c.key,rec);const sid=String(rec.id);seen.add(sid);const cur=canonRec(rec);if(snapMap.get(sid)!==cur){rec.updatedAt=Date.now();enqueue({op:'upsert',table:c.table,id:sid,data:rec});snapMap.set(sid,canonRec(rec))}});for(const sid of Array.from(snapMap.keys())){if(!seen.has(sid)){snapMap.delete(sid);enqueue({op:'delete',table:c.table,id:sid});addTombstone(c.key,sid)}}}const cp=canonProfile();if(cp!==_snap.profile){_snap.profile=cp;localStorage.setItem(SKEY+'-profileTs',String(Date.now()));enqueue({op:'profile'})}}
+function detectAndQueue(){if(!_snap)rebuildSnapshot();for(const c of SYNC_COLLECTIONS){const arr=state[c.key];if(!Array.isArray(arr))continue;const snapMap=_snap[c.key]||(_snap[c.key]=new Map());const seen=new Set();arr.forEach(rec=>{if(rec.id==null)rec.id=deterministicId(c.key,rec);const sid=String(rec.id);seen.add(sid);const cur=canonRec(rec);if(snapMap.get(sid)!==cur){rec.updatedAt=Date.now();enqueue({op:'upsert',table:c.table,id:sid,data:rec});snapMap.set(sid,canonRec(rec))}});for(const sid of Array.from(snapMap.keys())){if(!seen.has(sid)){snapMap.delete(sid);enqueue({op:'delete',table:c.table,id:sid});addTombstone(c.key,sid)}}}const cp=canonProfile();
+  // Leaving _snap.profile alone while gated is the point: the difference stays pending, so the
+  // first detectAndQueue after the gate opens enqueues it. Stamping profileTs here would also
+  // poison sbPullProfile's freshness test, so that waits too.
+  if(cp!==_snap.profile&&profilePullDone()){_snap.profile=cp;localStorage.setItem(SKEY+'-profileTs',String(Date.now()));enqueue({op:'profile'})}}
 // ---- Tombstones (local memory of deletions until they propagate) ----
 function loadTomb(){try{return JSON.parse(localStorage.getItem(SKEY+'-tomb')||'{}')}catch(e){return{}}}
 function saveTomb(t){try{localStorage.setItem(SKEY+'-tomb',JSON.stringify(t))}catch(e){}}
@@ -1229,7 +1246,7 @@ function mergeCollection(localArr,tomb,rows){const byId=new Map((localArr||[]).m
 // is all-artifact, the smallest id is kept (deterministic -> every device converges) and the rest go.
 // Removals are tombstoned so they propagate to the other devices.
 function dedupeSyncedCollections(){let changed=false;for(const c of SYNC_COLLECTIONS){const arr=state[c.key];if(!Array.isArray(arr))continue;const groups=new Map();arr.forEach(rec=>{if(rec.id==null)return;const sig=contentSig(rec);let g=groups.get(sig);if(!g){g=[];groups.set(sig,g)}g.push(rec)});const drop=new Set();for(const recs of groups.values()){if(recs.length<2)continue;const dets=recs.filter(r=>isDetId(c.key,r.id));if(!dets.length)continue;const hasReal=recs.some(r=>!isDetId(c.key,r.id));if(hasReal){dets.forEach(r=>drop.add(String(r.id)))}else{dets.slice().sort((a,b)=>String(a.id)<String(b.id)?-1:1).slice(1).forEach(r=>drop.add(String(r.id)))}}if(drop.size){state[c.key]=arr.filter(r=>!drop.has(String(r.id)));drop.forEach(id=>{enqueue({op:'delete',table:c.table,id});addTombstone(c.key,id)});changed=true}}return changed}
-async function sbPullProfile(){try{const r=await fetch(SB_URL+'/rest/v1/profile?id=eq.default&select=*',{headers:SB_HEADERS});if(!r.ok)return false;const d=await r.json();if(!d||!d.length||d[0].deleted_at)return false;const remoteTs=Date.parse(d[0].updated_at)||0;const localTs=parseInt(localStorage.getItem(SKEY+'-profileTs')||'0',10);if(remoteTs>localTs&&!queueHasProfile()){const data=d[0].data||{};PROFILE_FIELDS.forEach(k=>{if(k in data)state[k]=data[k]});localStorage.setItem(SKEY+'-profileTs',String(remoteTs));return true}return false}catch(e){return false}}
+async function sbPullProfile(){try{const r=await fetch(SB_URL+'/rest/v1/profile?id=eq.default&select=*',{headers:SB_HEADERS});if(!r.ok)return false;const d=await r.json();markProfilePulled();if(!d||!d.length||d[0].deleted_at)return false;const remoteTs=Date.parse(d[0].updated_at)||0;const localTs=parseInt(localStorage.getItem(SKEY+'-profileTs')||'0',10);if(remoteTs>localTs&&!queueHasProfile()){const data=d[0].data||{};PROFILE_FIELDS.forEach(k=>{if(k in data)state[k]=data[k]});localStorage.setItem(SKEY+'-profileTs',String(remoteTs));return true}return false}catch(e){return false}}
 // Flush pending writes, pull rows changed since the watermark, merge by id, advance watermark, re-render.
 // Centralized deferral so NO automatic/background render can wipe in-progress typing.
 // While the user is editing, queue the render/merge and run it once editing ends.
@@ -1245,9 +1262,15 @@ async function syncPullAndMerge(force){if(!navigator.onLine)return;if(isUserEdit
   saveTomb(tomb);
   // After a full pull every device sees the whole duplicate set, so collapse them convergently.
   let deduped=false;if(netOk)deduped=dedupeSyncedCollections();if(deduped){anyChange=true;await flushQueue()}
+  const wasGated=!profilePullDone();
   if(await sbPullProfile())anyChange=true;
   if(netOk&&maxSeen)localStorage.setItem(SKEY+'-watermark',new Date(maxSeen).toISOString());
   if(anyChange){rebuildSnapshot();persistLocal();safeRender()}
+  // A change made while the gate was shut has been sitting in state unqueued. If the pull applied
+  // remote, rebuildSnapshot above already settled on remote's version and this finds nothing —
+  // which is right, a device that had not pulled does not get to win. If it did not, the local
+  // change is still pending and goes out now.
+  if(wasGated&&profilePullDone()){detectAndQueue();persistLocal();await flushQueue()}
   updateConn(netOk?'online':'offline')}
 // One-time seed of the new per-record tables from local state. ignore-duplicates => safe & idempotent
 // across devices/re-runs: never overwrites a row another device already wrote.
@@ -1293,7 +1316,7 @@ function render(){
   // their place in the layout, and only their contents are rewritten.
   document.getElementById('sideNav').innerHTML=`<div class="sidenav-title">Planner</div>${NAV_SLOTS.map(sl=>slotBtn('nav-item',sl)).join('')}`;
   document.getElementById('bottomNav').innerHTML=NAV_SLOTS.map(sl=>slotBtn('bn-item',sl)).join('');
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v13.2</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v13.3</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
