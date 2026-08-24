@@ -1,4 +1,4 @@
-<!-- Academic Planner v12.9 -->
+<!-- Academic Planner v13.0 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1047,12 +1047,7 @@ const SYNC_COLLECTIONS=[
 // id; sylFeedRange is the feed date range the semester window was last taken from. Both are
 // singletons rather than per-record because neither is a record — they annotate a document that
 // lives in the repo, not in the database.
-/* 'dayNotes' is dead as of v12.9 — the Week tab's '+ note' button and its textarea are gone and
-   nothing reads or writes it any more. It stays listed here (and stays in the state initializer)
-   only so the profile blob keeps round-tripping whatever notes a device already stored: dropping
-   the key would let the next profile push overwrite them with nothing. It is the user's data, and
-   clearing it is theirs to authorise. */
-const PROFILE_FIELDS=['semesterStart','maxFutureDate','catOrder','dayNotes','hiddenDays','almanacTz','almanacLayers','houList','sylMarks','sylEdits','sylFeedRange'];
+const PROFILE_FIELDS=['semesterStart','maxFutureDate','catOrder','hiddenDays','almanacTz','almanacLayers','houList','sylMarks','sylEdits','sylFeedRange'];
 const SB_HEADERS={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
 const SEED_FLAG=SKEY+'-perrecord-seeded';
 // Collision-resistant, client-generated, immutable record id (large Number; stored as text PK).
@@ -1150,7 +1145,7 @@ function defaultEvents(){return[]}
 // here in the app, so a new term is a new spreadsheet rather than a new commit.
 function defaultSyllabus(){return[]}
 
-let state={theme:'ember',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],dayNotes:{}/* retired, kept for sync — see PROFILE_FIELDS */,hiddenDays:[],sylMarks:{},sylEdits:{},sylFeedRange:'',nextId:4000,weekStartDay:6,semesterStart:'2026-01-17',maxFutureDate:'2026-05-30',weekSlot:'sprints',sylSlot:'syllabus',evtSlot:'events',miscSlot:'notes',almanacTz:ALM_TZ_DEFAULT,houList:ALM_HOU_DEFAULT,almanacLayers:{...ALM_LAYER_DEFAULT}};
+let state={theme:'ember',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],hiddenDays:[],sylMarks:{},sylEdits:{},sylFeedRange:'',nextId:4000,weekStartDay:6,semesterStart:'2026-01-17',maxFutureDate:'2026-05-30',weekSlot:'sprints',sylSlot:'syllabus',evtSlot:'events',miscSlot:'notes',almanacTz:ALM_TZ_DEFAULT,houList:ALM_HOU_DEFAULT,almanacLayers:{...ALM_LAYER_DEFAULT}};
 let saveTimer=null,lastSaveTime=null,saveStatus='saved';
 // localStorage is the source of truth: write there synchronously, then diff & queue per-record pushes.
 function persistLocal(){try{localStorage.setItem(SKEY,JSON.stringify(state));localStorage.setItem(SKEY+'-time',new Date().toISOString())}catch(e){throw e}}
@@ -1297,7 +1292,7 @@ function render(){
   // their place in the layout, and only their contents are rewritten.
   document.getElementById('sideNav').innerHTML=`<div class="sidenav-title">Planner</div>${NAV_SLOTS.map(sl=>slotBtn('nav-item',sl)).join('')}`;
   document.getElementById('bottomNav').innerHTML=NAV_SLOTS.map(sl=>slotBtn('bn-item',sl)).join('');
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v12.9</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v13.0</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
