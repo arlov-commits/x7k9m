@@ -1,4 +1,4 @@
-<!-- Academic Planner v13.4 -->
+<!-- Academic Planner v13.5 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1383,7 +1383,7 @@ function render(){
   // their place in the layout, and only their contents are rewritten.
   document.getElementById('sideNav').innerHTML=`<div class="sidenav-title">Planner</div>${NAV_SLOTS.map(sl=>slotBtn('nav-item',sl)).join('')}`;
   document.getElementById('bottomNav').innerHTML=NAV_SLOTS.map(sl=>slotBtn('bn-item',sl)).join('');
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v13.4</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v13.5</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -2641,6 +2641,12 @@ return chips}
 // the user's own is the tick and the star, held in state.sylMarks against the feed's derived id.
 function sylClasses(){const f=(typeof sylFeed==='function')?sylFeed():null;return f&&f.classes?f.classes:[]}
 function sylClassOf(cat){return sylClasses().find(c=>c.cat===cat)||null}
+/* The categories a syllabus entry can carry: a workbook class, or Custom. Custom is not a class —
+   it has no sheet and no colour slot — but it is a perfectly good syllabus category, and it is the
+   only one available for something the spreadsheet does not cover. Leaving it out of the Week tab's
+   Add modal meant such an entry could only be made from the Syllabus tab, which also put it out of
+   reach of the Dashboard star that is the point of filing it there (v13.5). */
+function isSylCat(cat){return cat==='custom'||!!sylClassOf(cat)}
 // Class names come from the feed's sheet names. Anything else is one of the three kinds above, or
 // a tag from a term that has ended — and both read as Custom.
 function catName(cat){const c=sylClassOf(cat);return c?c.name:(CAT_NAMES[cat]||CAT_NAMES.custom)}
@@ -3038,20 +3044,22 @@ function fillCatSelect(sel,cur,kinds,withCustom,withClasses){
 // The Add modal is three forms in one, chosen by category. A workbook class is not a "task in a
 // class colour": picking one builds a real syllabus entry (v13.1), so the modal has to ask for what
 // a syllabus entry needs (type, description) and drop what it has no notion of (priority).
-function toggleAddFields(){const cat=$('#aCat').value,isEvt=cat==='events',isSyl=!!sylClassOf(cat);
+function toggleAddFields(){const cat=$('#aCat').value,isEvt=cat==='events',isSyl=isSylCat(cat);
   $('#aEvtFields').style.display=isEvt?'':'none';
   $('#aSylRow').style.display=isSyl?'':'none';
   $('#aTimeRow').style.display=isEvt?'none':'';
   $('#aTimeLabel').textContent=isSyl?'Due time (optional)':'Time';
   $('#aPriRow').style.display=(isEvt||isSyl)?'none':'';
   if(isEvt&&addingDate){$('#aEvtDate').value=addingDate}}
-function openAddTask(date){addingDate=date;$('#aName').value='';$('#aTime').value=roundedHour();$('#aEvtStartTime').value=roundedHour();fillCatSelect($('#aCat'),'events',['events','life'],false);$('#aPri').value='normal';$('#aPriToggle').className='pri-toggle';$('#aPriToggle').querySelectorAll('.pri-option').forEach((o,i)=>{o.classList.toggle('active',i===0)});$('#aEvtDate').value=date;$('#aEvtEndDate').value='';$('#aEvtEndTime').value='';$('#aEvtLoc').value='';$('#aEvtAllDay').checked=false;$('#aSylType').value='reading';$('#aSylDetail').value='';edResetTouched('aEvtEndDate');toggleAddFields();$('#addModal').classList.add('open')}
+function openAddTask(date){addingDate=date;$('#aName').value='';$('#aTime').value=roundedHour();$('#aEvtStartTime').value=roundedHour();fillCatSelect($('#aCat'),'events',['events','life'],true);$('#aPri').value='normal';$('#aPriToggle').className='pri-toggle';$('#aPriToggle').querySelectorAll('.pri-option').forEach((o,i)=>{o.classList.toggle('active',i===0)});$('#aEvtDate').value=date;$('#aEvtEndDate').value='';$('#aEvtEndTime').value='';$('#aEvtLoc').value='';$('#aEvtAllDay').checked=false;$('#aSylType').value='reading';$('#aSylDetail').value='';edResetTouched('aEvtEndDate');toggleAddFields();$('#addModal').classList.add('open')}
 $('#aSave').onclick=()=>{const name=$('#aName').value.trim();if(!name){$('#addModal').classList.remove('open');return}const cat=$('#aCat').value;if(cat==='events'){if(!state.events)state.events=[];state.events.push({id:genId(),name,date:$('#aEvtDate').value||addingDate,endDate:$('#aEvtEndDate').value||'',startTime:$('#aEvtStartTime').value||'',endTime:$('#aEvtEndTime').value||'',location:$('#aEvtLoc').value||'',allDay:$('#aEvtAllDay').checked});$('#addModal').classList.remove('open');render();scheduleSave();return}
   // A class category becomes a syllabus entry proper — same shape addSylEntry() writes, so it lands
   // in the Syllabus tab and draws as a syllabus pill in the week, not as a task wearing the colour.
   const _cls=sylClassOf(cat);
-  if(_cls){if(!state.syllabus)state.syllabus=[];
-    state.syllabus.push({id:genId(),cat,clsAlias:_cls.alias,type:$('#aSylType').value,title:name,detail:$('#aSylDetail').value||'',due:addingDate||isoDate(TODAY),dueEnd:'',dueTime:$('#aTime').value||'',done:false,highlighted:false});
+  if(isSylCat(cat)){if(!state.syllabus)state.syllabus=[];
+    // clsAlias is what sylRealignCats() re-resolves against the workbook each load; Custom has no
+    // sheet to realign to, so it stores none — exactly what addSylEntry() writes for Custom.
+    state.syllabus.push({id:genId(),cat,clsAlias:_cls?_cls.alias:'',type:$('#aSylType').value,title:name,detail:$('#aSylDetail').value||'',due:addingDate||isoDate(TODAY),dueEnd:'',dueTime:$('#aTime').value||'',done:false,highlighted:false});
     $('#addModal').classList.remove('open');render();scheduleSave();return}
   const pri=$('#aPri').value,time=$('#aTime').value||'';let lifeSourceId=null;if(cat==='life'){const ltId=genId();state.lifeTasks.push({id:ltId,name,category:'General',priority:pri==='high'?'high':'med',due:addingDate,done:false,inBank:false});lifeSourceId=ltId}state.tasks.push({id:genId(),date:addingDate||'',cat,name,priority:pri,done:false,lifeSourceId,time});$('#addModal').classList.remove('open');render();scheduleSave()}
 $('#aCanc').onclick=()=>{$('#addModal').classList.remove('open')}
