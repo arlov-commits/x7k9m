@@ -1,4 +1,4 @@
-<!-- Academic Planner v13.1 -->
+<!-- Academic Planner v13.4 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -971,7 +971,7 @@ a.syl-meta-tag.link{color:var(--text-dim);text-decoration:none}a.syl-meta-tag.li
 .field input,.field select{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-sans);font-size:var(--fs-s);padding:8px 11px;border-radius:var(--r-s);outline:none;transition:border-color var(--t-fast) var(--ease)}
 .field input:focus,.field select:focus{border-color:var(--text-dim)}
 
-@media(max-width:700px){.day-row{grid-template-columns:66px 1fr auto}.life-item{grid-template-columns:auto 1fr auto auto}.li-days{display:none}.li-send{width:24px;height:24px;font-size:var(--fs-2xs)}.evt-item{grid-template-columns:1fr auto auto;gap:4px}.evt-item .evt-date{grid-column:1/-1}.evt-info{text-align:left}.header{gap:4px;flex-wrap:wrap}.hdr-row1{display:flex;align-items:center;gap:6px;width:100%;flex-shrink:0}.hdr-row1 .combined-status{margin-left:auto}.hdr-row2{display:flex;align-items:center;gap:6px;width:100%}.hdr-row2 .theme-toggle{margin-left:auto}.syl-add-form .field label{display:none}.note-text{resize:both}.view[data-tab="syllabus"] .syl-table-wrap,.syl-table-outer{overflow-x:auto;-webkit-overflow-scrolling:touch}.syl-table{font-size:var(--fs-2xs)}.syl-table td{padding:5px 4px}.syl-feed-mark{display:none}}
+@media(max-width:700px){.day-row{grid-template-columns:66px 1fr auto}.life-item{grid-template-columns:auto 1fr auto auto}.li-days{display:none}.li-send{width:24px;height:24px;font-size:var(--fs-2xs)}.evt-item{grid-template-columns:1fr auto auto;gap:4px}.evt-item .evt-date{grid-column:1/-1}.evt-info{text-align:left}.header{gap:4px;flex-wrap:wrap}.hdr-row1{display:flex;align-items:center;gap:6px;width:100%;flex-shrink:0}.hdr-row1 .combined-status{margin-left:auto}.hdr-row2{display:flex;align-items:center;gap:6px;width:100%}.hdr-row2 .theme-toggle{margin-left:auto}.syl-class-cell{white-space:normal;overflow-wrap:anywhere;width:62px;min-width:62px;max-width:62px;letter-spacing:0}.syl-class-cell .syl-dot{float:left;margin-top:4px}.syl-add-form .field label{display:none}.note-text{resize:both}.view[data-tab="syllabus"] .syl-table-wrap,.syl-table-outer{overflow-x:auto;-webkit-overflow-scrolling:touch}.syl-table{font-size:var(--fs-2xs)}.syl-table td{padding:5px 4px}.syl-feed-mark{display:none}}
 
 /* Reduced motion: keep the modal entrance near-instant. Decorative loops (task halo) are left untouched. */
 @media (prefers-reduced-motion:reduce){.modal-overlay,.modal{transition-duration:1ms!important}}
@@ -1048,9 +1048,31 @@ const SYNC_COLLECTIONS=[
 // id; sylFeedRange is the feed date range the semester window was last taken from. Both are
 // singletons rather than per-record because neither is a record — they annotate a document that
 // lives in the repo, not in the database.
-const PROFILE_FIELDS=['semesterStart','maxFutureDate','catOrder','hiddenDays','almanacTz','almanacLayers','houList','sylMarks','sylEdits','sylFeedRange'];
+/* sylMarks/sylEdits are per-ENTRY user data living inside a singleton blob, so whole-blob
+   last-write-wins loses one device's stars to another's the moment both have pulled. They are
+   merged per key instead (v13.4), against a sibling map of per-key write times: sylMarksAt /
+   sylEditsAt. The stamps sit beside the values rather than inside them so sylMark()/sylEdit()/
+   sylFeedEntries() keep their existing shapes, and so a key ABSENT from the value map but PRESENT
+   in the stamp map is a tombstone — which is what lets un-starring propagate instead of being
+   read as "this device just has nothing to say about that entry". Everything else here is a real
+   singleton (one term, one timezone) where last-write-wins is the right answer. */
+const PROFILE_MERGED={sylMarks:'sylMarksAt',sylEdits:'sylEditsAt'};
+const PROFILE_FIELDS=['semesterStart','maxFutureDate','catOrder','hiddenDays','almanacTz','almanacLayers','houList','sylMarks','sylMarksAt','sylEdits','sylEditsAt','sylFeedRange'];
 const SB_HEADERS={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
 const SEED_FLAG=SKEY+'-perrecord-seeded';
+/* The profile is one last-write-wins blob, so a device that has never PULLED it must never push
+   one: its push replaces the real row with this device's defaults. That is not hypothetical — a
+   Cloudflare preview URL is a fresh ORIGIN, so localStorage is empty, and the syllabus feed (same
+   host, edge-cached) beats Supabase every time. The feed lands, sylAdoptRange dirties the profile,
+   and the queued push goes out carrying sylMarks:{} — every star and every feed edit gone, on every
+   device. Worse, detectAndQueue stamps profileTs on the way, so the pull that finally arrives is
+   declined as "not newer" and the emptiness sticks.
+   So: hold the profile push until this origin has pulled once. An absent or older remote row still
+   counts as pulled — a genuinely first device must be able to push. The change is kept locally and
+   goes out as soon as the gate opens. */
+const PROFILE_PULLED=SKEY+'-profilePulled';
+function profilePullDone(){try{return !!localStorage.getItem(PROFILE_PULLED)}catch(e){return false}}
+function markProfilePulled(){try{localStorage.setItem(PROFILE_PULLED,'1')}catch(e){}}
 // Collision-resistant, client-generated, immutable record id (large Number; stored as text PK).
 // Monotonic within a session (no same-device collisions); time+random keeps it unique across devices.
 let _lastGen=0;
@@ -1146,7 +1168,7 @@ function defaultEvents(){return[]}
 // here in the app, so a new term is a new spreadsheet rather than a new commit.
 function defaultSyllabus(){return[]}
 
-let state={theme:'ember',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],hiddenDays:[],sylMarks:{},sylEdits:{},sylFeedRange:'',nextId:4000,weekStartDay:6,semesterStart:'2026-01-17',maxFutureDate:'2026-05-30',weekSlot:'sprints',sylSlot:'syllabus',evtSlot:'events',miscSlot:'notes',almanacTz:ALM_TZ_DEFAULT,houList:ALM_HOU_DEFAULT,almanacLayers:{...ALM_LAYER_DEFAULT}};
+let state={theme:'ember',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],hiddenDays:[],sylMarks:{},sylMarksAt:{},sylEdits:{},sylEditsAt:{},sylFeedRange:'',nextId:4000,weekStartDay:6,semesterStart:'2026-01-17',maxFutureDate:'2026-05-30',weekSlot:'sprints',sylSlot:'syllabus',evtSlot:'events',miscSlot:'notes',almanacTz:ALM_TZ_DEFAULT,houList:ALM_HOU_DEFAULT,almanacLayers:{...ALM_LAYER_DEFAULT}};
 let saveTimer=null,lastSaveTime=null,saveStatus='saved';
 // localStorage is the source of truth: write there synchronously, then diff & queue per-record pushes.
 function persistLocal(){try{localStorage.setItem(SKEY,JSON.stringify(state));localStorage.setItem(SKEY+'-time',new Date().toISOString())}catch(e){throw e}}
@@ -1162,9 +1184,16 @@ function canonRec(rec){const c={};for(const k in rec){if(k!=='updatedAt')c[k]=re
 // Content signature ignoring id + updatedAt: groups records that are the same logical row.
 function contentSig(rec){const c={};for(const k in rec){if(k!=='updatedAt'&&k!=='id')c[k]=rec[k]}return stableStringify(c)}
 function isDetId(key,id){return String(id).startsWith(key+'_')}
-function canonProfile(){const o={};PROFILE_FIELDS.forEach(k=>{o[k]=state[k]});return JSON.stringify(o)}
+// stableStringify, not JSON.stringify: after a merge two devices hold the same logical maps in
+// whatever key order each happened to build them. Hashing that order would make every pull look
+// like a change and push it straight back — a ping-pong between devices that never settles.
+function canonProfile(){const o={};PROFILE_FIELDS.forEach(k=>{o[k]=state[k]});return stableStringify(o)}
 function rebuildSnapshot(){_snap={profile:canonProfile()};for(const c of SYNC_COLLECTIONS){const m=new Map();(state[c.key]||[]).forEach(r=>{if(r.id!=null)m.set(String(r.id),canonRec(r))});_snap[c.key]=m}}
-function detectAndQueue(){if(!_snap)rebuildSnapshot();for(const c of SYNC_COLLECTIONS){const arr=state[c.key];if(!Array.isArray(arr))continue;const snapMap=_snap[c.key]||(_snap[c.key]=new Map());const seen=new Set();arr.forEach(rec=>{if(rec.id==null)rec.id=deterministicId(c.key,rec);const sid=String(rec.id);seen.add(sid);const cur=canonRec(rec);if(snapMap.get(sid)!==cur){rec.updatedAt=Date.now();enqueue({op:'upsert',table:c.table,id:sid,data:rec});snapMap.set(sid,canonRec(rec))}});for(const sid of Array.from(snapMap.keys())){if(!seen.has(sid)){snapMap.delete(sid);enqueue({op:'delete',table:c.table,id:sid});addTombstone(c.key,sid)}}}const cp=canonProfile();if(cp!==_snap.profile){_snap.profile=cp;localStorage.setItem(SKEY+'-profileTs',String(Date.now()));enqueue({op:'profile'})}}
+function detectAndQueue(){if(!_snap)rebuildSnapshot();for(const c of SYNC_COLLECTIONS){const arr=state[c.key];if(!Array.isArray(arr))continue;const snapMap=_snap[c.key]||(_snap[c.key]=new Map());const seen=new Set();arr.forEach(rec=>{if(rec.id==null)rec.id=deterministicId(c.key,rec);const sid=String(rec.id);seen.add(sid);const cur=canonRec(rec);if(snapMap.get(sid)!==cur){rec.updatedAt=Date.now();enqueue({op:'upsert',table:c.table,id:sid,data:rec});snapMap.set(sid,canonRec(rec))}});for(const sid of Array.from(snapMap.keys())){if(!seen.has(sid)){snapMap.delete(sid);enqueue({op:'delete',table:c.table,id:sid});addTombstone(c.key,sid)}}}const cp=canonProfile();
+  // Leaving _snap.profile alone while gated is the point: the difference stays pending, so the
+  // first detectAndQueue after the gate opens enqueues it. Stamping profileTs here would also
+  // poison sbPullProfile's freshness test, so that waits too.
+  if(cp!==_snap.profile&&profilePullDone()){_snap.profile=cp;localStorage.setItem(SKEY+'-profileTs',String(Date.now()));enqueue({op:'profile'})}}
 // ---- Tombstones (local memory of deletions until they propagate) ----
 function loadTomb(){try{return JSON.parse(localStorage.getItem(SKEY+'-tomb')||'{}')}catch(e){return{}}}
 function saveTomb(t){try{localStorage.setItem(SKEY+'-tomb',JSON.stringify(t))}catch(e){}}
@@ -1205,7 +1234,7 @@ function stripHoursField(){for(const c of SYNC_COLLECTIONS){const arr=state[c.ke
 // Idempotent: ids already present are never reassigned; deterministic ids keep legacy id-less records
 // consistent across devices so re-seeding never duplicates them.
 function migrateRecordIds(){for(const c of SYNC_COLLECTIONS){const arr=state[c.key];if(!Array.isArray(arr))continue;arr.forEach(rec=>{if(rec.id==null||rec.id===''){rec.id=deterministicId(c.key,rec)}if(rec.updatedAt===undefined)rec.updatedAt=Date.now()})}}
-function applyChosenState(chosen){if(chosen.lifeTasks)chosen.lifeTasks=chosen.lifeTasks.map(t=>({category:'General',priority:'med',inBank:false,...t}));if(chosen.tasks)chosen.tasks=chosen.tasks.map(t=>({lifeSourceId:null,...t}));if(!chosen.hiddenDays)chosen.hiddenDays=[];if(!chosen.events)chosen.events=defaultEvents();if(!chosen.syllabus)chosen.syllabus=defaultSyllabus();if(!chosen.notes)chosen.notes=[];if(!chosen.catOrder)chosen.catOrder=[];if(!chosen.sylMarks||typeof chosen.sylMarks!=='object')chosen.sylMarks={};if(!chosen.sylEdits||typeof chosen.sylEdits!=='object')chosen.sylEdits={};if(typeof chosen.sylFeedRange!=='string')chosen.sylFeedRange='';if(chosen.activeTab==='print')chosen.activeTab='sprints';
+function applyChosenState(chosen){if(chosen.lifeTasks)chosen.lifeTasks=chosen.lifeTasks.map(t=>({category:'General',priority:'med',inBank:false,...t}));if(chosen.tasks)chosen.tasks=chosen.tasks.map(t=>({lifeSourceId:null,...t}));if(!chosen.hiddenDays)chosen.hiddenDays=[];if(!chosen.events)chosen.events=defaultEvents();if(!chosen.syllabus)chosen.syllabus=defaultSyllabus();if(!chosen.notes)chosen.notes=[];if(!chosen.catOrder)chosen.catOrder=[];if(!chosen.sylMarks||typeof chosen.sylMarks!=='object')chosen.sylMarks={};if(!chosen.sylMarksAt||typeof chosen.sylMarksAt!=='object')chosen.sylMarksAt={};if(!chosen.sylEdits||typeof chosen.sylEdits!=='object')chosen.sylEdits={};if(!chosen.sylEditsAt||typeof chosen.sylEditsAt!=='object')chosen.sylEditsAt={};if(typeof chosen.sylFeedRange!=='string')chosen.sylFeedRange='';if(chosen.activeTab==='print')chosen.activeTab='sprints';
   // Almanac keys are absent in any state saved before v9.0 — default them here so a restored or
   // synced blob can't leave almanacTz undefined (Intl.DateTimeFormat throws on that).
   if(typeof chosen.almanacTz!=='string'||!chosen.almanacTz)chosen.almanacTz=state.almanacTz||ALM_TZ_DEFAULT;
@@ -1229,7 +1258,55 @@ function mergeCollection(localArr,tomb,rows){const byId=new Map((localArr||[]).m
 // is all-artifact, the smallest id is kept (deterministic -> every device converges) and the rest go.
 // Removals are tombstoned so they propagate to the other devices.
 function dedupeSyncedCollections(){let changed=false;for(const c of SYNC_COLLECTIONS){const arr=state[c.key];if(!Array.isArray(arr))continue;const groups=new Map();arr.forEach(rec=>{if(rec.id==null)return;const sig=contentSig(rec);let g=groups.get(sig);if(!g){g=[];groups.set(sig,g)}g.push(rec)});const drop=new Set();for(const recs of groups.values()){if(recs.length<2)continue;const dets=recs.filter(r=>isDetId(c.key,r.id));if(!dets.length)continue;const hasReal=recs.some(r=>!isDetId(c.key,r.id));if(hasReal){dets.forEach(r=>drop.add(String(r.id)))}else{dets.slice().sort((a,b)=>String(a.id)<String(b.id)?-1:1).slice(1).forEach(r=>drop.add(String(r.id)))}}if(drop.size){state[c.key]=arr.filter(r=>!drop.has(String(r.id)));drop.forEach(id=>{enqueue({op:'delete',table:c.table,id});addTombstone(c.key,id)});changed=true}}return changed}
-async function sbPullProfile(){try{const r=await fetch(SB_URL+'/rest/v1/profile?id=eq.default&select=*',{headers:SB_HEADERS});if(!r.ok)return false;const d=await r.json();if(!d||!d.length||d[0].deleted_at)return false;const remoteTs=Date.parse(d[0].updated_at)||0;const localTs=parseInt(localStorage.getItem(SKEY+'-profileTs')||'0',10);if(remoteTs>localTs&&!queueHasProfile()){const data=d[0].data||{};PROFILE_FIELDS.forEach(k=>{if(k in data)state[k]=data[k]});localStorage.setItem(SKEY+'-profileTs',String(remoteTs));return true}return false}catch(e){return false}}
+/* A tombstone is only needed until every device has seen it. Six months is far past that and
+   keeps the blob from carrying a dead key for a class taken years ago. */
+const SYL_TOMB_TTL=180*864e5;
+// Set when a pull's merge actually changed our maps, so syncPullAndMerge knows to send the union back.
+let _profileMerged=false;
+/* Merge one stamped map. Per key, the later write wins outright — including a write that REMOVED
+   the key, which is why the stamp map is consulted for keys the value map no longer has.
+   Unstamped on both sides means data written before v13.4 (or by a device still on it): union the
+   two, since with no way to tell which is later the only safe answer is to lose nobody's star. */
+function mergeStamped(lv,la,rv,ra){
+  lv=lv||{};la=la||{};rv=rv||{};ra=ra||{};
+  const val={},at={},now=Date.now();
+  for(const k of new Set([...Object.keys(lv),...Object.keys(rv),...Object.keys(la),...Object.keys(ra)])){
+    const lt=la[k]||0,rt=ra[k]||0;
+    let v,t;
+    if(!lt&&!rt){v={...(rv[k]||{}),...(lv[k]||{})};t=0}
+    else if(lt>=rt){v=lv[k];t=lt}
+    else {v=rv[k];t=rt}
+    const has=v&&Object.keys(v).length;
+    if(has)val[k]=v;
+    // Keep the stamp while it still carries meaning: a live value, or a tombstone still in date.
+    if(t&&(has||now-t<SYL_TOMB_TTL))at[k]=t;
+  }
+  return{val,at};
+}
+async function sbPullProfile(){try{
+  const r=await fetch(SB_URL+'/rest/v1/profile?id=eq.default&select=*',{headers:SB_HEADERS});
+  if(!r.ok)return false;
+  const d=await r.json();markProfilePulled();
+  if(!d||!d.length||d[0].deleted_at)return false;
+  const data=d[0].data||{};
+  const remoteTs=Date.parse(d[0].updated_at)||0;
+  const localTs=parseInt(localStorage.getItem(SKEY+'-profileTs')||'0',10);
+  let changed=false;
+  // The per-entry maps merge on EVERY pull, newer remote or not: the whole point is that neither
+  // side wins wholesale, so an older remote row may still hold the only copy of a star this device
+  // never had. A pending local push is no reason to skip it either — the merge can only add to
+  // what that push will carry, since a local write always has the later stamp.
+  for(const [key,atKey] of Object.entries(PROFILE_MERGED)){
+    const m=mergeStamped(state[key],state[atKey],data[key],data[atKey]);
+    if(stableStringify(m.val)!==stableStringify(state[key]||{})||stableStringify(m.at)!==stableStringify(state[atKey]||{})){
+      state[key]=m.val;state[atKey]=m.at;changed=true;_profileMerged=true}
+  }
+  // The true singletons stay last-write-wins — one term, one timezone, one nav layout.
+  if(remoteTs>localTs&&!queueHasProfile()){
+    PROFILE_FIELDS.forEach(k=>{if(k in PROFILE_MERGED||Object.values(PROFILE_MERGED).includes(k))return;
+      if(k in data)state[k]=data[k]});
+    localStorage.setItem(SKEY+'-profileTs',String(remoteTs));changed=true}
+  return changed}catch(e){return false}}
 // Flush pending writes, pull rows changed since the watermark, merge by id, advance watermark, re-render.
 // Centralized deferral so NO automatic/background render can wipe in-progress typing.
 // While the user is editing, queue the render/merge and run it once editing ends.
@@ -1245,9 +1322,22 @@ async function syncPullAndMerge(force){if(!navigator.onLine)return;if(isUserEdit
   saveTomb(tomb);
   // After a full pull every device sees the whole duplicate set, so collapse them convergently.
   let deduped=false;if(netOk)deduped=dedupeSyncedCollections();if(deduped){anyChange=true;await flushQueue()}
+  const wasGated=!profilePullDone();
   if(await sbPullProfile())anyChange=true;
   if(netOk&&maxSeen)localStorage.setItem(SKEY+'-watermark',new Date(maxSeen).toISOString());
   if(anyChange){rebuildSnapshot();persistLocal();safeRender()}
+  // A merge that changed our maps has to go back out or the union dies here: rebuildSnapshot has
+  // just told detectAndQueue there is nothing to send, and the other device is still holding the
+  // row that lost our half. One extra round and every device agrees; the round after that finds
+  // no change and stops, so this does not ping-pong.
+  if(_profileMerged&&profilePullDone()){_profileMerged=false;
+    _snap.profile=canonProfile();localStorage.setItem(SKEY+'-profileTs',String(Date.now()));
+    enqueue({op:'profile'});await flushQueue()}
+  // A change made while the gate was shut has been sitting in state unqueued. If the pull applied
+  // remote, rebuildSnapshot above already settled on remote's version and this finds nothing —
+  // which is right, a device that had not pulled does not get to win. If it did not, the local
+  // change is still pending and goes out now.
+  if(wasGated&&profilePullDone()){detectAndQueue();persistLocal();await flushQueue()}
   updateConn(netOk?'online':'offline')}
 // One-time seed of the new per-record tables from local state. ignore-duplicates => safe & idempotent
 // across devices/re-runs: never overwrites a row another device already wrote.
@@ -1293,7 +1383,7 @@ function render(){
   // their place in the layout, and only their contents are rewritten.
   document.getElementById('sideNav').innerHTML=`<div class="sidenav-title">Planner</div>${NAV_SLOTS.map(sl=>slotBtn('nav-item',sl)).join('')}`;
   document.getElementById('bottomNav').innerHTML=NAV_SLOTS.map(sl=>slotBtn('bn-item',sl)).join('');
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v13.1</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v13.4</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -2017,12 +2107,17 @@ function findMark(q){const root=document.querySelector('.view.active');if(!root|
     while((idx=folded.indexOf(fq,from))!==-1){ranges.push(idx);from=idx+fq.length;
       if(hits.length+ranges.length>=FIND_MAX)break}
     if(!ranges.length)continue;
-    // Split back to front so earlier offsets stay valid.
+    // Split back to front so earlier offsets stay valid, but collect the marks THIS node produced
+    // in their own array and append that: unshifting straight into `hits` also reversed the nodes
+    // against each other, so the whole list came out in reverse document order and next/prev
+    // stepped the wrong way up the page.
+    const made=[];
     let tail=node;
     for(let k=ranges.length-1;k>=0;k--){
       const start=ranges[k];const mid=tail.splitText(start);mid.splitText(fq.length);
       const mk=document.createElement('mark');mk.className='find-hit';
-      mid.parentNode.replaceChild(mk,mid);mk.appendChild(mid);hits.unshift(mk)}
+      mid.parentNode.replaceChild(mk,mid);mk.appendChild(mid);made.unshift(mk)}
+    for(const mk of made)hits.push(mk);
     if(hits.length>=FIND_MAX)break}
   return hits}
 // Counts matches per tab without touching the DOM — used for "all tabs" and for the counter.
@@ -2575,11 +2670,15 @@ function sylSetEdit(id,patch){const k=String(id),raw=sylFeedRaw(id);if(!state.sy
   // A field edited back to what the feed says is not an edit: drop it, so Reset stays meaningful
   // and an untouched entry never carries a patch that pins it against a later spreadsheet change.
   SYL_EDITABLE.forEach(f=>{if(!(f in p))return;const base=f==='detail'?sylFeedDetail(raw):(raw?(raw[f]||''):'');if((p[f]||'')===base)delete p[f]});
-  if(Object.keys(p).length)state.sylEdits[k]=p;else delete state.sylEdits[k]}
-function sylResetEdit(id){if(state.sylEdits)delete state.sylEdits[String(id)];render();scheduleSave()}
+  if(Object.keys(p).length)state.sylEdits[k]=p;else delete state.sylEdits[k];
+  sylStamp('sylEditsAt',k)}
+function sylResetEdit(id){const k=String(id);if(state.sylEdits)delete state.sylEdits[k];sylStamp('sylEditsAt',k);render();scheduleSave()}
+function sylStamp(map,k){if(!state[map])state[map]={};state[map][k]=Date.now()}
 function sylSetMark(id,field,val){const k=String(id);if(!state.sylMarks)state.sylMarks={};
   const m={...(state.sylMarks[k]||{})};if(val)m[field]=true;else delete m[field];
-  if(Object.keys(m).length)state.sylMarks[k]=m;else delete state.sylMarks[k]}
+  // The key is dropped when nothing is set, but the stamp stays: that pair is the tombstone.
+  if(Object.keys(m).length)state.sylMarks[k]=m;else delete state.sylMarks[k];
+  sylStamp('sylMarksAt',k)}
 function sylFeedEntries(){const f=(typeof sylFeed==='function')?sylFeed():null;if(!f)return[];
   return f.entries.map(e=>{const m=sylMark(e.id),p=sylEdit(e.id);
     return{...e,...p,feed:true,edited:!!p,dueEnd:'',done:!!(m&&m.done),highlighted:!!(m&&m.highlighted)}})}
