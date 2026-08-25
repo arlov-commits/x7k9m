@@ -1,4 +1,4 @@
-<!-- Academic Planner v13.6 -->
+<!-- Academic Planner v13.7 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -911,9 +911,12 @@ a.syl-meta-tag.link{color:var(--text-dim);text-decoration:none}a.syl-meta-tag.li
    without reflowing the day row — the pill under it keeps its exact footprint. --- */
 .chip.syl-mirror.acting{opacity:1;z-index:14}
 .chip.syl-mirror.acting[data-tip]::after{display:none}
+/* min-width:0 on .syl-act, not a floor: a floor is what made four buttons overflow a 130px
+   pill on a 360px phone, the last one spilling 9px past its right edge. flex:1 with no floor
+   divides exactly what the rail has, so the set always fits however narrow the day column is. */
 .syl-acts{position:absolute;left:-3px;right:-3px;top:-7px;bottom:-7px;min-height:42px;z-index:15;display:flex;gap:3px;padding:3px;border-radius:var(--r-m);background:var(--surface);border:1px solid currentColor;box-shadow:0 7px 20px rgba(0,0,0,.3);opacity:0;transform:scale(.94);pointer-events:none;transition:opacity var(--t-fast) var(--ease),transform var(--t-fast) var(--ease)}
 .chip.syl-mirror.acting .syl-acts{opacity:1;transform:none;pointer-events:auto}
-.syl-act{flex:1;min-width:32px;display:flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:var(--r-s);background:var(--surface2);color:var(--text-dim);cursor:pointer;transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease)}
+.syl-act{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:var(--r-s);background:var(--surface2);color:var(--text-dim);cursor:pointer;transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease)}
 .syl-act:hover{background:var(--surface3);color:var(--text)}
 .syl-act .mi{width:15px;height:15px}
 .syl-act.on{background:var(--warning-dim);color:var(--warning)}
@@ -1030,7 +1033,7 @@ a.syl-meta-tag.link{color:var(--text-dim);text-decoration:none}a.syl-meta-tag.li
 </div>
 <div class="modal-overlay" id="editModal"><div class="modal"><button class="modal-x" onclick="this.closest('.modal-overlay').classList.remove('open')" aria-label="Close"><span class="mi" style="--ic:var(--ic-x)"></span></button><h3 id="mTitle">Edit Task</h3><label>Name</label><input id="mName" type="text"/><label>Time</label><input id="mTime" type="time"/><label>Category</label><select id="mCat"></select><label>Priority</label><select id="mPri"><option value="normal">Normal</option><option value="high">High</option></select><div class="modal-btns"><button class="btn btn-danger" id="mDel">Delete</button><button class="btn btn-quiet" id="mCanc">Cancel</button><button class="btn btn-primary" id="mSave">Save</button></div></div></div>
 <div class="modal-overlay" id="lifeModal"><div class="modal"><button class="modal-x" onclick="this.closest('.modal-overlay').classList.remove('open')" aria-label="Close"><span class="mi" style="--ic:var(--ic-x)"></span></button><h3>Edit Task</h3><label>Name</label><input id="lName" type="text"/><label>Category</label><select id="lCat"><option value="General">General</option><option value="Email">Email</option><option value="Projects">Projects</option><option value="Income">Income</option><option value="Garden">Garden</option><option value="Correspondence">Correspondence</option></select><label>Priority</label><select id="lPri"><option value="high">High</option><option value="med">Medium</option><option value="low">Low</option></select><label>Due date</label><input id="lDue" type="date"/><div class="modal-btns"><button class="btn btn-danger" id="lDel">Delete</button><button class="btn btn-quiet" id="lCanc">Cancel</button><button class="btn btn-primary" id="lSave">Save</button></div></div></div>
-<div class="modal-overlay" id="progModal"><div class="modal"><button class="modal-x" onclick="this.closest('.modal-overlay').classList.remove('open')" aria-label="Close"><span class="mi" style="--ic:var(--ic-x)"></span></button><h3>Progress</h3><div class="prog-for" id="progFor"></div><div class="pri-toggle" id="progModeToggle" onclick="progToggleMode()"><span class="pri-option active" data-val="nd">Pages</span><span class="pri-option" data-val="pct">Percent</span></div><input type="hidden" id="progMode" value="nd"/><div id="progNdRow"><label>Done / assigned</label><div class="prog-row"><input id="progN" type="number" min="0" step="1" inputmode="numeric" oninput="progUpdateRead()"/><span class="prog-of">of</span><input id="progD" type="number" min="0" step="1" inputmode="numeric" oninput="progUpdateRead()"/></div></div><div id="progPctRow" style="display:none"><label>Percent complete</label><div class="prog-row"><input id="progPct" type="number" min="0" max="100" step="1" inputmode="numeric" oninput="progUpdateRead()"/><span class="prog-of">%</span></div></div><div class="prog-read" id="progRead"></div><div class="modal-btns"><button class="btn btn-danger" id="progClear">Clear</button><button class="btn btn-quiet" id="progCanc">Cancel</button><button class="btn btn-primary" id="progSave">Save</button></div></div></div>
+<div class="modal-overlay" id="progModal"><div class="modal"><button class="modal-x" onclick="this.closest('.modal-overlay').classList.remove('open')" aria-label="Close"><span class="mi" style="--ic:var(--ic-x)"></span></button><h3>Progress</h3><div class="prog-for" id="progFor"></div><div class="pri-toggle" id="progModeToggle" onclick="progToggleMode()"><span class="pri-option active" data-val="pages">Pages</span><span class="pri-option" data-val="pct">Percent</span></div><input type="hidden" id="progMode" value="pages"/><div id="progNdRow"><label>Pages assigned</label><div class="prog-row"><input id="progStart" type="number" min="0" step="1" inputmode="numeric" oninput="progUpdateRead()"/><span class="prog-of">to</span><input id="progEnd" type="number" min="0" step="1" inputmode="numeric" oninput="progUpdateRead()"/></div><label>Page I'm on</label><div class="prog-row"><input id="progCur" type="number" min="0" step="1" inputmode="numeric" oninput="progUpdateRead()"/></div></div><div id="progPctRow" style="display:none"><label>Percent complete</label><div class="prog-row"><input id="progPct" type="number" min="0" max="100" step="1" inputmode="numeric" oninput="progUpdateRead()"/><span class="prog-of">%</span></div></div><div class="prog-read" id="progRead"></div><div class="modal-btns"><button class="btn btn-danger" id="progClear">Clear</button><button class="btn btn-quiet" id="progCanc">Cancel</button><button class="btn btn-primary" id="progSave">Save</button></div></div></div>
 <!-- Add task modal -->
 <div class="modal-overlay" id="addModal"><div class="modal"><button class="modal-x" onclick="this.closest('.modal-overlay').classList.remove('open')" aria-label="Close"><span class="mi" style="--ic:var(--ic-x)"></span></button><h3>Add</h3><label>Name</label><input id="aName" type="text"/><label>Category</label><select id="aCat" onchange="toggleAddFields()"></select><div id="aTimeRow"><label id="aTimeLabel">Time</label><input id="aTime" type="time"/></div><div id="aEvtFields" style="display:none"><label>Start Date</label><input id="aEvtDate" type="date" onchange="edStartChange('aEvtDate','aEvtEndDate')"/><label>Start Time</label><input id="aEvtStartTime" type="time"/><label>End Date (optional)</label><input id="aEvtEndDate" type="date" onfocus="edEndFocus('aEvtDate','aEvtEndDate')" onchange="edEndChange('aEvtEndDate')"/><label>End Time (optional)</label><input id="aEvtEndTime" type="time"/><label>Location (optional)</label><input id="aEvtLoc" type="text"/><div style="margin-top:8px"><label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="aEvtAllDay"/> All day event</label></div></div><div id="aSylRow" style="display:none"><label>Type</label><select id="aSylType"><option value="reading">Reading</option><option value="paper">Paper</option><option value="exam">Exam</option><option value="presentation">Presentation</option><option value="note">Note</option><option value="custom">Custom</option></select><label>Description (optional)</label><textarea id="aSylDetail" placeholder="'- ' for bullets, '+ ' for sub-bullets"></textarea></div><div id="aPriRow"><label>Priority</label><div class="pri-toggle" id="aPriToggle" onclick="toggleAddPri()"><span class="pri-option active" data-val="normal">Normal</span><span class="pri-option" data-val="high">High</span></div><input type="hidden" id="aPri" value="normal"/></div><div class="modal-btns"><button class="btn btn-quiet" id="aCanc">Cancel</button><button class="btn btn-primary" id="aSave">Add</button></div></div></div>
 
@@ -1406,7 +1409,7 @@ function render(){
   // their place in the layout, and only their contents are rewritten.
   document.getElementById('sideNav').innerHTML=`<div class="sidenav-title">Planner</div>${NAV_SLOTS.map(sl=>slotBtn('nav-item',sl)).join('')}`;
   document.getElementById('bottomNav').innerHTML=NAV_SLOTS.map(sl=>slotBtn('bn-item',sl)).join('');
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v13.6</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v13.7</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -2713,10 +2716,23 @@ function sylStamp(map,k){if(!state[map])state[map]={};state[map][k]=Date.now()}
 function sylProg(s){const p=s&&s.prog;if(!p)return null;
   if(p.pct!=null){const pct=Math.max(0,Math.min(100,Math.round(Number(p.pct)||0)));
     return{mode:'pct',pct,text:pct+'%',full:pct+'% complete'}}
+  /* An assignment is a fixed span of pages — "21-81" — and the only thing that moves is where you
+     are inside it. So the two ends are entered once and left alone, and the single number you keep
+     touching is the page you are actually on. Position along the span, which is what makes it read
+     0% on the first page and 100% on the last, and what makes "pages left" simply e - c. */
+  if(p.s!=null&&p.e!=null){
+    const st=Math.round(Number(p.s)||0),en=Math.round(Number(p.e)||0);
+    if(en<st)return null;
+    const cur=Math.max(st,Math.min(en,Math.round(Number(p.c)||st)));
+    const span=en-st,left=en-cur;
+    const pct=span>0?Math.round((cur-st)/span*100):(cur>=en?100:0);
+    return{mode:'pages',s:st,e:en,c:cur,pct,left,text:pct+'% · '+left+' left',
+           full:'p. '+cur+' of '+st+'–'+en+' · '+left+' page'+(left===1?'':'s')+' left · '+pct+'% complete'}}
+  // v13.6 shape, still read so nothing entered under it is lost; the editor rewrites it as a span.
   const d=Math.max(0,Math.round(Number(p.d)||0));if(!d)return null;
   const n=Math.max(0,Math.min(d,Math.round(Number(p.n)||0)));
   const pct=Math.round(n/d*100),left=d-n;
-  return{mode:'nd',n,d,pct,left,text:pct+'% · '+left+' left',
+  return{mode:'pages',s:1,e:d,c:Math.min(d,n+1),pct,left,text:pct+'% · '+left+' left',
          full:n+' of '+d+' · '+left+' left · '+pct+'% complete'}}
 /* A row often already states its extent, so read the denominator off it rather than making the
    user do the arithmetic: "169-201" is 33 pages. The workbook has a `pages` column, but this term
@@ -2724,14 +2740,15 @@ function sylProg(s){const p=s&&s.prog;if(!p)return null;
    fall back to scanning the title for an explicit p./pp. range. The prefix is required: a bare
    "II" or a year must not be mistaken for an extent. The LAST such range wins, since that is where
    a citation puts it. */
-function sylPagesCount(str){const t=String(str||'').trim();if(!t)return 0;
+function sylPageRange(str){const t=String(str||'').trim();if(!t)return null;
   const r=t.match(/^(\d+)\s*[-–—]\s*(\d+)$/);
-  if(r){const a=+r[1],b=+r[2];return b>=a?b-a+1:0}
-  const one=t.match(/^(\d+)$/);return one?+one[1]:0}
-function sylPagesFrom(s){if(!s)return 0;
-  const col=sylPagesCount(s.pages);if(col)return col;
+  if(r){const a=+r[1],b=+r[2];return b>=a?{s:a,e:b}:null}
+  // A bare count in the pages column names an extent with no stated first page: start it at 1.
+  const one=t.match(/^(\d+)$/);return one&&+one[1]>0?{s:1,e:+one[1]}:null}
+function sylRangeFrom(s){if(!s)return null;
+  const col=sylPageRange(s.pages);if(col)return col;
   const m=String(s.title||'').match(/\bpp?\.\s*\d+\s*[-–—]\s*\d+/gi);
-  return m?sylPagesCount(m[m.length-1].replace(/^\s*pp?\.\s*/i,'')):0}
+  return m?sylPageRange(m[m.length-1].replace(/^\s*pp?\.\s*/i,'')):null}
 function sylSetProg(id,prog){const s=sylFind(id);if(!s)return;
   if(s.feed)sylSetMark(id,'prog',prog||false);
   else{const h=(state.syllabus||[]).find(x=>x.id===id);if(!h)return;if(prog)h.prog=prog;else delete h.prog}
@@ -3440,30 +3457,32 @@ $('#sCanc').onclick=()=>{$('#sylModal').classList.remove('open')}
 let editProgId=null;
 function progSetMode(m){$('#progMode').value=m;
   $('#progModeToggle').querySelectorAll('.pri-option').forEach(o=>o.classList.toggle('active',o.dataset.val===m));
-  $('#progNdRow').style.display=m==='nd'?'':'none';
+  $('#progNdRow').style.display=m==='pct'?'none':'';
   $('#progPctRow').style.display=m==='pct'?'':'none';
   progUpdateRead()}
-function progToggleMode(){progSetMode($('#progMode').value==='nd'?'pct':'nd')}
+function progToggleMode(){progSetMode($('#progMode').value==='pct'?'pages':'pct')}
 // The reading is computed from the same helper the pill and the table use, off a throwaway entry,
 // so what you see while typing is exactly what will be drawn once you save.
 function progUpdateRead(){const g=sylProg({prog:progValue()});
   $('#progRead').textContent=g?g.full:'Nothing set — this entry will show no progress.'}
 function progValue(){
   if($('#progMode').value==='pct')return{pct:Math.max(0,Math.min(100,Math.round(+$('#progPct').value||0)))};
-  const d=Math.max(0,Math.round(+$('#progD').value||0));
-  // No denominator is not zero progress, it is "this entry does not use progress".
-  if(!d)return null;
-  return{n:Math.max(0,Math.min(d,Math.round(+$('#progN').value||0))),d}}
+  const st=Math.round(+$('#progStart').value||0),en=Math.round(+$('#progEnd').value||0);
+  // No usable span is not zero progress, it is "this entry does not use progress".
+  if(!en||en<st)return null;
+  return{s:st,e:en,c:Math.max(st,Math.min(en,Math.round(+$('#progCur').value||st)))}}
 function openProgEdit(id){const s=sylFind(id);if(!s)return;editProgId=id;
   const g=sylProg(s);
   $('#progFor').textContent=s.title;
-  $('#progN').value=g&&g.mode==='nd'?g.n:0;
-  // A feed row usually states its own extent, so read the denominator off it rather than making
-  // the user work it out: "169-201" is 33 pages.
-  $('#progD').value=g&&g.mode==='nd'?g.d:(sylPagesFrom(s)||'');
+  // A row usually states its own span, so read both ends off it rather than making the user
+  // retype them; the page you are on starts at the first page until you say otherwise.
+  const r=g&&g.mode==='pages'?{s:g.s,e:g.e}:sylRangeFrom(s);
+  $('#progStart').value=r?r.s:'';
+  $('#progEnd').value=r?r.e:'';
+  $('#progCur').value=g&&g.mode==='pages'?g.c:(r?r.s:'');
   $('#progPct').value=g&&g.mode==='pct'?g.pct:0;
   const del=$('#progClear');del.disabled=!g;del.style.opacity=g?'':'.4';
-  progSetMode(g?g.mode:'nd');
+  progSetMode(g&&g.mode==='pct'?'pct':'pages');
   $('#progModal').classList.add('open')}
 $('#progSave').onclick=()=>{$('#progModal').classList.remove('open');sylSetProg(editProgId,progValue())};
 $('#progClear').onclick=()=>{$('#progModal').classList.remove('open');sylSetProg(editProgId,null)};
