@@ -62,6 +62,8 @@ One component draws it in both tabs (`sylProgHtml`), tinted from `currentColor` 
 
 The editor (`#progModal`) is deliberately small — bumping a page count is the frequent act and should not mean wading past the title, date and detail. It sits at `z-index:110`, **above** the entry editor, so opening it from there returns you to that editor with its unsaved edits intact. `openProgEdit` reads **both ends** of the span off the row when it can: the workbook has a `pages` column, but this term it is empty and the range is written into the title instead, so `sylRangeFrom` falls back to scanning for an explicit `p.`/`pp.` range and takes the **last** one — the prefix is required so a bare "II" or a year is never mistaken for an extent. A bare count in the `pages` column names an extent with no stated first page, so it starts at 1.
 
+The page you are on and the typed percent each carry a **−/+ stepper** of one unit (v13.8): both move one at a time far more often than they are retyped, and a native number spinner is a few pixels tall on a desktop and absent on a phone. `progStep` clamps to the same bounds `progValue()` enforces on save — the span for the page, 0–100 for the percent — so a step can never put the field somewhere the saved value would not go, and a step that would do nothing is disabled so the ends of the range are visible rather than silent. The two fixed ends of the span get no stepper: they are entered once and left alone.
+
 The Week pill's rail is **four** buttons now: highlight, complete, edit, open in Syllabus. Edit opens the same `openSylEdit` both kinds of entry already share, and is what makes progress reachable from the Week tab for an entry that has none yet. Editing sits with the other two in-place actions; going to the Syllabus tab is the one that leaves, so it stays last. `.syl-act` carries **`min-width:0`, not a floor** (v13.7): a floor is what made four buttons overflow a 130px pill on a 360px phone, the last one spilling 9px past its right edge. `flex:1` with no floor divides exactly what the rail has, so the set fits however narrow the day column is — 29px each at 320px, 43px at 430px.
 
 ## Nav slots (v11.9)
@@ -98,7 +100,7 @@ A week pill's title is capped at **ten rendered lines** (`sylFitTitles`, `SYL_PI
 
 ## Versioning
 - Version lives as an HTML comment on line 1: `<!-- Academic Planner vX.Y -->`, and in a visible `.version-label` in the header, and in the service worker `CACHE_NAME`.
-- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v13.7. All three locations must match.
+- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v13.8. All three locations must match.
 - Bumping the SW `CACHE_NAME` every change is required or installed devices serve stale code.
 
 ## Architecture rules (hard-won — do not violate)
