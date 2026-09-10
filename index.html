@@ -1,4 +1,4 @@
-<!-- Academic Planner v13.8 -->
+<!-- Academic Planner v13.9 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -220,6 +220,10 @@ mark.find-hit.cur{background:var(--warning);color:var(--bg);box-shadow:0 0 0 2px
 .legend-dot.life{background:var(--accent-life)}.legend-dot.events{background:var(--warning)}.legend-dot.custom{background:var(--text-muted)}
 .hide-day-btn{font-size:var(--fs-2xs);padding:1px 5px;border:1px solid var(--border);border-radius:var(--r-s);background:var(--surface2);color:var(--text-muted);cursor:pointer;margin-top:2px;opacity:.5;transition:opacity var(--t-fast) var(--ease)}.hide-day-btn:hover{opacity:1}
 .expand-week-btn{font-size:var(--fs-2xs);padding:1px 6px;border:1px solid var(--border);border-radius:var(--r-s);background:var(--surface2);color:var(--text-muted);cursor:pointer;margin-left:8px;opacity:.6;transition:opacity var(--t-fast) var(--ease)}.expand-week-btn:hover{opacity:1}
+/* The per-week hide sits at the far end of the header so it is never confused with the "N hidden"
+   button that opens days within the week. The header wraps, so auto margin is the only placement
+   that survives a narrow column. */
+.hide-week-btn{margin-left:auto}
 .legend-hint{font-size:var(--fs-2xs);color:var(--text-muted);font-style:italic}
 
 /* Dashboard */
@@ -304,9 +308,9 @@ mark.find-hit.cur{background:var(--warning);color:var(--bg);box-shadow:0 0 0 2px
    summary at desktop width leaves an empty zero-height track instead of shifting rows.
    Names wrap rather than ellipsize — 天氣上升地氣下降 is eight characters and clipping a
    hou name is worse than an uneven row. */
-/* grid-template-columns is written inline per tab: one ribbon column for Week, up to four for
-   Season, and none at all when every ribbon layer is switched off. */
-.weeks-grid{display:grid;column-gap:var(--alm-col-gap);row-gap:0;--alm-col-gap:var(--sp-2);--alm-stack-w:34px;--alm-lane-w:28px}
+/* grid-template-columns is written inline per tab: up to six lane columns for Season, and none at
+   all for Week or when every ribbon layer is switched off. */
+.weeks-grid{display:grid;column-gap:var(--alm-col-gap);row-gap:0;--alm-col-gap:var(--sp-2);--alm-lane-w:28px}
 .week-section{display:contents}
 /* Descendant, not child: .week-section is display:contents, so these are grid items but their
    DOM parent is the section. A child combinator here silently matches nothing and the rows fall
@@ -368,8 +372,6 @@ mark.find-hit.cur{background:var(--warning);color:var(--bg);box-shadow:0 0 0 2px
 .alm-ribbon-label .alm-glyph{writing-mode:horizontal-tb;font-size:var(--fs-s);line-height:1.05;text-align:center}
 /* The nested pod/cap layout was retired in v10.3 — both flanks are parallel track strips now, so
    there is no container needing a spine left showing along the column edge. */
-.alm-pill.terms{background:var(--accent-bh-dim);border-color:var(--accent-bh-dim)}
-.alm-pill.terms .alm-ribbon-label{color:var(--accent-bh)}
 .alm-pill.branch .alm-ribbon-label{color:var(--text-dim)}
 .alm-pill.branch .alm-en{font-family:var(--font-serif);font-size:var(--fs-2xs);font-style:italic}
 .alm-pill.branch .alm-tc{font-size:var(--fs-m);font-weight:700}
@@ -418,7 +420,8 @@ mark.find-hit.cur{background:var(--warning);color:var(--bg);box-shadow:0 0 0 2px
 .alm-pill.track.merc,.alm-pill.track.term{background:var(--surface2)}
 .alm-pill.track.moon,.alm-pill.track.hou{background:var(--surface)}
 .alm-pill.track .alm-ribbon-label{color:var(--text-dim)}
-/* Three classes, so these beat the .alm-pill.terms accent fill that the Week ribbon still uses. */
+/* The term track is the one east lane that keeps a coloured label, so 節氣 still reads as the
+   spine of the Chinese side even though every track now shares the tonal ramp's greys. */
 .alm-pill.track.term{border-color:var(--border)}
 .alm-pill.track.term .alm-ribbon-label{color:var(--accent-bh)}
 .alm-pill.track.sun .alm-en{font-size:var(--fs-2xs);letter-spacing:.09em;text-transform:uppercase}
@@ -608,7 +611,7 @@ mark.find-hit.cur{background:var(--warning);color:var(--bg);box-shadow:0 0 0 2px
 .pop-actions{flex-wrap:wrap}
 .season-hdr{margin-bottom:6px}
 /* Season now carries SIX lanes, three a side, so a lane has to be narrower than it was when the
-   right flank was one wide stack. --alm-stack-w survives only for the Week tab's lone ribbon. */
+   right flank was one wide stack. Season is the only tab with flanks at all (v13.9). */
 .season-grid{--alm-lane-w:26px}
 .season-grid .week-section .week-hdr{margin-top:20px}
 @media(max-width:700px){
@@ -616,7 +619,7 @@ mark.find-hit.cur{background:var(--warning);color:var(--bg);box-shadow:0 0 0 2px
      Six lanes plus gaps is the one thing that genuinely has to shrink — at 360px they would
      otherwise take more than half the row. */
   .season-row{padding:7px 9px}
-  .weeks-grid{--alm-stack-w:30px;--alm-col-gap:5px}
+  .weeks-grid{--alm-col-gap:5px}
   .season-grid{--alm-lane-w:21px;--alm-col-gap:4px}   /* after .weeks-grid: later rule wins */
   /* A 1em TC box at --fs-m is ~17px and would not fit a 21px lane once the border is counted. */
   .season-grid .alm-ribbon-label .alm-tc{font-size:var(--fs-s)}
@@ -1419,7 +1422,7 @@ function render(){
   // their place in the layout, and only their contents are rewritten.
   document.getElementById('sideNav').innerHTML=`<div class="sidenav-title">Planner</div>${NAV_SLOTS.map(sl=>slotBtn('nav-item',sl)).join('')}`;
   document.getElementById('bottomNav').innerHTML=NAV_SLOTS.map(sl=>slotBtn('bn-item',sl)).join('');
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v13.8</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v13.9</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -1449,12 +1452,12 @@ if(bankTasks.length||allocatingId){h+=`<div class="task-bank"><div class="task-b
 const sel=almWeekSelection();
 if(sel.collapsedCount>0)h+=`<div style="margin-bottom:12px"><button class="expand-week-btn" onclick="expandAllPastWeeks()" style="font-size:var(--fs-2xs);padding:3px 10px">▼ ${sel.collapsedCount} past week${sel.collapsedCount>1?'s':''} (show)</button></div>`;
 
-// Every week goes into ONE grid so a solar-term ribbon can span week headers without breaking.
-// Ribbons are placed by explicit grid-row, so the run from the first to the last day of a term
-// is a single element even when week headers sit between those rows. Headers and day rows carry
-// an explicit grid-row too, so nothing is left to auto-placement alongside the spanning ribbons.
+// Every week goes into ONE grid, which is what let a term ribbon span week headers without
+// breaking. Week carries no flank of its own any more (v13.9), but the single grid stays: it is
+// what keeps Week's rows corresponding one-to-one with Season's, which the scroll-anchored
+// crossing between the two tabs depends on. Headers and day rows carry an explicit grid-row.
 const g=almGridPlan(sel.perWeek,'sprints');
-const fl=almFlanksHtml(g.alm,g.rowOf,'sprints');             // Week keeps only the 24 terms
+const fl=almFlanksHtml(g.alm,g.rowOf,'sprints');             // no flanks in Week (v13.9) — one column
 h+=`<div class="weeks-grid" style="grid-template-columns:${fl.cols};--alm-content-col:${fl.content}">`;
 sel.perWeek.forEach(s=>{h+=renderWeekSection(s.wk,s.days,g.alm,s.hdrRow)});
 h+=fl.html+`</div>`;
@@ -1469,6 +1472,14 @@ function almWeekSelection(){
   const epw=pastWeeks.filter(wk=>expandedPastWeeks.includes(wk.num));
   const shown=epw.concat(activeWeeks);
   return{perWeek:shown.map(wk=>({wk,days:visibleWeekDays(wk)})),collapsedCount:pastWeeks.length-epw.length};
+}
+
+// "▼ N past weeks (show)" opens every past week at once, so the way back has to be per week —
+// otherwise a run reopened to look at one of them can only be closed by reloading. The button
+// therefore rides the header of each SHOWN past week, in both tabs: they share almWeekSelection(),
+// so hiding a week has to hide it on both sides or their rows stop corresponding.
+function weekHideBtn(wkNum){
+  return `<button class="expand-week-btn hide-week-btn" onclick="event.stopPropagation();hidePastWeek(${wkNum})" title="Hide this past week again" aria-label="Hide this past week again">▲ hide</button>`;
 }
 
 // Assigns every header and day row its grid row, and computes the almanac once for the run.
@@ -1501,9 +1512,10 @@ function visibleWeekDays(wk){
    routine. Both name tables start at 立春 (λ=315°) and run forward.
 
    Where each layer lives:
-     · solar term 節氣 — the running vertical ribbon, plus a marker on the day it flips
-     · hou 候        — named at the base of every day cell, repeated for each of its days
-     · moon quarter  — a marker on the day it falls (icon + English; no TC, per v9.2)
+     · solar term 節氣 — a Season flank lane, plus a marker on the day it flips
+     · hou 候        — a Season flank lane, plus a marker on the day it opens
+     · moon quarter  — a marker on the day it falls (icon + English; no TC, per v9.2); this is
+                       the whole of the Week tab's almanac since v13.9, the flanks being Season's
 
    One 5° pass covers both solar layers: every hou boundary is a crossing, and every third
    one opens a term, so there is deliberately no second pass at 15°. The tropical zodiac
@@ -1679,7 +1691,7 @@ const ALM_LANES={
       html:`<span class="alm-tc">${x.tc}</span><span class="alm-en">${x.en}</span>`}}}
 };
 
-// One layer's pills, as unbroken runs. `role` is pod (container), cap (nested) or solo.
+// One layer's pills, as unbroken runs. `role` is the track classes the strip assigns.
 function almRunsHtml(alm,rowOf,col,key,role,tab){
   const spec=ALM_LANES[key],runs=[];
   alm.ambient.forEach(a=>{
@@ -1764,20 +1776,20 @@ function almTrackStripHtml(alm,rowOf,firstCol,lanes,tab){
 function almFlanksHtml(alm,rowOf,tab){
   if(!alm)return{cols:'1fr',content:1,html:''};
   const L=almLayers();
+  // The flanks are the Season tab's instrument and nothing else (v13.9). The Week tab used to keep
+  // a lone 節氣 ribbon down its right edge; it said the same thing Season says three lanes over,
+  // and on a phone it was taking width from day columns that are barely 150px to begin with. The
+  // Week tab's own almanac is now the day-cell footer alone — the moon quarters. Nothing about the
+  // two tabs' row correspondence depends on the flanks: rows are per DAY, and almAlignTo measures
+  // the row it lands on, so the crossing is unaffected by one side having no flank.
   const westOn=(tab==='season')?ALM_WEST.filter(w=>L[w.key]):[];
   const west=almTrackStripHtml(alm,rowOf,1,westOn,tab);
   const lanes=westOn.length;
   const contentCol=lanes+1;
-  // Week keeps a single 節氣 ribbon; Season gets the full mirrored strip.
-  const eastOn=(tab==='season')?ALM_EAST.filter(w=>L[w.key]):(L.terms?[{key:'terms',glyph:'節',cls:'term'}]:[]);
-  const east=(tab==='season')
-    ? almTrackStripHtml(alm,rowOf,contentCol+1,eastOn,tab)
-    : (eastOn.length?almRunsHtml(alm,rowOf,contentCol+1,'terms','solo',tab):'');
-  // Season's east lanes are the same width as its west lanes — that equality IS the mirror. Week's
-  // lone ribbon keeps the wider single-stack width it was designed at.
-  const eastCols=(tab==='season')
-    ? 'var(--alm-lane-w) '.repeat(eastOn.length)
-    : (east?'var(--alm-stack-w)':'');
+  const eastOn=(tab==='season')?ALM_EAST.filter(w=>L[w.key]):[];
+  const east=almTrackStripHtml(alm,rowOf,contentCol+1,eastOn,tab);
+  // Season's east lanes are the same width as its west lanes — that equality IS the mirror.
+  const eastCols='var(--alm-lane-w) '.repeat(eastOn.length);
   const cols=(lanes?('var(--alm-lane-w) '.repeat(lanes)):'')+'1fr'+(eastCols?' '+eastCols.trim():'');
   return{cols,content:contentCol,html:west+east};
 }
@@ -2046,7 +2058,7 @@ function renderSeason(){
   const fl=almFlanksHtml(g.alm,g.rowOf,'season');
   h+=`<div class="weeks-grid season-grid" style="grid-template-columns:${fl.cols};--alm-content-col:${fl.content}">`;
   sel.perWeek.forEach(s=>{
-    h+=`<div class="week-section"><div class="week-hdr season-hdr" style="grid-row:${s.hdrRow}"><span class="week-hdr-title">Week ${s.wk.num}</span><span class="week-hdr-dates">${fmtDateShort(s.wk.start)} → ${fmtDateShort(s.wk.end)}</span></div>`;
+    h+=`<div class="week-section"><div class="week-hdr season-hdr" style="grid-row:${s.hdrRow}"><span class="week-hdr-title">Week ${s.wk.num}</span><span class="week-hdr-dates">${fmtDateShort(s.wk.start)} → ${fmtDateShort(s.wk.end)}</span>${s.wk.end<TODAY?weekHideBtn(s.wk.num):''}</div>`;
     s.days.forEach((day,di)=>{
       const isT=sameDay(day.dateObj,TODAY);
       // Only the two solar OPENINGS reach the cell now; the running state lives in the flanks.
@@ -2526,7 +2538,7 @@ function almSwapTab(to){
 
 // The section is display:contents — its header and day rows are grid items of the shared
 // .weeks-grid, each pinned to the row the caller assigned it.
-function renderWeekSection(wk,visDays,alm,hdrRow){const isCur=TODAY>=wk.start&&TODAY<=wk.end,isSB=wk.start<=new Date(2026,3,11)&&wk.end>=new Date(2026,3,5);const badges=[];if(isCur)badges.push('<span class="week-badge current">This Week</span>');if(isSB)badges.push('<span class="week-badge break">Spring Break</span>');
+function renderWeekSection(wk,visDays,alm,hdrRow){const isCur=TODAY>=wk.start&&TODAY<=wk.end,isSB=wk.start<=new Date(2026,3,11)&&wk.end>=new Date(2026,3,5),isPast=wk.end<TODAY;const badges=[];if(isCur)badges.push('<span class="week-badge current">This Week</span>');if(isSB)badges.push('<span class="week-badge break">Spring Break</span>');
 // Count auto-hidden past days (before today in current week) that are not manually expanded
 const todayStr=isoDate(TODAY);const expandedPastDays=state.expandedPastDays||[];
 const manualHidden=wk.days.filter(d=>(state.hiddenDays||[]).includes(d.date)).length;
@@ -2535,7 +2547,7 @@ const totalHidden=manualHidden+autoHiddenDays.length;
 const isAT=allocatingId!==null;
 // The week header is a heading and nothing more (v12.3): it no longer takes a dropped pill, offers
 // to add one, or acts as an allocation target. A pill belongs to a day.
-let h=`<div class="week-section"><div class="week-hdr" style="grid-row:${hdrRow}"><span class="week-hdr-title">Week ${wk.num}</span><span class="week-hdr-dates">${fmtDateShort(wk.start)} → ${fmtDateShort(wk.end)}</span>${badges.join('')}${totalHidden?`<button class="expand-week-btn" onclick="event.stopPropagation();expandWeek(${wk.num})" title="Show hidden days">▼ ${totalHidden} hidden</button>`:''}</div>`;
+let h=`<div class="week-section"><div class="week-hdr" style="grid-row:${hdrRow}"><span class="week-hdr-title">Week ${wk.num}</span><span class="week-hdr-dates">${fmtDateShort(wk.start)} → ${fmtDateShort(wk.end)}</span>${badges.join('')}${totalHidden?`<button class="expand-week-btn" onclick="event.stopPropagation();expandWeek(${wk.num})" title="Show hidden days">▼ ${totalHidden} hidden</button>`:''}${isPast?weekHideBtn(wk.num):''}</div>`;
 visDays.forEach((day,di)=>{const dayRow=hdrRow+1+di;const tasks=state.tasks.filter(t=>t.date===day.date),isT=sameDay(day.dateObj,TODAY),canHide=isCur&&day.dateObj<=TODAY;
 const dayEvts=getEventsForDate(day.date);const sylChips=getSylForDate(day.date);const SYL_ICON={reading:'book',paper:'paper',exam:'seal',presentation:'present',note:'pen',custom:'pin'};
 // Build unified sorted pill list
@@ -3070,6 +3082,7 @@ function toggleEl(id){const el=document.getElementById(id);if(el)el.style.displa
 
 function hideDay(date){if(!state.hiddenDays)state.hiddenDays=[];if(!state.hiddenDays.includes(date))state.hiddenDays.push(date);render();scheduleSave()}
 function expandWeek(wkNum){const weeks=generateWeeks();const wk=weeks.find(w=>w.num===wkNum);if(!wk)return;const dates=wk.days.map(d=>d.date);state.hiddenDays=(state.hiddenDays||[]).filter(d=>!dates.includes(d));if(!state.expandedPastDays)state.expandedPastDays=[];dates.forEach(d=>{if(!state.expandedPastDays.includes(d))state.expandedPastDays.push(d)});render();scheduleSave()}
+function hidePastWeek(wkNum){state.expandedPastWeeks=(state.expandedPastWeeks||[]).filter(w=>w!==wkNum);render();scheduleSave()}
 function expandAllPastWeeks(){if(!state.expandedPastWeeks)state.expandedPastWeeks=[];const weeks=generateWeeks();weeks.filter(wk=>wk.end<TODAY).forEach(wk=>{if(!state.expandedPastWeeks.includes(wk.num))state.expandedPastWeeks.push(wk.num)});render();scheduleSave()}
 let dragId=null,dragEvtId=null,dragEvtAnchor=null;
 function toggleEvtChipMenu(id,el){const wasOpen=el.classList.contains('menu-open');document.querySelectorAll('.evt-chip.menu-open,.chip.menu-open').forEach(c=>{if(c!==el)c.classList.remove('menu-open')});el.classList.toggle('menu-open');if(!wasOpen){el.classList.add('menu-activating');setTimeout(()=>el.classList.remove('menu-activating'),250)}}
