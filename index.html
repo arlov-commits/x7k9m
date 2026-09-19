@@ -1,4 +1,4 @@
-<!-- Academic Planner v13.9 -->
+<!-- Academic Planner v14.1 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1422,7 +1422,7 @@ function render(){
   // their place in the layout, and only their contents are rewritten.
   document.getElementById('sideNav').innerHTML=`<div class="sidenav-title">Planner</div>${NAV_SLOTS.map(sl=>slotBtn('nav-item',sl)).join('')}`;
   document.getElementById('bottomNav').innerHTML=NAV_SLOTS.map(sl=>slotBtn('bn-item',sl)).join('');
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v13.9</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v14.1</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -3032,7 +3032,15 @@ function getSylForDate(dateStr){
   const chips=[];
   // Done entries are kept: completing one from the Week tab strikes it through where it sits
   // rather than making it vanish out from under the finger that ticked it.
+  // Readings are not (v14.0). A week of this term is mostly reading, and a day column barely 150px
+  // wide spent on the standing assignment buries the things that actually fall due on that day — a
+  // paper, an exam, a presentation. The Syllabus tab is the full record and still lists every one;
+  // the Week tab is what is distinctive about the day. The test is on the effective type, so an
+  // entry retyped in the editor (a patch in sylEdits) appears or disappears on the next render.
+  // Only an explicit 'reading' is dropped: an older hand-added record carrying no type at all is
+  // not evidence of one, and vanishing is not the failure mode to guess into.
   sylAll().forEach(s=>{
+    if(s.type==='reading')return;
     const start=s.due,end=s.dueEnd||s.due;
     if(dateStr>=start&&dateStr<=end){
       const startD=parseDate(start),endD=parseDate(end),curD=parseDate(dateStr);
@@ -3151,7 +3159,12 @@ function toggleAddFields(){const cat=$('#aCat').value,isEvt=cat==='events',isSyl
   $('#aTimeLabel').textContent=isSyl?'Due time (optional)':'Time';
   $('#aPriRow').style.display=(isEvt||isSyl)?'none':'';
   if(isEvt&&addingDate){$('#aEvtDate').value=addingDate}}
-function openAddTask(date){addingDate=date;$('#aName').value='';$('#aTime').value=roundedHour();$('#aEvtStartTime').value=roundedHour();fillCatSelect($('#aCat'),'events',['events','life'],true);$('#aPri').value='normal';$('#aPriToggle').className='pri-toggle';$('#aPriToggle').querySelectorAll('.pri-option').forEach((o,i)=>{o.classList.toggle('active',i===0)});$('#aEvtDate').value=date;$('#aEvtEndDate').value='';$('#aEvtEndTime').value='';$('#aEvtLoc').value='';$('#aEvtAllDay').checked=false;$('#aSylType').value='reading';$('#aSylDetail').value='';edResetTouched('aEvtEndDate');toggleAddFields();$('#addModal').classList.add('open')}
+// The syllabus type defaults to Custom, not Reading (v14.1). This form is reached from a day's `+`
+// in the Week tab, and since v14.0 a reading does not draw there — so the old default made the
+// commonest add look like it had done nothing, even though the entry was filed correctly and shows
+// in the Syllabus tab. Custom is the type with no other meaning attached, which makes it the safe
+// thing to land on when the user has not said. Reading is still one option away.
+function openAddTask(date){addingDate=date;$('#aName').value='';$('#aTime').value=roundedHour();$('#aEvtStartTime').value=roundedHour();fillCatSelect($('#aCat'),'events',['events','life'],true);$('#aPri').value='normal';$('#aPriToggle').className='pri-toggle';$('#aPriToggle').querySelectorAll('.pri-option').forEach((o,i)=>{o.classList.toggle('active',i===0)});$('#aEvtDate').value=date;$('#aEvtEndDate').value='';$('#aEvtEndTime').value='';$('#aEvtLoc').value='';$('#aEvtAllDay').checked=false;$('#aSylType').value='custom';$('#aSylDetail').value='';edResetTouched('aEvtEndDate');toggleAddFields();$('#addModal').classList.add('open')}
 $('#aSave').onclick=()=>{const name=$('#aName').value.trim();if(!name){$('#addModal').classList.remove('open');return}const cat=$('#aCat').value;if(cat==='events'){if(!state.events)state.events=[];state.events.push({id:genId(),name,date:$('#aEvtDate').value||addingDate,endDate:$('#aEvtEndDate').value||'',startTime:$('#aEvtStartTime').value||'',endTime:$('#aEvtEndTime').value||'',location:$('#aEvtLoc').value||'',allDay:$('#aEvtAllDay').checked});$('#addModal').classList.remove('open');render();scheduleSave();return}
   // A class category becomes a syllabus entry proper — same shape addSylEntry() writes, so it lands
   // in the Syllabus tab and draws as a syllabus pill in the week, not as a task wearing the colour.
