@@ -1,4 +1,4 @@
-<!-- Academic Planner v14.1 -->
+<!-- Academic Planner v14.3 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -830,6 +830,21 @@ mark.find-hit.cur{background:var(--warning);color:var(--bg);box-shadow:0 0 0 2px
    yields, and on a phone the actions cell alone can squeeze it down to a few characters a line. */
 .syl-title-cell{width:100%}
 .syl-table tr{border-bottom:1px solid var(--border)}
+/* A row is washed with its class's own colour (v14.3), which is what carries the grouping now that
+   the phone layout has no columns to align: every entry of a class reads as one band, and a day's
+   entries sit inside it. The slot sets two custom properties and two rules read them, rather than
+   six pairs of rules; a row with no slot (Custom, or a class retired with its term) defines
+   neither and falls back to no tint and the ordinary text colour, which is the same nothing its
+   muted dot says. The `-dim` tokens are the theme's own translucent accents — the ground shows
+   through, so this follows the theme and needs no per-theme declaration, exactly like the chips. */
+.syl-table tr.c0{--syl-rc:var(--accent-c0);--syl-rt:var(--accent-c0-dim)}
+.syl-table tr.c1{--syl-rc:var(--accent-c1);--syl-rt:var(--accent-c1-dim)}
+.syl-table tr.c2{--syl-rc:var(--accent-c2);--syl-rt:var(--accent-c2-dim)}
+.syl-table tr.c3{--syl-rc:var(--accent-c3);--syl-rt:var(--accent-c3-dim)}
+.syl-table tr.c4{--syl-rc:var(--accent-c4);--syl-rt:var(--accent-c4-dim)}
+.syl-table tr.c5{--syl-rc:var(--accent-c5);--syl-rt:var(--accent-c5-dim)}
+.syl-table tr{background:var(--syl-rt,transparent)}
+.syl-class-cell{color:var(--syl-rc,inherit)}
 .syl-table tr.done td{opacity:.4}
 .syl-table tr.done .syl-title-text{text-decoration:line-through}
 .syl-class-cell{font-size:var(--fs-2xs);font-weight:700;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;width:44px}
@@ -859,6 +874,7 @@ a.syl-meta-tag.link{color:var(--text-dim);text-decoration:none}a.syl-meta-tag.li
 .syl-title-edit:focus{outline:0;border-color:var(--text-dim)}
 .syl-check{width:16px;height:16px;border-radius:var(--r-s);border:2px solid var(--border);background:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:var(--ok);font-size:var(--fs-2xs);transition:border-color var(--t-fast) var(--ease),background var(--t-fast) var(--ease);flex-shrink:0;vertical-align:middle}
 .syl-check:hover{border-color:var(--ok)}.syl-check.checked{background:var(--ok-dim);border-color:var(--ok)}
+.syl-mark-cell{width:28px}
 .syl-btns-cell{width:44px;white-space:nowrap}
 .syl-add-form{display:flex;gap:5px;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap}
 .syl-add-form input,.syl-add-form select{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--font-sans);font-size:var(--fs-s);padding:7px 10px;border-radius:var(--r-s)}
@@ -1009,7 +1025,46 @@ a.syl-meta-tag.link{color:var(--text-dim);text-decoration:none}a.syl-meta-tag.li
 .field input,.field select{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-sans);font-size:var(--fs-s);padding:8px 11px;border-radius:var(--r-s);outline:none;transition:border-color var(--t-fast) var(--ease)}
 .field input:focus,.field select:focus{border-color:var(--text-dim)}
 
-@media(max-width:700px){.day-row{grid-template-columns:66px 1fr auto}.life-item{grid-template-columns:auto 1fr auto auto}.li-days{display:none}.li-send{width:24px;height:24px;font-size:var(--fs-2xs)}.evt-item{grid-template-columns:1fr auto auto;gap:4px}.evt-item .evt-date{grid-column:1/-1}.evt-info{text-align:left}.header{gap:4px;flex-wrap:wrap}.hdr-row1{display:flex;align-items:center;gap:6px;width:100%;flex-shrink:0}.hdr-row1 .combined-status{margin-left:auto}.hdr-row2{display:flex;align-items:center;gap:6px;width:100%}.hdr-row2 .theme-toggle{margin-left:auto}.syl-class-cell{white-space:normal;overflow-wrap:anywhere;width:62px;min-width:62px;max-width:62px;letter-spacing:0}.syl-class-cell .syl-dot{float:left;margin-top:4px}.syl-add-form .field label{display:none}.note-text{resize:both}.view[data-tab="syllabus"] .syl-table-wrap,.syl-table-outer{overflow-x:auto;-webkit-overflow-scrolling:touch}.syl-table{font-size:var(--fs-2xs)}.syl-table td{padding:5px 4px}.syl-feed-mark{display:none}}
+@media(max-width:700px){.day-row{grid-template-columns:66px 1fr auto}.life-item{grid-template-columns:auto 1fr auto auto}.li-days{display:none}.li-send{width:24px;height:24px;font-size:var(--fs-2xs)}.evt-item{grid-template-columns:1fr auto auto;gap:4px}.evt-item .evt-date{grid-column:1/-1}.evt-info{text-align:left}.header{gap:4px;flex-wrap:wrap}.hdr-row1{display:flex;align-items:center;gap:6px;width:100%;flex-shrink:0}.hdr-row1 .combined-status{margin-left:auto}.hdr-row2{display:flex;align-items:center;gap:6px;width:100%}.hdr-row2 .theme-toggle{margin-left:auto}.syl-add-form .field label{display:none}.note-text{resize:both}.syl-feed-mark{display:none}}
+
+/* The syllabus row stops being a table row on a phone (v14.2). Five columns — the marks, the class,
+   the due date, the title and the actions — left the title about a third of a 412px screen, and the
+   title is the one column whose text has to be *read*: a reading's citation came out four words to
+   a line down twenty of them. So the row becomes a block. Everything that says *which* entry this
+   is — the tick and star, the class, the date, the actions — rides one header line, and the title
+   with its detail and progress takes the full width underneath. The class is the block's heading
+   rather than a column, which is precisely what the v13.2 62px cap was working around; that cap is
+   gone with this, and nothing is indented, since an inset would take back the width this is for.
+   The rowspan grouping is a desktop construction and does not survive `display:block`, so the rule
+   carries it instead: solid above a group's first row, dashed between entries inside one. A
+   continuation row has no class or date of its own and reads as belonging to the heading above it.
+   Desktop keeps the table — at that width the columns cost the title nothing. */
+@media(max-width:700px){
+  .syl-table,.syl-table tbody{display:block}
+  .syl-table tr{display:flex;flex-wrap:wrap;align-items:center;column-gap:8px;padding:7px 8px;border-bottom:0;border-top:1px dashed var(--border)}
+  .syl-table tr.syl-grp-first{border-top:1px solid var(--border)}
+  /* 8px of side padding so the class wash reads as a band the entry sits in rather than one
+     bleeding off both edges. It is not the indent this layout exists to remove — that was ~250px. */
+  .syl-table td{display:block;width:auto;max-width:none;padding:0;font-size:var(--fs-s)}
+  /* The tick and the star are stacked by a <br> in the column; on the header line they sit as its
+     two leading controls instead. */
+  .syl-table td br{display:none}
+  .syl-mark-cell{order:1;display:flex;align-items:center;gap:8px}
+  /* min-width:0 so a long alias breaks rather than pushing the actions onto a line of their own.
+     The dot is no longer floated: in normal inline flow it simply leads the first line. */
+  .syl-class-cell{order:2;min-width:0;white-space:normal;overflow-wrap:anywhere;letter-spacing:0;font-size:var(--fs-xs)}
+  /* Inline flow with margins, not flex: the date itself is a bare text node, and a `gap` does not
+     separate it from the day that follows ("9/24Thu"). */
+  .syl-due-cell{order:3;font-size:var(--fs-xs)}
+  .syl-due-dow{display:inline;margin-left:5px}
+  .syl-due-cell .days{margin-top:0;margin-left:5px}
+  .syl-btns-cell{order:4;margin-left:auto;display:flex;align-items:center;gap:2px}
+  /* flex-basis, not width — `.syl-table td{width:auto}` just above would undo the base width:100%. */
+  .syl-title-cell{order:5;flex:1 0 100%;margin-top:5px}
+  /* The starred entry's accent edge is an inset shadow, so with the cell's padding zeroed above the
+     text sat on top of it. Border-box, so this takes nothing off the width. */
+  .syl-table tr.syl-row-hl>.syl-title-cell{padding:4px 8px}
+}
 
 /* Reduced motion: keep the modal entrance near-instant. Decorative loops (task halo) are left untouched. */
 @media (prefers-reduced-motion:reduce){.modal-overlay,.modal{transition-duration:1ms!important}}
@@ -1422,7 +1477,7 @@ function render(){
   // their place in the layout, and only their contents are rewritten.
   document.getElementById('sideNav').innerHTML=`<div class="sidenav-title">Planner</div>${NAV_SLOTS.map(sl=>slotBtn('nav-item',sl)).join('')}`;
   document.getElementById('bottomNav').innerHTML=NAV_SLOTS.map(sl=>slotBtn('bn-item',sl)).join('');
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v14.1</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v14.3</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -2906,8 +2961,9 @@ weekNums.forEach(wkN=>{
       const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
       const dowStr=DOW[dueD.getDay()];
       const dowEndStr=dueEndD?DOW[dueEndD.getDay()]:'';
-      h+=`<tr id="syl-${e.id}" class="${e.done?'done':''} ${isHl?'syl-row-hl':''}">`;
-      h+=`<td style="width:28px"><button class="syl-check ${e.done?'checked':''}" onclick="toggleSylDone(${e.id})">${e.done?'✓':''}</button><br><button class="syl-hl-btn ${isHl?'on':''}" onclick="toggleSylHL(${e.id})" title="Highlight"><span class="mi" style="--ic:var(--ic-star)"></span></button></td>`;
+      const rowSlot=sylClassOf(e.cat)?e.cat:'';
+      h+=`<tr id="syl-${e.id}" class="${rowSlot} ${ei===0?'syl-grp-first':''} ${e.done?'done':''} ${isHl?'syl-row-hl':''}">`;
+      h+=`<td class="syl-mark-cell"><button class="syl-check ${e.done?'checked':''}" onclick="toggleSylDone(${e.id})">${e.done?'✓':''}</button><br><button class="syl-hl-btn ${isHl?'on':''}" onclick="toggleSylHL(${e.id})" title="Highlight"><span class="mi" style="--ic:var(--ic-star)"></span></button></td>`;
       if(ei===0){
         const dotStyle=sylClassOf(e.cat)?'background:var(--accent-'+e.cat+')':'background:var(--text-muted)';
         h+=`<td class="syl-class-cell"${g.entries.length>1?' rowspan="'+g.entries.length+'"':''}><span class="syl-dot" style="${dotStyle}"></span>${escHtml(catShort(e.cat))}</td>`;
