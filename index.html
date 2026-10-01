@@ -1,4 +1,4 @@
-<!-- Academic Planner v14.3 -->
+<!-- Academic Planner v14.4 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,7 +14,13 @@
 <link rel="manifest" href="manifest.json">
 <title>Academic Planner</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='3' y='6' width='26' height='22' rx='3' fill='%23f5f0e8' stroke='%23d5cfc4' stroke-width='1.5'/><rect x='3' y='6' width='26' height='7' rx='3' fill='%23e8ddd0'/><line x1='11' y1='6' x2='11' y2='2' stroke='%23c9a227' stroke-width='2.5' stroke-linecap='round'/><line x1='21' y1='6' x2='21' y2='2' stroke='%23c9a227' stroke-width='2.5' stroke-linecap='round'/><path d='M10 20l3 3 7-7' fill='none' stroke='%235e8c6a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- The webfonts must never hold the first paint (v14.4). A render-blocking stylesheet from another
+     host is the one request a dead connection can stall the launch splash on, so this one is loaded
+     as print-only — which does not block — and switched on when it lands. sw.js serves it, and the
+     font files, from a cache of their own, so offline it lands at once; if it never lands the page
+     simply draws in the fallback faces. crossorigin makes it a CORS request, so the worker can see its
+     status and never caches an error page as the stylesheet. -->
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" crossorigin="anonymous" media="print" onload="this.media='all'">
 <style>
 /* ============================================================
    v8 TOKEN LAYER — theme-independent (from proof-sheet-v8.1).
@@ -1126,7 +1132,16 @@ const SKEY='sprint-planner-v3';
 const SB_URL='https://nxjypjgqsywxukcnchmh.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54anlwamdxc3l3eHVrY25jaG1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMTAzNzQsImV4cCI6MjA4OTY4NjM3NH0.Hh1GErLUxJbswFJGi8xVEzD60AUkRX0JVPgo91pdVKY';
 const SB_TABLE='planner_state';
-async function sbGet(){const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),5000);try{const r=await fetch(SB_URL+'/rest/v1/'+SB_TABLE+'?id=eq.default&select=*',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY},signal:ctrl.signal});clearTimeout(t);const d=await r.json();if(d&&d.length>0&&d[0].data){return{data:typeof d[0].data==='string'?JSON.parse(d[0].data):d[0].data,updated:d[0].updated_at}}return null}catch(e){clearTimeout(t);console.warn('SB get err:',e);return null}}
+/* Every request to Supabase gives up (v14.4). On a connection that is up but carries nothing — one
+   bar, a wifi network with no internet behind it — a bare fetch does not fail, it waits, sometimes
+   for minutes. While it waits the queue cannot flush, the status sits on "syncing…", and every later
+   sync piles in behind it. A timeout turns all of that into an ordinary failure, which the queue
+   already knows how to survive: the ops stay put and go out on the next attempt. */
+const SB_TIMEOUT=15000;
+// The timer is left to run out rather than cleared on the headers, so a reply that stalls halfway
+// through its body is cut off too; aborting a request that has already finished does nothing.
+function sbFetch(url,opts,ms){const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),ms||SB_TIMEOUT);return fetch(url,{...(opts||{}),signal:ctrl.signal})}
+async function sbGet(){try{const r=await sbFetch(SB_URL+'/rest/v1/'+SB_TABLE+'?id=eq.default&select=*',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}},5000);const d=await r.json();if(d&&d.length>0&&d[0].data){return{data:typeof d[0].data==='string'?JSON.parse(d[0].data):d[0].data,updated:d[0].updated_at}}return null}catch(e){console.warn('SB get err:',e);return null}}
 // ---- Per-record sync configuration ----
 // Synced record collections: state key -> Supabase table (id text PK, data jsonb, updated_at, deleted_at).
 const SYNC_COLLECTIONS=[
@@ -1151,7 +1166,14 @@ const SYNC_COLLECTIONS=[
    read as "this device just has nothing to say about that entry". Everything else here is a real
    singleton (one term, one timezone) where last-write-wins is the right answer. */
 const PROFILE_MERGED={sylMarks:'sylMarksAt',sylEdits:'sylEditsAt'};
-const PROFILE_FIELDS=['semesterStart','maxFutureDate','catOrder','hiddenDays','almanacTz','almanacLayers','houList','sylMarks','sylMarksAt','sylEdits','sylEditsAt','sylFeedRange'];
+/* The rest of the profile — one term, one timezone, one nav layout — used to be last-write-wins as
+   a WHOLE row, and a device's queued push always beat what it pulled. So a phone that changed one
+   setting offline put its stale copy of every other setting over whatever had been changed elsewhere
+   in the meantime. Since v14.4 each of those singletons carries its own write time in profileAt,
+   stamped by detectAndQueue as it is changed, and the pull takes the later write field by field.
+   A field neither side has stamped yet falls back to the old row-level rule. */
+const PROFILE_FIELDS=['semesterStart','maxFutureDate','catOrder','hiddenDays','almanacTz','almanacLayers','houList','sylMarks','sylMarksAt','sylEdits','sylEditsAt','sylFeedRange','profileAt'];
+const PROFILE_LWW=PROFILE_FIELDS.filter(k=>k!=='profileAt'&&!(k in PROFILE_MERGED)&&!Object.values(PROFILE_MERGED).includes(k));
 const SB_HEADERS={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
 const SEED_FLAG=SKEY+'-perrecord-seeded';
 /* The profile is one last-write-wins blob, so a device that has never PULLED it must never push
@@ -1174,10 +1196,13 @@ function genId(){let v=Date.now()*1000+Math.floor(Math.random()*1000);if(v<=_las
 // Deterministic id for legacy records that lack one (same across devices -> no duplicates on re-seed).
 function deterministicId(coll,rec){const c={};for(const k in rec){if(k!=='updatedAt'&&k!=='id')c[k]=rec[k]}const s=coll+'|'+stableStringify(c);let h=5381;for(let i=0;i<s.length;i++){h=((h<<5)+h+s.charCodeAt(i))|0}return coll+'_'+(h>>>0).toString(36)}
 // ---- Low-level REST: one row by id ----
-async function sbUpsertRow(table,id,data,mode){const pref=mode==='ignore'?'resolution=ignore-duplicates':'resolution=merge-duplicates';try{const r=await fetch(SB_URL+'/rest/v1/'+table,{method:'POST',headers:{...SB_HEADERS,'Prefer':pref+',return=minimal'},body:JSON.stringify({id:String(id),data})});return r.ok}catch(e){return false}}
-async function sbTombstoneRow(table,id){try{const r=await fetch(SB_URL+'/rest/v1/'+table+'?id=eq.'+encodeURIComponent(String(id)),{method:'PATCH',headers:{...SB_HEADERS,'Prefer':'return=minimal'},body:JSON.stringify({deleted_at:new Date().toISOString()})});return r.ok}catch(e){return false}}
+async function sbUpsertRow(table,id,data,mode){const pref=mode==='ignore'?'resolution=ignore-duplicates':'resolution=merge-duplicates';try{const r=await sbFetch(SB_URL+'/rest/v1/'+table,{method:'POST',headers:{...SB_HEADERS,'Prefer':pref+',return=minimal'},body:JSON.stringify({id:String(id),data})});return r.ok}catch(e){return false}}
+async function sbTombstoneRow(table,id){try{const r=await sbFetch(SB_URL+'/rest/v1/'+table+'?id=eq.'+encodeURIComponent(String(id)),{method:'PATCH',headers:{...SB_HEADERS,'Prefer':'return=minimal'},body:JSON.stringify({deleted_at:new Date().toISOString()})});return r.ok}catch(e){return false}}
 async function sbPushProfile(mode){const data={};PROFILE_FIELDS.forEach(k=>{data[k]=state[k]});return sbUpsertRow('profile','default',data,mode)}
-async function sbPull(table,wm){try{const q=wm?'?updated_at=gt.'+encodeURIComponent(wm)+'&select=*':'?select=*';const r=await fetch(SB_URL+'/rest/v1/'+table+q,{headers:SB_HEADERS});if(!r.ok)return null;return await r.json()}catch(e){return null}}
+// Both pulls return the rows, false when the server answered with an error, or null when it could
+// not be reached at all (offline, timed out). Only null means this device is not caught up.
+async function sbPull(table,wm){try{const q=wm?'?updated_at=gt.'+encodeURIComponent(wm)+'&select=*':'?select=*';const r=await sbFetch(SB_URL+'/rest/v1/'+table+q,{headers:SB_HEADERS});if(!r.ok)return false;return await r.json()}catch(e){return null}}
+async function sbGetProfile(){try{const r=await sbFetch(SB_URL+'/rest/v1/profile?id=eq.default&select=*',{headers:SB_HEADERS});if(!r.ok)return false;return(await r.json())||[]}catch(e){return null}}
 const TODAY=new Date();TODAY.setHours(0,0,0,0);
 // Not classes: the two kinds a Week-tab pill can be that are not readings, plus the Custom bucket.
 // Classes themselves are never named here — they are whatever the workbook's sheets are called, and
@@ -1262,7 +1287,7 @@ function defaultEvents(){return[]}
 // here in the app, so a new term is a new spreadsheet rather than a new commit.
 function defaultSyllabus(){return[]}
 
-let state={theme:'ember',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],hiddenDays:[],sylMarks:{},sylMarksAt:{},sylEdits:{},sylEditsAt:{},sylFeedRange:'',nextId:4000,weekStartDay:6,semesterStart:'2026-01-17',maxFutureDate:'2026-05-30',weekSlot:'sprints',sylSlot:'syllabus',evtSlot:'events',miscSlot:'notes',almanacTz:ALM_TZ_DEFAULT,houList:ALM_HOU_DEFAULT,almanacLayers:{...ALM_LAYER_DEFAULT}};
+let state={theme:'ember',activeTab:'sprints',tasks:defaultTasks(),lifeTasks:defaultLifeTasks(),deliverables:defaultDeliverables(),events:defaultEvents(),syllabus:defaultSyllabus(),notes:[],catOrder:[],hiddenDays:[],sylMarks:{},sylMarksAt:{},sylEdits:{},sylEditsAt:{},sylFeedRange:'',profileAt:{},nextId:4000,weekStartDay:6,semesterStart:'2026-01-17',maxFutureDate:'2026-05-30',weekSlot:'sprints',sylSlot:'syllabus',evtSlot:'events',miscSlot:'notes',almanacTz:ALM_TZ_DEFAULT,houList:ALM_HOU_DEFAULT,almanacLayers:{...ALM_LAYER_DEFAULT}};
 let saveTimer=null,lastSaveTime=null,saveStatus='saved';
 // localStorage is the source of truth: write there synchronously, then diff & queue per-record pushes.
 function persistLocal(){try{localStorage.setItem(SKEY,JSON.stringify(state));localStorage.setItem(SKEY+'-time',new Date().toISOString())}catch(e){throw e}}
@@ -1282,12 +1307,23 @@ function isDetId(key,id){return String(id).startsWith(key+'_')}
 // whatever key order each happened to build them. Hashing that order would make every pull look
 // like a change and push it straight back — a ping-pong between devices that never settles.
 function canonProfile(){const o={};PROFILE_FIELDS.forEach(k=>{o[k]=state[k]});return stableStringify(o)}
-function rebuildSnapshot(){_snap={profile:canonProfile()};for(const c of SYNC_COLLECTIONS){const m=new Map();(state[c.key]||[]).forEach(r=>{if(r.id!=null)m.set(String(r.id),canonRec(r))});_snap[c.key]=m}}
-function detectAndQueue(){if(!_snap)rebuildSnapshot();for(const c of SYNC_COLLECTIONS){const arr=state[c.key];if(!Array.isArray(arr))continue;const snapMap=_snap[c.key]||(_snap[c.key]=new Map());const seen=new Set();arr.forEach(rec=>{if(rec.id==null)rec.id=deterministicId(c.key,rec);const sid=String(rec.id);seen.add(sid);const cur=canonRec(rec);if(snapMap.get(sid)!==cur){rec.updatedAt=Date.now();enqueue({op:'upsert',table:c.table,id:sid,data:rec});snapMap.set(sid,canonRec(rec))}});for(const sid of Array.from(snapMap.keys())){if(!seen.has(sid)){snapMap.delete(sid);enqueue({op:'delete',table:c.table,id:sid});addTombstone(c.key,sid)}}}const cp=canonProfile();
+/* The profile half of the snapshot: the canonical string detectAndQueue compares against, and the
+   same fields as a plain object, which is what lets it tell WHICH fields changed and stamp those. */
+function profileObj(){const o={};PROFILE_FIELDS.forEach(k=>{if(state[k]!==undefined)o[k]=state[k]});return JSON.parse(JSON.stringify(o))}
+function snapProfile(){_snap.profile=canonProfile();_snap.profileObj=profileObj()}
+function stampProfile(){const prev=(_snap&&_snap.profileObj)||{};const now=Date.now();let at=null;PROFILE_LWW.forEach(k=>{if(stableStringify(state[k])!==stableStringify(prev[k])){if(!at)at={...(state.profileAt||{})};at[k]=now}});if(at)state.profileAt=at}
+// A snapshot entry back as an object: the version of a record this device last had from (or sent to)
+// the server, which is the base a later merge measures both sides' changes against. null = a record
+// the server has never had; undefined = unknown.
+function snapBase(s){if(s===undefined)return null;try{return JSON.parse(s)}catch(e){return undefined}}
+// While the profile push is gated (never pulled) its pending difference must survive a rebuild, or a
+// rebuild for some unrelated pulled record would quietly settle it and it would never go out.
+function rebuildSnapshot(){const keep=_snap&&_snap.profile!==undefined&&!profilePullDone()?{profile:_snap.profile,profileObj:_snap.profileObj}:null;_snap={};if(keep)Object.assign(_snap,keep);else snapProfile();for(const c of SYNC_COLLECTIONS){const m=new Map();(state[c.key]||[]).forEach(r=>{if(r.id!=null)m.set(String(r.id),canonRec(r))});_snap[c.key]=m}}
+function detectAndQueue(){if(!_snap)rebuildSnapshot();for(const c of SYNC_COLLECTIONS){const arr=state[c.key];if(!Array.isArray(arr))continue;const snapMap=_snap[c.key]||(_snap[c.key]=new Map());const seen=new Set();arr.forEach(rec=>{if(rec.id==null)rec.id=deterministicId(c.key,rec);const sid=String(rec.id);seen.add(sid);const cur=canonRec(rec);if(snapMap.get(sid)!==cur){rec.updatedAt=Date.now();enqueue({op:'upsert',table:c.table,id:sid,data:rec,base:snapBase(snapMap.get(sid))});snapMap.set(sid,canonRec(rec))}});for(const sid of Array.from(snapMap.keys())){if(!seen.has(sid)){const base=snapBase(snapMap.get(sid));snapMap.delete(sid);enqueue({op:'delete',table:c.table,id:sid,base});addTombstone(c.key,sid)}}}const cp=canonProfile();
   // Leaving _snap.profile alone while gated is the point: the difference stays pending, so the
   // first detectAndQueue after the gate opens enqueues it. Stamping profileTs here would also
-  // poison sbPullProfile's freshness test, so that waits too.
-  if(cp!==_snap.profile&&profilePullDone()){_snap.profile=cp;localStorage.setItem(SKEY+'-profileTs',String(Date.now()));enqueue({op:'profile'})}}
+  // poison applyProfile's freshness test, so that waits too.
+  if(cp!==_snap.profile&&profilePullDone()){stampProfile();snapProfile();localStorage.setItem(SKEY+'-profileTs',String(Date.now()));enqueue({op:'profile',t:Date.now()})}}
 // ---- Tombstones (local memory of deletions until they propagate) ----
 function loadTomb(){try{return JSON.parse(localStorage.getItem(SKEY+'-tomb')||'{}')}catch(e){return{}}}
 function saveTomb(t){try{localStorage.setItem(SKEY+'-tomb',JSON.stringify(t))}catch(e){}}
@@ -1295,12 +1331,23 @@ function addTombstone(coll,id){const t=loadTomb();(t[coll]||(t[coll]={}))[String
 // ---- Offline queue (one pending op per table+id; delete supersedes a pending upsert) ----
 function loadQueue(){try{return JSON.parse(localStorage.getItem(SKEY+'-queue')||'[]')}catch(e){return[]}}
 function saveQueue(q){try{localStorage.setItem(SKEY+'-queue',JSON.stringify(q))}catch(e){}}
-function enqueue(op){let q=loadQueue();if(op.op==='profile'){q=q.filter(o=>o.op!=='profile')}else{q=q.filter(o=>!(o.table===op.table&&String(o.id)===String(op.id)))}q.push(op);saveQueue(q)}
-function queueHasProfile(){return loadQueue().some(o=>o.op==='profile')}
+// A record's base is the server's version from before ANY of its pending edits, so it is carried
+// over from the first op for that record however many edits replace it before a push.
+function enqueue(op){let q=loadQueue();if(op.op==='profile'){q=q.filter(o=>o.op!=='profile')}else{const prev=q.find(o=>o.table===op.table&&String(o.id)===String(op.id));if(prev){if('base' in prev)op.base=prev.base;else delete op.base;q=q.filter(o=>o!==prev)}}q.push(op);saveQueue(q)}
+/* Nothing is pushed until this device has caught up (v14.4). A push sends whole records, so one made
+   on reconnect BEFORE pulling puts this device's copy over whatever another device wrote while it was
+   away — the offline state overwriting the online one. So after any sign of being offline (launch,
+   the offline event, a failed request, the app going to the background) _needPull is set, and the
+   queue only goes out as the last step of a sync: pull, merge per record and per field, then push. */
+let _needPull=true;
 let _flushing=false;
-async function flushQueue(){if(_flushing||!navigator.onLine)return;_flushing=true;updateConn('syncing');try{while(loadQueue().length){const op=loadQueue()[0];let ok=false;if(op.op==='upsert')ok=await sbUpsertRow(op.table,op.id,op.data,'merge');else if(op.op==='delete')ok=await sbTombstoneRow(op.table,op.id);else if(op.op==='profile')ok=await sbPushProfile('merge');else ok=true;if(!ok){updateConn('offline');_flushing=false;return}const q=loadQueue();q.shift();saveQueue(q)}updateConn('online')}catch(e){updateConn('offline')}_flushing=false}
+async function pushQueue(){if(_flushing||!navigator.onLine)return;_flushing=true;updateConn('syncing');try{while(loadQueue().length){const op=loadQueue()[0];let ok=false;if(op.op==='upsert')ok=await sbUpsertRow(op.table,op.id,op.data,'merge');else if(op.op==='delete')ok=await sbTombstoneRow(op.table,op.id);else if(op.op==='profile')ok=await sbPushProfile('merge');else ok=true;if(!ok){_needPull=true;updateConn('offline');_flushing=false;return}
+  // Remove THIS op, not whatever is first now: an edit made while it was in flight replaced it with
+  // a newer op for the same record, and that one has not been sent.
+  const sent=JSON.stringify(op);const q=loadQueue();const i=q.findIndex(o=>JSON.stringify(o)===sent);if(i>=0){q.splice(i,1);saveQueue(q)}}updateConn('online')}catch(e){_needPull=true;updateConn('offline')}_flushing=false}
+function flushQueue(){if(!navigator.onLine)return Promise.resolve();if(_needPull||_syncing)return syncPullAndMerge(true);return pushQueue()}
 // Best-effort push on page hide; remaining ops are re-sent (idempotently) on next load.
-function flushQueueBeacon(){if(!navigator.onLine)return;loadQueue().forEach(op=>{try{if(op.op==='upsert')fetch(SB_URL+'/rest/v1/'+op.table,{method:'POST',headers:{...SB_HEADERS,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:String(op.id),data:op.data}),keepalive:true});else if(op.op==='delete')fetch(SB_URL+'/rest/v1/'+op.table+'?id=eq.'+encodeURIComponent(String(op.id)),{method:'PATCH',headers:{...SB_HEADERS,'Prefer':'return=minimal'},body:JSON.stringify({deleted_at:new Date().toISOString()}),keepalive:true});else if(op.op==='profile'){const data={};PROFILE_FIELDS.forEach(k=>{data[k]=state[k]});fetch(SB_URL+'/rest/v1/profile',{method:'POST',headers:{...SB_HEADERS,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:'default',data}),keepalive:true})}}catch(e){}})}
+function flushQueueBeacon(){if(!navigator.onLine||_needPull)return;loadQueue().forEach(op=>{try{if(op.op==='upsert')fetch(SB_URL+'/rest/v1/'+op.table,{method:'POST',headers:{...SB_HEADERS,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:String(op.id),data:op.data}),keepalive:true});else if(op.op==='delete')fetch(SB_URL+'/rest/v1/'+op.table+'?id=eq.'+encodeURIComponent(String(op.id)),{method:'PATCH',headers:{...SB_HEADERS,'Prefer':'return=minimal'},body:JSON.stringify({deleted_at:new Date().toISOString()}),keepalive:true});else if(op.op==='profile'){const data={};PROFILE_FIELDS.forEach(k=>{data[k]=state[k]});fetch(SB_URL+'/rest/v1/profile',{method:'POST',headers:{...SB_HEADERS,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:'default',data}),keepalive:true})}}catch(e){}})}
 let connState='online';
 function updateConn(s){connState=s;updateCombo()}
 function updateSI(){updateCombo()}
@@ -1308,7 +1355,7 @@ function updateCombo(){const el=document.getElementById('comboStatus');const tx=
 async function loadState(){
 let localData=null;
 try{const raw=localStorage.getItem(SKEY);if(raw)localData=JSON.parse(raw)}catch(e){}
-if(!localData){
+if(!localData&&navigator.onLine){
   // No local cache: migrate from the old whole-blob planner_state row (read-only; never deleted here).
   try{const remote=await sbGet();if(remote)localData=remote.data}catch(e){}
 }
@@ -1323,12 +1370,12 @@ lastSaveTime=new Date();saveStatus='saved'}
 // Destructive, intended, idempotent: the hours/time-budget feature is removed, so purge the
 // legacy `hours` field from every synced record on load and queue the stripped record for push
 // (so it disappears from persisted/synced data). Records without `hours` are untouched.
-function stripHoursField(){for(const c of SYNC_COLLECTIONS){const arr=state[c.key];if(!Array.isArray(arr))continue;arr.forEach(rec=>{if(rec&&Object.prototype.hasOwnProperty.call(rec,'hours')){delete rec.hours;rec.updatedAt=Date.now();enqueue({op:'upsert',table:c.table,id:String(rec.id),data:rec})}})}}
+function stripHoursField(){for(const c of SYNC_COLLECTIONS){const arr=state[c.key];if(!Array.isArray(arr))continue;arr.forEach(rec=>{if(rec&&Object.prototype.hasOwnProperty.call(rec,'hours')){const base=snapBase(canonRec(rec));delete rec.hours;rec.updatedAt=Date.now();enqueue({op:'upsert',table:c.table,id:String(rec.id),data:rec,base})}})}}
 // One-time: give every synced record a stable client-generated id (if missing) + a baseline updatedAt.
 // Idempotent: ids already present are never reassigned; deterministic ids keep legacy id-less records
 // consistent across devices so re-seeding never duplicates them.
 function migrateRecordIds(){for(const c of SYNC_COLLECTIONS){const arr=state[c.key];if(!Array.isArray(arr))continue;arr.forEach(rec=>{if(rec.id==null||rec.id===''){rec.id=deterministicId(c.key,rec)}if(rec.updatedAt===undefined)rec.updatedAt=Date.now()})}}
-function applyChosenState(chosen){if(chosen.lifeTasks)chosen.lifeTasks=chosen.lifeTasks.map(t=>({category:'General',priority:'med',inBank:false,...t}));if(chosen.tasks)chosen.tasks=chosen.tasks.map(t=>({lifeSourceId:null,...t}));if(!chosen.hiddenDays)chosen.hiddenDays=[];if(!chosen.events)chosen.events=defaultEvents();if(!chosen.syllabus)chosen.syllabus=defaultSyllabus();if(!chosen.notes)chosen.notes=[];if(!chosen.catOrder)chosen.catOrder=[];if(!chosen.sylMarks||typeof chosen.sylMarks!=='object')chosen.sylMarks={};if(!chosen.sylMarksAt||typeof chosen.sylMarksAt!=='object')chosen.sylMarksAt={};if(!chosen.sylEdits||typeof chosen.sylEdits!=='object')chosen.sylEdits={};if(!chosen.sylEditsAt||typeof chosen.sylEditsAt!=='object')chosen.sylEditsAt={};if(typeof chosen.sylFeedRange!=='string')chosen.sylFeedRange='';if(chosen.activeTab==='print')chosen.activeTab='sprints';
+function applyChosenState(chosen){if(chosen.lifeTasks)chosen.lifeTasks=chosen.lifeTasks.map(t=>({category:'General',priority:'med',inBank:false,...t}));if(chosen.tasks)chosen.tasks=chosen.tasks.map(t=>({lifeSourceId:null,...t}));if(!chosen.hiddenDays)chosen.hiddenDays=[];if(!chosen.events)chosen.events=defaultEvents();if(!chosen.syllabus)chosen.syllabus=defaultSyllabus();if(!chosen.notes)chosen.notes=[];if(!chosen.catOrder)chosen.catOrder=[];if(!chosen.sylMarks||typeof chosen.sylMarks!=='object')chosen.sylMarks={};if(!chosen.sylMarksAt||typeof chosen.sylMarksAt!=='object')chosen.sylMarksAt={};if(!chosen.sylEdits||typeof chosen.sylEdits!=='object')chosen.sylEdits={};if(!chosen.sylEditsAt||typeof chosen.sylEditsAt!=='object')chosen.sylEditsAt={};if(typeof chosen.sylFeedRange!=='string')chosen.sylFeedRange='';if(!chosen.profileAt||typeof chosen.profileAt!=='object')chosen.profileAt={};if(chosen.activeTab==='print')chosen.activeTab='sprints';
   // Almanac keys are absent in any state saved before v9.0 — default them here so a restored or
   // synced blob can't leave almanacTz undefined (Intl.DateTimeFormat throws on that).
   if(typeof chosen.almanacTz!=='string'||!chosen.almanacTz)chosen.almanacTz=state.almanacTz||ALM_TZ_DEFAULT;
@@ -1337,13 +1384,50 @@ function applyChosenState(chosen){if(chosen.lifeTasks)chosen.lifeTasks=chosen.li
   // this restores on load, for a device last left on a tab that only became a second face here
   // (Tasks, Dashboard). Without it the nav opens on the other half of the pair with nothing lit.
   const _s=slotOf(state.activeTab);if(_s)state[_s.pref]=state.activeTab}
-// Per-id reconciliation of pulled rows into a local array. NEVER wholesale-replaces the array:
-// unchanged records keep their identity; only new/changed/deleted records move. (SYNC_REFERENCE 1.6)
-function mergeCollection(localArr,tomb,rows){const byId=new Map((localArr||[]).map(e=>[String(e.id),e]));let changed=false;for(const r of rows){const rid=String(r.id);const remoteUpdated=Date.parse(r.updated_at)||0;if(r.deleted_at){if(byId.has(rid)){byId.delete(rid);changed=true}const dms=Date.parse(r.deleted_at)||0;if(!(rid in tomb)||tomb[rid]<dms){tomb[rid]=dms;changed=true}continue}
-  if(tomb[rid]&&tomb[rid]>=remoteUpdated)continue; // we deleted locally; keep dead until our tombstone propagates
-  const local=byId.get(rid);const rec=r.data;if(rec&&rec.id==null)rec.id=r.id;
-  if(!local){byId.set(rid,rec);changed=true}
-  else if(remoteUpdated>(local.updatedAt||0)){byId.set(rid,rec);changed=true}}
+/* Per-id reconciliation of pulled rows into a local array. NEVER wholesale-replaces the array:
+   unchanged records keep their identity; only new/changed/deleted records move. (SYNC_REFERENCE 1.6)
+
+   Since v14.4 the pull comes BEFORE the push, so what decides each row is whether this device holds
+   an unpushed change to it (an op in the queue), not whose clock reads later:
+   - No pending change: the server's copy wins. This device's copy is the last one it synced, so
+     anything newer on the server is simply news. (Comparing a phone's clock to the server's is what
+     let a stale copy outlive a newer remote edit before.)
+   - A pending edit: three-way merge against the op's base, field by field — what was changed here
+     offline and what was changed elsewhere meanwhile BOTH survive. The op is rewritten to carry the
+     merged record and the server's copy as its new base, or dropped if nothing of ours is left.
+   - A pending delete: stands if the server's copy is still the one deleted here; if it has been
+     edited since, that edit was made by someone who never saw the delete, and losing work is worse
+     than a record coming back, so it is restored and the delete dropped.
+   - Deleted on the server: final (tombstones are sticky), and any pending edit to it is dropped. */
+function sameRec(a,b){return contentSig(a)===contentSig(b)}
+function baseOf(rec){const b=JSON.parse(JSON.stringify(rec));delete b.updatedAt;return b}
+/* One record, field by field. A field only one side changed takes that side's value; a field both
+   changed goes to the later edit (each record carries the time it was last edited, updatedAt). With
+   no base — an op queued before v14.4, or a record this device created — nothing says who changed a
+   field, so a field only one side has is kept and a field both have goes to the later edit. */
+function merge3(base,local,remote){const lt=local.updatedAt||0,rt=remote.updatedAt||0,out={};
+  for(const k of new Set([...Object.keys(local),...Object.keys(remote),...(base?Object.keys(base):[])])){if(k==='id'||k==='updatedAt')continue;
+    const lv=local[k],rv=remote[k],ls=stableStringify(lv),rs=stableStringify(rv);let v;
+    if(ls===rs)v=lv;
+    else if(base){const bs=stableStringify(base[k]);v=ls===bs?rv:rs===bs?lv:(lt>=rt?lv:rv)}
+    else v=lv===undefined?rv:rv===undefined?lv:(lt>=rt?lv:rv);
+    if(v!==undefined)out[k]=v}
+  out.id=local.id;out.updatedAt=Math.max(lt,rt);return out}
+function mergeCollection(c,localArr,tomb,rows){const byId=new Map((localArr||[]).map(e=>[String(e.id),e]));let changed=false;
+  let q=loadQueue(),qDirty=false;const pend=new Map();q.forEach(o=>{if(o.table===c.table)pend.set(String(o.id),o)});
+  const drop=o=>{q=q.filter(x=>x!==o);pend.delete(String(o.id));qDirty=true};
+  for(const r of rows){const rid=String(r.id);const remoteUpdated=Date.parse(r.updated_at)||0;const op=pend.get(rid);
+  if(r.deleted_at){if(byId.has(rid)){byId.delete(rid);changed=true}if(op&&op.op==='upsert')drop(op);const dms=Date.parse(r.deleted_at)||0;if(!(rid in tomb)||tomb[rid]<dms){tomb[rid]=dms;changed=true}continue}
+  const rec=r.data;if(!rec||typeof rec!=='object')continue;if(rec.id==null)rec.id=r.id;
+  if(op&&op.op==='delete'){if(!op.base||sameRec(op.base,rec))continue;drop(op);delete tomb[rid];byId.set(rid,rec);changed=true;continue}
+  if(!op&&tomb[rid]&&tomb[rid]>=remoteUpdated)continue; // our delete already went out; this is an older echo
+  const local=byId.get(rid)||(op&&op.op==='upsert'?op.data:null);
+  if(op&&op.op==='upsert'&&local){const m=merge3(op.base,local,rec);
+    if(sameRec(m,rec)){drop(op);if(!byId.has(rid)||!sameRec(byId.get(rid),rec)){byId.set(rid,rec);changed=true}continue}
+    if(!byId.has(rid)||!sameRec(m,byId.get(rid))){byId.set(rid,m);changed=true}
+    op.data=byId.get(rid);op.base=baseOf(rec);qDirty=true;continue}
+  if(!local||!sameRec(local,rec)){byId.set(rid,rec);changed=true}}
+  if(qDirty)saveQueue(q);
   return{arr:Array.from(byId.values()),changed}}
 // Collapse duplicate rows created by the old order-sensitive deterministicId (same content, different
 // ids). Safe by construction: it ONLY ever removes deterministic-style ids (`<coll>_...`, the migration
@@ -1351,7 +1435,7 @@ function mergeCollection(localArr,tomb,rows){const byId=new Map((localArr||[]).m
 // always preserved. If a real record shares the content, every artifact copy is dropped; if the group
 // is all-artifact, the smallest id is kept (deterministic -> every device converges) and the rest go.
 // Removals are tombstoned so they propagate to the other devices.
-function dedupeSyncedCollections(){let changed=false;for(const c of SYNC_COLLECTIONS){const arr=state[c.key];if(!Array.isArray(arr))continue;const groups=new Map();arr.forEach(rec=>{if(rec.id==null)return;const sig=contentSig(rec);let g=groups.get(sig);if(!g){g=[];groups.set(sig,g)}g.push(rec)});const drop=new Set();for(const recs of groups.values()){if(recs.length<2)continue;const dets=recs.filter(r=>isDetId(c.key,r.id));if(!dets.length)continue;const hasReal=recs.some(r=>!isDetId(c.key,r.id));if(hasReal){dets.forEach(r=>drop.add(String(r.id)))}else{dets.slice().sort((a,b)=>String(a.id)<String(b.id)?-1:1).slice(1).forEach(r=>drop.add(String(r.id)))}}if(drop.size){state[c.key]=arr.filter(r=>!drop.has(String(r.id)));drop.forEach(id=>{enqueue({op:'delete',table:c.table,id});addTombstone(c.key,id)});changed=true}}return changed}
+function dedupeSyncedCollections(){let changed=false;for(const c of SYNC_COLLECTIONS){const arr=state[c.key];if(!Array.isArray(arr))continue;const groups=new Map();arr.forEach(rec=>{if(rec.id==null)return;const sig=contentSig(rec);let g=groups.get(sig);if(!g){g=[];groups.set(sig,g)}g.push(rec)});const drop=new Set();for(const recs of groups.values()){if(recs.length<2)continue;const dets=recs.filter(r=>isDetId(c.key,r.id));if(!dets.length)continue;const hasReal=recs.some(r=>!isDetId(c.key,r.id));if(hasReal){dets.forEach(r=>drop.add(String(r.id)))}else{dets.slice().sort((a,b)=>String(a.id)<String(b.id)?-1:1).slice(1).forEach(r=>drop.add(String(r.id)))}}if(drop.size){state[c.key]=arr.filter(r=>!drop.has(String(r.id)));arr.filter(r=>drop.has(String(r.id))).forEach(r=>{const id=String(r.id);enqueue({op:'delete',table:c.table,id,base:baseOf(r)});addTombstone(c.key,id)});changed=true}}return changed}
 /* A tombstone is only needed until every device has seen it. Six months is far past that and
    keeps the blob from carrying a dead key for a class taken years ago. */
 const SYL_TOMB_TTL=180*864e5;
@@ -1377,10 +1461,8 @@ function mergeStamped(lv,la,rv,ra){
   }
   return{val,at};
 }
-async function sbPullProfile(){try{
-  const r=await fetch(SB_URL+'/rest/v1/profile?id=eq.default&select=*',{headers:SB_HEADERS});
-  if(!r.ok)return false;
-  const d=await r.json();markProfilePulled();
+// Fold a pulled profile row (sbGetProfile's array) into state; true if anything here changed.
+function applyProfile(d){markProfilePulled();
   if(!d||!d.length||d[0].deleted_at)return false;
   const data=d[0].data||{};
   const remoteTs=Date.parse(d[0].updated_at)||0;
@@ -1395,13 +1477,21 @@ async function sbPullProfile(){try{
     if(stableStringify(m.val)!==stableStringify(state[key]||{})||stableStringify(m.at)!==stableStringify(state[atKey]||{})){
       state[key]=m.val;state[atKey]=m.at;changed=true;_profileMerged=true}
   }
-  // The true singletons stay last-write-wins — one term, one timezone, one nav layout.
-  if(remoteTs>localTs&&!queueHasProfile()){
-    PROFILE_FIELDS.forEach(k=>{if(k in PROFILE_MERGED||Object.values(PROFILE_MERGED).includes(k))return;
-      if(k in data)state[k]=data[k]});
-    localStorage.setItem(SKEY+'-profileTs',String(remoteTs));changed=true}
-  return changed}catch(e){return false}}
-// Flush pending writes, pull rows changed since the watermark, merge by id, advance watermark, re-render.
+  // The true singletons — one term, one timezone, one nav layout — take the later write FIELD by
+  // field (v14.4). A pending local push no longer wins wholesale: it carries its own stamps for what
+  // it actually changed, and a field it did not touch takes the newer remote value. When ours is the
+  // later write and the row does not have it yet, the merge goes back out (_profileMerged).
+  // A field neither side has stamped yet keeps the old rule: the newer row wins.
+  const la=state.profileAt||{},ra=(data.profileAt&&typeof data.profileAt==='object')?data.profileAt:{};
+  const legacy=remoteTs>localTs,at={...la};
+  PROFILE_LWW.forEach(k=>{const lt=la[k]||0,rt=ra[k]||0,same=stableStringify(state[k])===stableStringify(data[k]);
+    if(rt>lt){at[k]=rt;if(k in data&&!same){state[k]=data[k];changed=true}}
+    else if(lt>rt)_profileMerged=true;
+    else if(!lt&&legacy&&k in data&&!same){state[k]=data[k];changed=true}});
+  if(stableStringify(at)!==stableStringify(la)){state.profileAt=at;changed=true}
+  if(legacy)localStorage.setItem(SKEY+'-profileTs',String(remoteTs));
+  return changed}
+// Pull rows changed since the watermark, merge by id, advance watermark, re-render, then push.
 // Centralized deferral so NO automatic/background render can wipe in-progress typing.
 // While the user is editing, queue the render/merge and run it once editing ends.
 let _pendingRender=false,_pendingMerge=false,_editWatch=null;
@@ -1409,34 +1499,53 @@ function armEditWatch(){if(_editWatch)return;_editWatch=setInterval(()=>{if(!isU
 // Background/automatic triggers (sync, timers, reconnect, visibility) render through this.
 // User-initiated actions (button taps, deliberate tab switches) may call render() directly.
 function safeRender(){if(isUserEditing()){_pendingRender=true;armEditWatch();return}renderKeepingFocus()}
+/* One sync: pull every table and the profile, merge, and only then push (see _needPull). Never two at
+   once: a sync asked for while one is running becomes one more round after it, so a dead connection
+   does not stack a new hung sync every thirty seconds, and a push asked for mid-sync cannot slip out
+   ahead of the merge. */
+let _syncing=false,_syncAgain=false,_syncAgainForce=false;
 async function syncPullAndMerge(force){if(!navigator.onLine)return;if(isUserEditing()&&!force){_pendingMerge=true;armEditWatch();return}
-  await flushQueue();updateConn('syncing');
-  const wm=localStorage.getItem(SKEY+'-watermark');let maxSeen=wm?Date.parse(wm):0;let anyChange=false,netOk=true;const tomb=loadTomb();
-  for(const c of SYNC_COLLECTIONS){const rows=await sbPull(c.table,wm);if(rows===null){netOk=false;continue}const res=mergeCollection(state[c.key]||[],tomb[c.key]||(tomb[c.key]={}),rows);if(res.changed){state[c.key]=res.arr;anyChange=true}rows.forEach(r=>{const u=Date.parse(r.updated_at)||0;if(u>maxSeen)maxSeen=u})}
+  if(_syncing){_syncAgain=true;if(force)_syncAgainForce=true;return}
+  _syncing=true;try{await syncOnce()}catch(e){console.warn('sync failed:',e);_needPull=true;updateConn('offline')}finally{_syncing=false}
+  if(_syncAgain){const f=_syncAgainForce;_syncAgain=_syncAgainForce=false;await syncPullAndMerge(f)}}
+async function syncOnce(){updateConn('syncing');
+  const wm=localStorage.getItem(SKEY+'-watermark');
+  // Every table and the profile at once: one round trip on a phone rather than seven in a row, and on
+  // a dead connection one timeout rather than seven.
+  const [pulls,prof]=await Promise.all([Promise.all(SYNC_COLLECTIONS.map(c=>sbPull(c.table,wm))),sbGetProfile()]);
+  let maxSeen=wm?Date.parse(wm):0;let anyChange=false;const tablesOk=pulls.every(r=>Array.isArray(r));const tomb=loadTomb();
+  SYNC_COLLECTIONS.forEach((c,i)=>{const rows=pulls[i];if(!Array.isArray(rows))return;const res=mergeCollection(c,state[c.key]||[],tomb[c.key]||(tomb[c.key]={}),rows);if(res.changed){state[c.key]=res.arr;anyChange=true}rows.forEach(r=>{const u=Date.parse(r.updated_at)||0;if(u>maxSeen)maxSeen=u})});
   saveTomb(tomb);
   // After a full pull every device sees the whole duplicate set, so collapse them convergently.
-  let deduped=false;if(netOk)deduped=dedupeSyncedCollections();if(deduped){anyChange=true;await flushQueue()}
+  if(tablesOk&&dedupeSyncedCollections())anyChange=true;
   const wasGated=!profilePullDone();
-  if(await sbPullProfile())anyChange=true;
-  if(netOk&&maxSeen)localStorage.setItem(SKEY+'-watermark',new Date(maxSeen).toISOString());
+  if(Array.isArray(prof)&&applyProfile(prof))anyChange=true;
+  if(tablesOk&&maxSeen)localStorage.setItem(SKEY+'-watermark',new Date(maxSeen).toISOString());
   if(anyChange){rebuildSnapshot();persistLocal();safeRender()}
   // A merge that changed our maps has to go back out or the union dies here: rebuildSnapshot has
   // just told detectAndQueue there is nothing to send, and the other device is still holding the
   // row that lost our half. One extra round and every device agrees; the round after that finds
   // no change and stops, so this does not ping-pong.
   if(_profileMerged&&profilePullDone()){_profileMerged=false;
-    _snap.profile=canonProfile();localStorage.setItem(SKEY+'-profileTs',String(Date.now()));
-    enqueue({op:'profile'});await flushQueue()}
+    snapProfile();localStorage.setItem(SKEY+'-profileTs',String(Date.now()));
+    enqueue({op:'profile',t:Date.now()})}
   // A change made while the gate was shut has been sitting in state unqueued. If the pull applied
   // remote, rebuildSnapshot above already settled on remote's version and this finds nothing —
   // which is right, a device that had not pulled does not get to win. If it did not, the local
   // change is still pending and goes out now.
-  if(wasGated&&profilePullDone()){detectAndQueue();persistLocal();await flushQueue()}
-  updateConn(netOk?'online':'offline')}
+  if(wasGated&&profilePullDone()){detectAndQueue();persistLocal()}
+  // Caught up only if the server was reached for everything. Otherwise nothing goes out: the queue
+  // waits, intact. (A server that answers with an error is reachable; holding every push back over
+  // it would not fix it, and pushes went out regardless before v14.4.)
+  if(pulls.includes(null)||prof===null){_needPull=true;updateConn('offline');return}
+  _needPull=false;
+  await pushQueue()}
 // One-time seed of the new per-record tables from local state. ignore-duplicates => safe & idempotent
 // across devices/re-runs: never overwrites a row another device already wrote.
-async function seedRemote(){for(const c of SYNC_COLLECTIONS){const arr=state[c.key];if(!Array.isArray(arr)||!arr.length)continue;const body=arr.map(rec=>({id:String(rec.id),data:rec}));try{await fetch(SB_URL+'/rest/v1/'+c.table,{method:'POST',headers:{...SB_HEADERS,'Prefer':'resolution=ignore-duplicates,return=minimal'},body:JSON.stringify(body)})}catch(e){}}try{await sbPushProfile('ignore')}catch(e){}}
-async function startSync(){if(!navigator.onLine){updateConn('offline');return}updateConn('syncing');await flushQueue();if(!localStorage.getItem(SEED_FLAG)){await seedRemote();localStorage.setItem(SEED_FLAG,'1')}await syncPullAndMerge(true)}
+// Returns whether every write landed; the flag that skips it next time is set only then, and the first
+// failure ends the attempt rather than waiting out a timeout per table.
+async function seedRemote(){for(const c of SYNC_COLLECTIONS){const arr=state[c.key];if(!Array.isArray(arr)||!arr.length)continue;const body=arr.map(rec=>({id:String(rec.id),data:rec}));try{const r=await sbFetch(SB_URL+'/rest/v1/'+c.table,{method:'POST',headers:{...SB_HEADERS,'Prefer':'resolution=ignore-duplicates,return=minimal'},body:JSON.stringify(body)});if(!r.ok)return false}catch(e){return false}}return sbPushProfile('ignore')}
+async function startSync(){if(!navigator.onLine){updateConn('offline');return}updateConn('syncing');if(!localStorage.getItem(SEED_FLAG)&&await seedRemote())localStorage.setItem(SEED_FLAG,'1');await syncPullAndMerge(true)}
 // Re-render while restoring focus + caret + scroll of any focused field (SYNC_REFERENCE 1.6 / req #6).
 function renderKeepingFocus(){const ae=document.activeElement;const info=ae&&ae.id?{id:ae.id,s:ae.selectionStart,e:ae.selectionEnd,top:ae.scrollTop}:null;render();if(info){const el=document.getElementById(info.id);if(el){try{el.focus();if(info.s!=null&&el.setSelectionRange)el.setSelectionRange(info.s,info.e);if(info.top!=null)el.scrollTop=info.top}catch(_){}}}}
 function isUserEditing(){const ae=document.activeElement;if(ae){const tag=ae.tagName;if(tag==='TEXTAREA'||tag==='SELECT')return true;if(tag==='INPUT'&&['text','number','date','time','search','email','url','tel','password',''].includes((ae.type||'').toLowerCase()))return true;if(ae.isContentEditable)return true}
@@ -1477,7 +1586,7 @@ function render(){
   // their place in the layout, and only their contents are rewritten.
   document.getElementById('sideNav').innerHTML=`<div class="sidenav-title">Planner</div>${NAV_SLOTS.map(sl=>slotBtn('nav-item',sl)).join('')}`;
   document.getElementById('bottomNav').innerHTML=NAV_SLOTS.map(sl=>slotBtn('bn-item',sl)).join('');
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v14.3</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v14.4</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -3637,16 +3746,27 @@ function importState(){
 }
 function bumpOverdueTasks(){const todayStr=isoDate(TODAY);let changed=false;const toReturn=state.tasks.filter(t=>!t.done&&t.date<todayStr);toReturn.forEach(t=>{if(t.lifeSourceId){const lt=state.lifeTasks.find(l=>l.id===t.lifeSourceId);if(lt){lt.inBank=true}}else{state.lifeTasks.push({id:genId(),name:t.name,category:'General',priority:t.priority==='high'?'high':'med',due:'',done:false,inBank:true})}changed=true});state.tasks=state.tasks.filter(t=>t.done||t.date>=todayStr);if(changed)scheduleSave()}
 function migrateEventTasks(){const evtTasks=state.tasks.filter(t=>t.cat==='events');if(!evtTasks.length)return;if(!state.events)state.events=[];evtTasks.forEach(t=>{const exists=(state.events||[]).some(e=>e.name===t.name&&e.date===t.date);if(!exists){state.events.push({id:genId(),name:t.name,date:t.date,endDate:'',startTime:t.time||'',endTime:'',location:'',allDay:false})}});state.tasks=state.tasks.filter(t=>t.cat!=='events');scheduleSave()}
+/* Housekeeping that rewrites records — returning overdue sprint tasks to the bank — runs once per
+   launch, AFTER the launch's first sync attempt rather than before the first paint (v14.4). Run on a
+   copy that has not caught up, it acts on stale records: it re-banks a task another device already
+   finished, or banks one a second time that another device already banked, and those writes then go
+   out as this device's own. Offline the attempt ends at once, so it still runs straight away there. */
+let _choresDone=false;
+function bootChores(){if(_choresDone)return;_choresDone=true;bumpOverdueTasks();migrateEventTasks();safeRender()}
 async function init(){
   // The weather layer was removed in v10.9; drop its cache so no stale readings linger.
   try{localStorage.removeItem(SKEY+'-weather')}catch(e){}
-  await loadState();bumpOverdueTasks();migrateEventTasks();render();handleUrlAction();updateConn(navigator.onLine?'online':'offline');startSync();
+  /* The launch is local and nothing else (v14.4): read the last state this device has, draw it, and
+     only then look at the network. Nothing between here and render() may wait on a request. */
+  await loadState();render();handleUrlAction();updateConn(navigator.onLine?'online':'offline');
+  startSync().catch(e=>console.warn('sync failed:',e)).finally(bootChores);
   // The syllabus feed is never in the critical path: the tab has already drawn from cache above,
   // and this refresh re-renders when (and if) a newer spreadsheet lands.
   sylRefresh();
   setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine)syncPullAndMerge(false)},30000);
-  window.addEventListener('online',()=>{updateConn('online');setTimeout(()=>{flushQueue().then(()=>syncPullAndMerge(false))},500)});
-  window.addEventListener('offline',()=>updateConn('offline'));
+  // Back online: catch up first, then push (syncPullAndMerge does both, in that order).
+  window.addEventListener('online',()=>{_needPull=true;updateConn('online');setTimeout(()=>syncPullAndMerge(true),500)});
+  window.addEventListener('offline',()=>{_needPull=true;updateConn('offline')});
   window.addEventListener('pagehide',flushQueueBeacon);
   // Capture phase, so it runs even though the chip stops propagation — but only for clicks that
   // did NOT land on a chip, or it would disarm the very chip being armed.
@@ -3654,18 +3774,22 @@ async function init(){
     const t=e.target;
     if(!t||!t.closest||!t.closest('.cal-evt'))calDisarm();
   },true);
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushQueueBeacon();else if(document.visibilityState==='visible'&&navigator.onLine){flushQueue().then(()=>syncPullAndMerge(false))}});
+  // Going to the background is the last chance to push, and coming back is a reason to pull before
+  // pushing again: the connection may have come and gone while the phone was in a pocket.
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){flushQueueBeacon();_needPull=true}else if(document.visibilityState==='visible'&&navigator.onLine)syncPullAndMerge(false)});
+  /* Ask the browser not to evict this origin's storage when the phone runs short: offline, the
+     service-worker cache IS the app, and localStorage holds every change not yet synced. Chrome grants
+     it without a prompt to an installed app; it is only asked for there, since elsewhere a browser
+     may put the question to the user. */
+  try{if(navigator.storage&&navigator.storage.persist&&matchMedia('(display-mode: standalone)').matches)navigator.storage.persisted().then(p=>p||navigator.storage.persist()).catch(()=>{})}catch(e){}
   if('serviceWorker' in navigator){
     const hadController=!!navigator.serviceWorker.controller;let swReloading=false;
-    navigator.serviceWorker.addEventListener('controllerchange',()=>{if(swReloading||!hadController)return;swReloading=true;location.reload()});
+    // A new version has taken over: reload onto it, but not out from under an open editor — that
+    // waits until the editor closes.
+    const swReload=()=>{if(swReloading)return;if(isUserEditing()){setTimeout(swReload,1000);return}swReloading=true;location.reload()};
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{if(hadController)swReload()});
     navigator.serviceWorker.register('sw.js').then(reg=>{if(reg)reg.update()}).catch(e=>console.warn('SW reg failed:',e));
-    // Capture phase, so it runs even though the chip stops propagation — but only for clicks that
-  // did NOT land on a chip, or it would disarm the very chip being armed.
-  document.addEventListener('click',e=>{
-    const t=e.target;
-    if(!t||!t.closest||!t.closest('.cal-evt'))calDisarm();
-  },true);
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')navigator.serviceWorker.getRegistration().then(r=>{if(r)r.update()})});
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')navigator.serviceWorker.getRegistration().then(r=>{if(r)r.update()}).catch(()=>{})});
   }}
 init();
 
