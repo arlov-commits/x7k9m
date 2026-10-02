@@ -315,6 +315,7 @@ Provide in-app JSON export/import as a user-controlled backup, separate from clo
 - Precache the app shell assets. **Bump the cache version on every meaningful change** or installed devices serve stale code.
 - On `install`: cache assets, `skipWaiting()`.
 - On `activate`: delete all non-current caches, `clients.claim()`.
+- **Serve the app shell cache-first, and never let any request the SW makes wait without a timeout.** Network-first navigation looks offline-safe because it falls back to the cache — but only when the request *fails*. On a connection that is up and carries nothing it does not fail, it waits, and an installed app sits on its launch splash the whole time. (Lesson 14.) Ship updates through the cache version, not through revalidation.
 - **CRITICAL registration-side step (the SW alone is not enough):** add a loop-guarded `controllerchange` listener that reloads the page **once** when the new SW takes control, so a refresh actually lands on new code without manual cache-clearing. Guard with a `reloading` flag and skip the very first install (`hadController` check) to avoid reload loops. Also call `registration.update()` on load and on focus/visibility. (Lesson 8.)
 
 ### Deploy pipeline (the professional flow)
@@ -438,6 +439,16 @@ This is a frontend lesson but it's exactly "what NOT to do", so it lives here. T
 - **Long-press selects text / pops the "search" callout.** SVG `<text>` labels (axis ticks, dates) are selectable; a long-press highlights them and opens the OS copy/search menu. Set `user-select: none` + `-webkit-touch-callout: none` on the chart container and svgs.
 
 **The fix is structural, not per-chart:** one shared `attachScrub(svg, showAt, hide)` wires all of this once, and every chart goes through it. When the bars and the weight chart had their own copies of the handler, they each had to be fixed separately — the second one (weight) still had `touch-action: none` + unconditional touch capture after the bars were fixed. Centralize the interaction so a chart can't drift. (Working-guide SOP: `CLAUDE.md` → "Charts & metric interaction (SOP)".)
+
+## Lesson 14 — "Offline" is two different things, and only one of them fails fast
+
+**The bug:** an installed PWA stalled on its launch splash — sometimes for minutes — whenever the phone had no usable internet. Several earlier rounds of fixes did not cure it, and airplane mode never reproduced it.
+
+**The cause:** airplane mode makes every request fail *instantly*, so a network-first service worker falls straight back to its cache. A weak signal, a wifi network with no internet behind it, or a captive portal does not fail — the request just waits. With network-first navigation, a render-blocking stylesheet from another host (Google Fonts), and parser-blocking scripts all fetched network-first, the first paint waited on several requests that would never answer.
+
+**The fix:** the shell cache-first (updates arrive via the cache-version bump and `controllerchange` reload), third-party CSS non-blocking and cached, a timeout on every request the SW or the sync layer makes, and the launch path reading only localStorage before its first render. **Test the "up but silent" case**, not just airplane mode: a server that accepts the connection and never answers reproduces it in seconds.
+
+**The reconnect half:** the same device must then *pull before it pushes*, and merge a record it changed offline field by field against the version it last had, or the "offline state" overwrites newer edits made elsewhere (Lesson 1, at record granularity).
 
 ---
 
