@@ -31,6 +31,7 @@
 const SYL_FEED_URL='calendars/source/syllabus.xlsx';
 const SYL_FEED_KEY='academic-planner-syl-feed';
 const SYL_FEED_SCHEMA=1;
+const SYL_FEED_TIMEOUT=20000;
 /* Class colour slots. c0..c5 are aliased to the existing per-theme accents in index.html's CSS, so
  * a class picks up a theme-correct colour without every theme needing a new variable. */
 const SYL_SLOTS=6;
@@ -68,7 +69,9 @@ async function sylInflate(bytes,method){
   if(method!==8)throw new Error('unsupported zip compression method '+method);
   if(typeof DecompressionStream==='undefined')throw new Error('this browser cannot decompress the syllabus file (no DecompressionStream)');
   const ds=new DecompressionStream('deflate-raw');
-  const w=ds.writable.getWriter();w.write(bytes);w.close();
+  // Not awaited (the reader below drains it), but caught: a corrupt member rejects these too, and the
+  // read loop already reports that failure.
+  const w=ds.writable.getWriter();w.write(bytes).catch(()=>{});w.close().catch(()=>{});
   const chunks=[];const r=ds.readable.getReader();
   for(;;){const{done,value}=await r.read();if(done)break;chunks.push(value)}
   let len=0;chunks.forEach(c=>len+=c.length);
@@ -132,7 +135,9 @@ function sylSheetRows(xml,shared){
 /* ---------------- values ---------------- */
 const SYL_EPOCH=Date.UTC(1899,11,30); // Excel serial 1 = 1900-01-01, plus the 1900 leap-year bug
 function sylSerialToIso(n){
-  const d=new Date(SYL_EPOCH+Math.round(n)*864e5);
+  // The integer part is the day; a fraction is the time of day. Rounding would push any date typed
+  // with an afternoon time onto the next day (the epsilon absorbs float noise just under a whole day).
+  const d=new Date(SYL_EPOCH+Math.floor(n+1e-6)*864e5);
   return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0');
 }
 function sylIsoDate(v){ // accepts an Excel serial, an ISO string, or M/D/YYYY
@@ -282,9 +287,16 @@ async function sylFeedRefresh(onDone){
     // No cache-buster in the URL: the service worker keys its cache by request, so a stable URL is
     // what lets an offline load fall back to the last copy. cache:'no-store' keeps the HTTP cache
     // from masking a spreadsheet that was just pushed.
-    const r=await fetch(SYL_FEED_URL,{cache:'no-store'});
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    const feed=await sylParseWorkbook(await r.arrayBuffer());
+    // Gives up after SYL_FEED_TIMEOUT. The service worker has its own shorter timeout, but before one is
+    // installed (a first visit) a connection that is up and silent would leave this waiting for minutes.
+    const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),SYL_FEED_TIMEOUT);
+    let buf;
+    try{const r=await fetch(SYL_FEED_URL,{cache:'no-store',signal:ctrl.signal});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      buf=await r.arrayBuffer()}
+    catch(e){throw (e&&e.name==='AbortError')?new Error('timed out'):e}
+    finally{clearTimeout(timer)}
+    const feed=await sylParseWorkbook(buf);
     if(!feed.entries.length)throw new Error('the workbook parsed but held no dated rows');
     _sylFeed=feed;
     try{localStorage.setItem(SYL_FEED_KEY,JSON.stringify(feed))}catch(e){}

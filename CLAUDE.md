@@ -121,6 +121,18 @@ A week pill's title is capped at **ten rendered lines** (`sylFitTitles`, `SYL_PI
 
 Verified headlessly (Chromium via Playwright against a local origin and an in-memory stand-in for Supabase — never the real one): relaunch in lie-fi goes from a stall past the test's 25s limit to ~0.3s; two devices editing the same records with one offline converge on the merge on both devices and on the server; a v14.3 device upgrades itself to this. For Playwright to route requests made *inside* the service worker, set `PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS=1`, or they bypass `context.route` and the fonts look broken when they are not.
 
+## Review fixes (v14.5)
+- **A class that leaves the workbook takes its hand-added entries out of its colour slot.** `sylRealignCats()` sets such an entry's `cat` to `past:<alias>` (no class, none of the live kinds), so it reads as Custom from a past term instead of being filed under whichever new class took the same slot, and the Retired Classes sweep finds it. The alias is kept, and if it reappears the entry is re-filed. Only ever run against a loaded workbook.
+- **The Retired Classes sweep needs the workbook loaded for both of its tests**, not just the date one: with no classes known, every live class tag would read as retired.
+- **The profile push-back after a star merge fires when the server lacks part of the merged map** (`applyProfile`), not when this device gained something — a star made before a device's first pull was otherwise settled unsent.
+- **User text is escaped at every render point** (`escHtml`/`escAttr`; `jsArg` for a string passed from an inline handler). A `"` in an event name broke the chip's attributes; a `<script>` in a task name swallowed the rest of the Week tab.
+- **Inline editors settle once**: Chromium fires `blur` when the re-render removes the focused field, so Escape must mark the edit over before rendering or the blur saves it anyway.
+- **The workbook is not part of the atomic shell precache** in `sw.js`: a missing `syllabus.xlsx` must never fail the install and strand devices on old code.
+- Add forms (`data-keep`) and toggled panels (`_uiOpen`) survive `render()`; an event whose end date is not after its start reads as one day (`evtEndDate`).
+
+## The way across to Bodhi Precepts (v14.6)
+The Week tab opens with a link to the **Bodhi Precepts** app (`PRECEPTS_URL`, `https://bodhi-precepts.pages.dev/` — the `arlov-commits/bodhi_precepts` repo), beside the legend in `.week-top`. It is **one-way by request**: the Precepts app carries no link back, so do not add one there. It is a **plain `<a target="_blank" rel="noopener">`, deliberately**: an installed copy takes the tap itself — Android hands a link inside an installed app's scope to that app, and a desktop install does when "Open supported links" is on for it — and anywhere else it opens the site. No JS detection: a page cannot see whether another origin's app is installed without that app publishing an assetlinks relation, and nothing here needs it. The seal is the Precepts app's own icon inlined (`PRECEPTS_SEAL`), so it needs no request and draws offline; it is its own ground, so it reads the same on every theme.
+
 ## Deploy workflow (NON-NEGOTIABLE)
 - **Never commit directly to `main`.** A live user depends on `main`.
 - Work on a branch. Push the branch → Cloudflare builds a **preview URL** automatically.
@@ -130,7 +142,7 @@ Verified headlessly (Chromium via Playwright against a local origin and an in-me
 
 ## Versioning
 - Version lives as an HTML comment on line 1: `<!-- Academic Planner vX.Y -->`, and in a visible `.version-label` in the header, and in the service worker `CACHE_NAME`.
-- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v14.4. All three locations must match.
+- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v14.6. All three locations must match.
 - Bumping the SW `CACHE_NAME` every change is required or installed devices serve stale code.
 
 ## Architecture rules (hard-won — do not violate)

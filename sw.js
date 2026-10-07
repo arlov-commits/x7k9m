@@ -1,4 +1,4 @@
-const CACHE_NAME = 'academic-planner-v14.4';
+const CACHE_NAME = 'academic-planner-v14.6';
 /* Opening the app must never wait on the network (v14.4). Before this, every request was
    network-first with no timeout, so on a connection that is up but carries nothing — one bar,
    a wifi network with no internet behind it, a captive portal — the page request simply hung, and
@@ -30,9 +30,14 @@ const abs = p => new URL(p, self.registration.scope).href;
 
 self.addEventListener('install', e => {
   // cache:'reload' so the precache is taken from the network, never from a stale HTTP cache entry.
+  // The shell is one atomic set. The workbook is precached alongside it but OUTSIDE that set: it is the
+  // user's upload, not code, and a missing or renamed one must not fail the install — that would strand
+  // every installed device on the old code. The page keeps its own parsed copy of the feed anyway.
   e.waitUntil(
     caches.open(CACHE_NAME)
-      .then(c => c.addAll([...SHELL, FEED].map(p => new Request(p, { cache: 'reload' }))))
+      .then(c => c.addAll(SHELL.map(p => new Request(p, { cache: 'reload' })))
+        .then(() => fetchWithin(new Request(FEED, { cache: 'reload' }), NET_TIMEOUT)
+          .then(r => { if (r.ok) return c.put(FEED, r); }).catch(() => {})))
       .then(() => self.skipWaiting())
   );
 });

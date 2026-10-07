@@ -30,7 +30,8 @@ function parseCSV(text){
   if(f!==''||row.length){row.push(f);rows.push(row)}
   return rows.filter(r=>r.some(x=>x.trim()!==''));
 }
-const iso=us=>{const[m,d,y]=us.split('/');return y+'-'+m+'-'+d};
+// Padded, so an export that writes 8/13/2026 still yields the 2026-08-13 keys the app looks up.
+const iso=us=>{const[m,d,y]=us.split('/');return y+'-'+m.padStart(2,'0')+'-'+d.padStart(2,'0')};
 
 /* ---------------- Abhayagiri ---------------- */
 const ab=parseCSV(fs.readFileSync(AB,'utf8')).slice(1);

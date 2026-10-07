@@ -1,4 +1,4 @@
-<!-- Academic Planner v14.4 -->
+<!-- Academic Planner v14.6 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -224,6 +224,20 @@ mark.find-hit.cur{background:var(--warning);color:var(--bg);box-shadow:0 0 0 2px
 .legend-item{display:flex;align-items:center;gap:6px;font-size:var(--fs-xs);font-weight:600;color:var(--text-dim)}
 .legend-dot{width:10px;height:10px;border-radius:var(--r-s)}
 .legend-dot.life{background:var(--accent-life)}.legend-dot.events{background:var(--warning)}.legend-dot.custom{background:var(--text-muted)}
+/* The way across to the Bodhi Precepts app (v14.6), at the top of the Week tab beside the legend. It is
+   a plain link: an installed copy takes the tap itself (Android hands a link inside an installed app's
+   scope to that app; a desktop install does when "Open supported links" is on for it), and anywhere
+   else it simply opens the site. The seal is the Precepts app's own icon, inlined so it needs no
+   request and draws offline; it is its own ground, so it reads the same on every theme. */
+.week-top{display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.week-top .legend{margin-bottom:0}
+.app-jump{margin-left:auto;display:inline-flex;align-items:center;gap:8px;padding:6px 12px 6px 7px;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-m);color:var(--text-dim);
+  font-family:var(--font-sans);font-size:var(--fs-xs);font-weight:600;text-decoration:none;white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;transition:color var(--t-fast) var(--ease),border-color var(--t-fast) var(--ease)}
+.app-jump:hover{color:var(--text);border-color:var(--text-dim)}
+.app-jump svg{width:22px;height:22px;flex-shrink:0;display:block}
+.app-jump .app-jump-arrow{font-size:var(--fs-2xs);opacity:.6}
 .hide-day-btn{font-size:var(--fs-2xs);padding:1px 5px;border:1px solid var(--border);border-radius:var(--r-s);background:var(--surface2);color:var(--text-muted);cursor:pointer;margin-top:2px;opacity:.5;transition:opacity var(--t-fast) var(--ease)}.hide-day-btn:hover{opacity:1}
 .expand-week-btn{font-size:var(--fs-2xs);padding:1px 6px;border:1px solid var(--border);border-radius:var(--r-s);background:var(--surface2);color:var(--text-muted);cursor:pointer;margin-left:8px;opacity:.6;transition:opacity var(--t-fast) var(--ease)}.expand-week-btn:hover{opacity:1}
 /* The per-week hide sits at the far end of the header so it is never confused with the "N hidden"
@@ -1112,7 +1126,7 @@ a.syl-meta-tag.link{color:var(--text-dim);text-decoration:none}a.syl-meta-tag.li
 <div class="modal-overlay" id="addModal"><div class="modal"><button class="modal-x" onclick="this.closest('.modal-overlay').classList.remove('open')" aria-label="Close"><span class="mi" style="--ic:var(--ic-x)"></span></button><h3>Add</h3><label>Name</label><input id="aName" type="text"/><label>Category</label><select id="aCat" onchange="toggleAddFields()"></select><div id="aTimeRow"><label id="aTimeLabel">Time</label><input id="aTime" type="time"/></div><div id="aEvtFields" style="display:none"><label>Start Date</label><input id="aEvtDate" type="date" onchange="edStartChange('aEvtDate','aEvtEndDate')"/><label>Start Time</label><input id="aEvtStartTime" type="time"/><label>End Date (optional)</label><input id="aEvtEndDate" type="date" onfocus="edEndFocus('aEvtDate','aEvtEndDate')" onchange="edEndChange('aEvtEndDate')"/><label>End Time (optional)</label><input id="aEvtEndTime" type="time"/><label>Location (optional)</label><input id="aEvtLoc" type="text"/><div style="margin-top:8px"><label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="aEvtAllDay"/> All day event</label></div></div><div id="aSylRow" style="display:none"><label>Type</label><select id="aSylType"><option value="reading">Reading</option><option value="paper">Paper</option><option value="exam">Exam</option><option value="presentation">Presentation</option><option value="note">Note</option><option value="custom">Custom</option></select><label>Description (optional)</label><textarea id="aSylDetail" placeholder="'- ' for bullets, '+ ' for sub-bullets"></textarea></div><div id="aPriRow"><label>Priority</label><div class="pri-toggle" id="aPriToggle" onclick="toggleAddPri()"><span class="pri-option active" data-val="normal">Normal</span><span class="pri-option" data-val="high">High</span></div><input type="hidden" id="aPri" value="normal"/></div><div class="modal-btns"><button class="btn btn-quiet" id="aCanc">Cancel</button><button class="btn btn-primary" id="aSave">Add</button></div></div></div>
 
 <!-- Syllabus edit modal -->
-<div class="modal-overlay" id="sylModal"><div class="modal"><button class="modal-x" onclick="this.closest('.modal-overlay').classList.remove('open')" aria-label="Close"><span class="mi" style="--ic:var(--ic-x)"></span></button><h3 id="sylModalTitle">Edit Syllabus Entry</h3><label>Title</label><input id="sTitle" type="text"/><label>Detail</label><textarea id="sDetail" style="width:100%;min-height:60px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-sans);font-size:var(--fs-s);padding:6px 9px;border-radius:var(--r-s);resize:vertical"></textarea><label>Class</label><select id="sCat"></select><label>Type</label><select id="sType"><option value="reading">Reading</option><option value="paper">Paper</option><option value="exam">Exam</option><option value="presentation">Presentation</option><option value="custom">Custom</option></select><label>Due Date</label><input id="sDue" type="date" onchange="edStartChange('sDue','sDueEnd');var _se=document.getElementById('sDueEnd');if(this.value)_se.min=this.value"/><label>Due Time (optional)</label><input id="sDueTime" type="time" style="width:120px"/><label>Progress</label><button class="btn btn-quiet" id="sProgBtn" type="button" style="width:100%" onclick="openProgEdit(editSylId)">Set progress…</button><label>End Date (multi-day)</label><input id="sDueEnd" type="date" onfocus="edEndFocus('sDue','sDueEnd')" onchange="edEndChange('sDueEnd')"/><div class="modal-btns"><button class="btn btn-danger" id="sDel">Delete</button><button class="btn btn-quiet" id="sCanc">Cancel</button><button class="btn btn-primary" id="sSave">Save</button></div></div></div>
+<div class="modal-overlay" id="sylModal"><div class="modal"><button class="modal-x" onclick="this.closest('.modal-overlay').classList.remove('open')" aria-label="Close"><span class="mi" style="--ic:var(--ic-x)"></span></button><h3 id="sylModalTitle">Edit Syllabus Entry</h3><label>Title</label><input id="sTitle" type="text"/><label>Detail</label><textarea id="sDetail" style="width:100%;min-height:60px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-sans);font-size:var(--fs-s);padding:6px 9px;border-radius:var(--r-s);resize:vertical"></textarea><label>Class</label><select id="sCat"></select><label>Type</label><select id="sType"><option value="reading">Reading</option><option value="paper">Paper</option><option value="exam">Exam</option><option value="presentation">Presentation</option><option value="note">Note</option><option value="custom">Custom</option></select><label>Due Date</label><input id="sDue" type="date" onchange="edStartChange('sDue','sDueEnd');var _se=document.getElementById('sDueEnd');if(this.value)_se.min=this.value"/><label>Due Time (optional)</label><input id="sDueTime" type="time" style="width:120px"/><label>Progress</label><button class="btn btn-quiet" id="sProgBtn" type="button" style="width:100%" onclick="openProgEdit(editSylId)">Set progress…</button><label id="sDueEndLbl">End Date (multi-day)</label><input id="sDueEnd" type="date" onfocus="edEndFocus('sDue','sDueEnd')" onchange="edEndChange('sDueEnd')"/><div class="modal-btns"><button class="btn btn-danger" id="sDel">Delete</button><button class="btn btn-quiet" id="sCanc">Cancel</button><button class="btn btn-primary" id="sSave">Save</button></div></div></div>
 
 <!-- Event edit modal -->
 <div class="modal-overlay" id="evtModal"><div class="modal"><button class="modal-x" onclick="this.closest('.modal-overlay').classList.remove('open')" aria-label="Close"><span class="mi" style="--ic:var(--ic-x)"></span></button><h3 id="evtModalTitle">Edit Event</h3><label>Name</label><input id="eName" type="text"/><label>Start Date</label><input id="eDate" type="date" onchange="edStartChange('eDate','eEndDate')"/><label>Start Time</label><input id="eStart" type="time"/><label>End Date (for multi-day)</label><input id="eEndDate" type="date" onfocus="edEndFocus('eDate','eEndDate')" onchange="edEndChange('eEndDate')"/><label>End Time</label><input id="eEnd" type="time"/><label>Location</label><input id="eLoc" type="text"/><div style="margin-top:8px"><label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="eAllDay"/> All day event</label></div><div class="modal-btns"><button class="btn btn-danger" id="eDel">Delete</button><button class="btn btn-quiet" id="eCanc">Cancel</button><button class="btn btn-primary" id="eSave">Save</button></div></div></div>
@@ -1348,10 +1362,10 @@ async function pushQueue(){if(_flushing||!navigator.onLine)return;_flushing=true
 function flushQueue(){if(!navigator.onLine)return Promise.resolve();if(_needPull||_syncing)return syncPullAndMerge(true);return pushQueue()}
 // Best-effort push on page hide; remaining ops are re-sent (idempotently) on next load.
 function flushQueueBeacon(){if(!navigator.onLine||_needPull)return;loadQueue().forEach(op=>{try{if(op.op==='upsert')fetch(SB_URL+'/rest/v1/'+op.table,{method:'POST',headers:{...SB_HEADERS,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:String(op.id),data:op.data}),keepalive:true});else if(op.op==='delete')fetch(SB_URL+'/rest/v1/'+op.table+'?id=eq.'+encodeURIComponent(String(op.id)),{method:'PATCH',headers:{...SB_HEADERS,'Prefer':'return=minimal'},body:JSON.stringify({deleted_at:new Date().toISOString()}),keepalive:true});else if(op.op==='profile'){const data={};PROFILE_FIELDS.forEach(k=>{data[k]=state[k]});fetch(SB_URL+'/rest/v1/profile',{method:'POST',headers:{...SB_HEADERS,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:'default',data}),keepalive:true})}}catch(e){}})}
-let connState='online';
+let connState='online',_errRetry=null;
 function updateConn(s){connState=s;updateCombo()}
 function updateSI(){updateCombo()}
-function updateCombo(){const el=document.getElementById('comboStatus');const tx=document.getElementById('comboText');if(!el||!tx)return;if(saveStatus==='saving'){el.className='combined-status saving';tx.textContent='saving\u2026'}else if(saveStatus==='error'){el.className='combined-status error';tx.textContent='save failed';setTimeout(()=>flushQueue(),5000)}else if(!navigator.onLine||connState==='offline'){el.className='combined-status offline';const t=lastSaveTime?lastSaveTime.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'';tx.textContent='offline'+(t?' · '+t:'')}else if(connState==='syncing'){el.className='combined-status syncing';tx.textContent='syncing\u2026'}else{el.className='combined-status saved-online';const t=lastSaveTime?lastSaveTime.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'';tx.textContent=t?'saved '+t:'saved'}}
+function updateCombo(){const el=document.getElementById('comboStatus');const tx=document.getElementById('comboText');if(!el||!tx)return;if(saveStatus==='saving'){el.className='combined-status saving';tx.textContent='saving\u2026'}else if(saveStatus==='error'){el.className='combined-status error';tx.textContent='save failed';if(!_errRetry)_errRetry=setTimeout(()=>{_errRetry=null;flushQueue()},5000)}else if(!navigator.onLine||connState==='offline'){el.className='combined-status offline';const t=lastSaveTime?lastSaveTime.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'';tx.textContent='offline'+(t?' · '+t:'')}else if(connState==='syncing'){el.className='combined-status syncing';tx.textContent='syncing\u2026'}else{el.className='combined-status saved-online';const t=lastSaveTime?lastSaveTime.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'';tx.textContent=t?'saved '+t:'saved'}}
 async function loadState(){
 let localData=null;
 try{const raw=localStorage.getItem(SKEY);if(raw)localData=JSON.parse(raw)}catch(e){}
@@ -1475,7 +1489,12 @@ function applyProfile(d){markProfilePulled();
   for(const [key,atKey] of Object.entries(PROFILE_MERGED)){
     const m=mergeStamped(state[key],state[atKey],data[key],data[atKey]);
     if(stableStringify(m.val)!==stableStringify(state[key]||{})||stableStringify(m.at)!==stableStringify(state[atKey]||{})){
-      state[key]=m.val;state[atKey]=m.at;changed=true;_profileMerged=true}
+      state[key]=m.val;state[atKey]=m.at;changed=true}
+    // What decides a push-back is whether the SERVER is missing something, not whether this device
+    // gained something: a star made here before this device ever pulled is already in our map, so the
+    // merge leaves our side unchanged — and the snapshot rebuilt after the pull would then settle it
+    // unsent, for good. Once the row matches, this is false and the round trip stops.
+    if(stableStringify(m.val)!==stableStringify(data[key]||{})||stableStringify(m.at)!==stableStringify(data[atKey]||{}))_profileMerged=true;
   }
   // The true singletons — one term, one timezone, one nav layout — take the later write FIELD by
   // field (v14.4). A pending local push no longer wins wholesale: it carries its own stamps for what
@@ -1586,13 +1605,16 @@ function render(){
   // their place in the layout, and only their contents are rewritten.
   document.getElementById('sideNav').innerHTML=`<div class="sidenav-title">Planner</div>${NAV_SLOTS.map(sl=>slotBtn('nav-item',sl)).join('')}`;
   document.getElementById('bottomNav').innerHTML=NAV_SLOTS.map(sl=>slotBtn('bn-item',sl)).join('');
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v14.4</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
+  // Half-typed add forms survive the repaint: render() is also run by background syncs, and a field
+// that has lost focus is no longer protected by isUserEditing().
+  const _keep={};document.querySelectorAll('#app [data-keep]').forEach(el=>{_keep[el.id]=el.type==='checkbox'?el.checked:el.value});
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v14.6</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;for(const id in _keep){const el=document.getElementById(id);if(el){if(el.type==='checkbox')el.checked=_keep[id];else el.value=_keep[id]}}FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
 function dashUndoUnstar(){if(_dashUndo===null)return;const s=sylFind(_dashUndo);if(s){if(s.feed)sylSetMark(_dashUndo,'highlighted',true);else s.highlighted=true}if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndo=null;_dashUndoTimer=null;render();scheduleSave()}
 function renderDash(){
-  const hl=sylAll().filter(s=>s.highlighted&&!s.done).sort((a,b)=>a.due.localeCompare(b.due));
+  const hl=sylDated().filter(s=>s.highlighted&&!s.done).sort((a,b)=>a.due.localeCompare(b.due));
   // The spreadsheet's classes, in its own sheet order, and then whatever the user filed by hand.
   const cats=sylClasses().map(c=>c.cat).concat(['custom']);
   // Grouped by what each entry *reads* as, so a starred entry tagged by a term that has ended lands
@@ -1606,13 +1628,18 @@ function renderDash(){
   const mx=Math.max(...activeCats.map(c=>groups[c].length));
   h+=`<div class="life-header"><span class="life-title">Dashboard</span><span class="legend-hint">${hl.length} highlighted</span></div>`;
   h+=`<div class="dash-table"><div class="dash-col-hdrs" style="display:grid;grid-template-columns:${gc};gap:8px">${activeCats.map(c=>`<div class="dash-col-hdr ${catClass(c)}">${escHtml(catName(c))}</div>`).join('')}</div>`;
-  for(let r=0;r<mx;r++){h+=`<div class="dash-grid-row" style="display:grid;grid-template-columns:${gc};gap:8px;margin-top:6px">`;activeCats.forEach(c=>{const s=groups[c][r];if(!s){h+=`<div class="dash-cell dash-cell-empty"></div>`;return}const dd=parseDate(s.due),dl=daysBetween(TODAY,dd),uc=dl<0?'past':dl===0?'today':dl<=3?'urgent':dl<=7?'soon':'ok',ds=dl<0?Math.abs(dl)+'d ago':dl===0?'TODAY':dl+'d';h+=`<div class="dash-cell${uc==='past'?' dash-past':''}" onclick="this.classList.toggle('dc-active')"><button class="dc-close" onclick="event.stopPropagation();dashUnstar(${s.id})" title="Un-highlight"><span class="mi" style="--ic:var(--ic-x)"></span></button><div class="dc-title">${escHtml(s.title)}</div><div class="dc-due">${fmtDate(dd)}</div><div class="days dc-days ${uc}">${ds}</div><span class="dc-tag" style="background:var(--accent-${c}-dim,var(--surface3));color:var(--accent-${c},var(--text-dim))">${s.type}</span></div>`});h+='</div>'}
+  for(let r=0;r<mx;r++){h+=`<div class="dash-grid-row" style="display:grid;grid-template-columns:${gc};gap:8px;margin-top:6px">`;activeCats.forEach(c=>{const s=groups[c][r];if(!s){h+=`<div class="dash-cell dash-cell-empty"></div>`;return}const dd=parseDate(s.due),dl=daysBetween(TODAY,dd),uc=dl<0?'past':dl===0?'today':dl<=3?'urgent':dl<=7?'soon':'ok',ds=dl<0?Math.abs(dl)+'d ago':dl===0?'TODAY':dl+'d';h+=`<div class="dash-cell${uc==='past'?' dash-past':''}" onclick="this.classList.toggle('dc-active')"><button class="dc-close" onclick="event.stopPropagation();dashUnstar(${s.id})" title="Un-highlight"><span class="mi" style="--ic:var(--ic-x)"></span></button><div class="dc-title">${escHtml(s.title)}</div><div class="dc-due">${fmtDate(dd)}</div><div class="days dc-days ${uc}">${ds}</div><span class="dc-tag" style="background:var(--accent-${c}-dim,var(--surface3));color:var(--accent-${c},var(--text-dim))">${escHtml(s.type)}</span></div>`});h+='</div>'}
   h+='</div>';return h}
 
+// Where the Bodhi Precepts app lives (arlov-commits/bodhi_precepts on Cloudflare Pages). One-way on
+// purpose: the Precepts app carries no link back.
+const PRECEPTS_URL='https://bodhi-precepts.pages.dev/';
+const PRECEPTS_SEAL='<svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#96231D"/><circle cx="30" cy="34" r="20.5" fill="#F8F4EC"/><circle cx="44.5" cy="27" r="19.5" fill="#96231D"/><path fill="#F8F4EC" d="M46.5,10.5Q47.9,16.1 53.5,17.5Q47.9,18.9 46.5,24.5Q45.1,18.9 39.5,17.5Q45.1,16.1 46.5,10.5z"/></svg>';
+function preceptsLinkHtml(){return`<a class="app-jump" href="${PRECEPTS_URL}" target="_blank" rel="noopener" title="Open the Bodhi Precepts app (or its site, where it is not installed)">${PRECEPTS_SEAL}<span>Bodhi Precepts</span><span class="app-jump-arrow" aria-hidden="true">↗</span></a>`}
 function renderSprints(){const weeks=generateWeeks();const bankTasks=state.lifeTasks.filter(t=>t.inBank&&!t.done&&!state.tasks.some(s=>s.lifeSourceId===t.id));
 // The legend follows the feed: one entry per class the spreadsheet defines, in its sheet order.
-let h=`<div class="legend">${sylClasses().map(c=>`<div class="legend-item"><span class="legend-dot ${c.cat}"></span>${escHtml(c.alias)}</div>`).join('')}<div class="legend-item"><span class="legend-dot events"></span>Events</div><div class="legend-item"><span class="legend-dot life"></span>Tasks</div></div>`;
-if(bankTasks.length||allocatingId){h+=`<div class="task-bank"><div class="task-bank-title">Task Bank${allocatingId?' — click a day to place':''}</div><div class="bank-items">`;if(!bankTasks.length)h+=`<span class="bank-empty">All placed. Send more from Tasks tab.</span>`;bankTasks.forEach(t=>{const isA=allocatingId===t.id;h+=`<div class="bank-chip ${isA?'allocating':''}">${t.name}<button class="bank-btn alloc" onclick="startAllocate(${t.id})" title="Place on a day"><span class="mi mi-flip" style="--ic:var(--ic-up)"></span></button><button class="bank-btn done-btn" onclick="bankComplete(${t.id})" title="Done"><span class="mi" style="--ic:var(--ic-check)"></span></button><button class="bank-btn remove-btn" onclick="bankRemove(${t.id})" title="Remove"><span class="mi" style="--ic:var(--ic-x)"></span></button></div>`});h+=`</div></div>`}
+let h=`<div class="week-top"><div class="legend">${sylClasses().map(c=>`<div class="legend-item"><span class="legend-dot ${c.cat}"></span>${escHtml(c.alias)}</div>`).join('')}<div class="legend-item"><span class="legend-dot events"></span>Events</div><div class="legend-item"><span class="legend-dot life"></span>Tasks</div></div>${preceptsLinkHtml()}</div>`;
+if(bankTasks.length||allocatingId){h+=`<div class="task-bank"><div class="task-bank-title">Task Bank${allocatingId?' — click a day to place':''}</div><div class="bank-items">`;if(!bankTasks.length)h+=`<span class="bank-empty">All placed. Send more from Tasks tab.</span>`;bankTasks.forEach(t=>{const isA=allocatingId===t.id;h+=`<div class="bank-chip ${isA?'allocating':''}">${escHtml(t.name)}<button class="bank-btn alloc" onclick="startAllocate(${t.id})" title="Place on a day"><span class="mi mi-flip" style="--ic:var(--ic-up)"></span></button><button class="bank-btn done-btn" onclick="bankComplete(${t.id})" title="Done"><span class="mi" style="--ic:var(--ic-check)"></span></button><button class="bank-btn remove-btn" onclick="bankRemove(${t.id})" title="Remove"><span class="mi" style="--ic:var(--ic-x)"></span></button></div>`});h+=`</div></div>`}
 const sel=almWeekSelection();
 if(sel.collapsedCount>0)h+=`<div style="margin-bottom:12px"><button class="expand-week-btn" onclick="expandAllPastWeeks()" style="font-size:var(--fs-2xs);padding:3px 10px">▼ ${sel.collapsedCount} past week${sel.collapsedCount>1?'s':''} (show)</button></div>`;
 
@@ -2284,8 +2311,12 @@ function scroller(){return document.getElementById('scroll')}
 const FIND_MAX=400;
 let _find={open:false,q:'',hits:[],i:-1,tabCounts:{},all:false};
 function findFold(str){let out='';
+  // Each code point folds to exactly as many UTF-16 units as it had: an emoji is two, and taking
+  // only the first of its folded units shifted every offset after it by one.
   for(const ch of str){const d=ch.normalize('NFD').replace(/[̀-ͯ]/g,'');
-    out+=(d[0]||ch).toLowerCase()}
+    let f=([...d][0]||ch).toLowerCase();
+    if(f.length!==ch.length){const l=ch.toLowerCase();f=l.length===ch.length?l:ch}
+    out+=f}
   return out}
 function findOpen(){const bar=document.getElementById('findBar');if(!bar)return;
   _find.open=true;bar.classList.add('open');
@@ -2332,12 +2363,18 @@ function findMark(q){const root=document.querySelector('.view.active');if(!root|
     for(const mk of made)hits.push(mk);
     if(hits.length>=FIND_MAX)break}
   return hits}
-// Counts matches per tab without touching the DOM — used for "all tabs" and for the counter.
+// Counts matches per tab without touching the DOM — used for "all tabs" and for the counter. Text node
+// by text node, skipping what the marker skips (option lists, scripts, form fields), so a count never
+// promises a match that stepping into the tab cannot find. The open tab's own count is what was marked.
+const FIND_COUNT_SKIP={SCRIPT:1,STYLE:1,TEXTAREA:1,SELECT:1,OPTION:1};
 function findTabCounts(q){const out={};if(!q)return out;const fq=findFold(q);
   document.querySelectorAll('.view').forEach((v,i)=>{const t=FIND_TABS[i];if(!t)return;
-    const folded=findFold(v.textContent||'');let n=0,from=0,idx;
-    while((idx=folded.indexOf(fq,from))!==-1){n++;from=idx+fq.length;if(n>=FIND_MAX)break}
+    let n=0;const w=document.createTreeWalker(v,NodeFilter.SHOW_TEXT,{acceptNode(nd){const p=nd.parentElement;
+      return(!p||FIND_COUNT_SKIP[p.tagName]||p.closest('select'))?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT}});
+    let nd;while(n<FIND_MAX&&(nd=w.nextNode())){const folded=findFold(nd.nodeValue||'');let from=0,idx;
+      while((idx=folded.indexOf(fq,from))!==-1){n++;from=idx+fq.length;if(n>=FIND_MAX)break}}
     if(n)out[t]=n});
+  if(_find.hits.length)out[state.activeTab]=_find.hits.length;else delete out[state.activeTab];
   return out}
 let FIND_TABS=[];   // filled by render(), in the order the .view elements are emitted
 function findRun(q,keepIndex){
@@ -2430,7 +2467,8 @@ document.addEventListener('keydown',e=>{
    run leaves a long pill, nothing worse. */
 const SYL_PILL_LINES=10;
 function sylMidTrunc(str,keep){
-  if(keep>=str.length)return str;
+  // Always a pair: callers destructure it, and a bare string would come apart into two letters.
+  if(keep>=str.length)return[str,''];
   const head=Math.ceil(keep*0.6),tail=keep-head;
   let a=str.slice(0,head),b=str.slice(str.length-tail);
   const ai=a.lastIndexOf(' ');if(ai>head*0.5)a=a.slice(0,ai);            // never cut mid-word
@@ -2452,7 +2490,8 @@ function sylFitTitles(){
     el.dataset.full=full;el.title=full;
     const put=k=>{const[a,b]=sylMidTrunc(full,k);el.textContent='';
       el.append(a+' ',Object.assign(document.createElement('span'),{className:'syl-cut',textContent:'[…]'}),' '+b)};
-    let lo=24,hi=full.length;                                  // lo is a length known to fit
+    // lo is a length known to fit; hi stops short of the whole title, which is known NOT to.
+    let lo=Math.min(24,full.length-1),hi=full.length-1;
     while(lo<hi){const mid=Math.ceil((lo+hi)/2);put(mid);
       if(el.getBoundingClientRect().height<=cap)lo=mid;else hi=mid-1}
     put(lo);
@@ -2702,7 +2741,7 @@ function almSwapTab(to){
 
 // The section is display:contents — its header and day rows are grid items of the shared
 // .weeks-grid, each pinned to the row the caller assigned it.
-function renderWeekSection(wk,visDays,alm,hdrRow){const isCur=TODAY>=wk.start&&TODAY<=wk.end,isSB=wk.start<=new Date(2026,3,11)&&wk.end>=new Date(2026,3,5),isPast=wk.end<TODAY;const badges=[];if(isCur)badges.push('<span class="week-badge current">This Week</span>');if(isSB)badges.push('<span class="week-badge break">Spring Break</span>');
+function renderWeekSection(wk,visDays,alm,hdrRow){const isCur=TODAY>=wk.start&&TODAY<=wk.end,isPast=wk.end<TODAY;const badges=[];if(isCur)badges.push('<span class="week-badge current">This Week</span>');
 // Count auto-hidden past days (before today in current week) that are not manually expanded
 const todayStr=isoDate(TODAY);const expandedPastDays=state.expandedPastDays||[];
 const manualHidden=wk.days.filter(d=>(state.hiddenDays||[]).includes(d.date)).length;
@@ -2717,7 +2756,7 @@ const dayEvts=getEventsForDate(day.date);const sylChips=getSylForDate(day.date);
 // Build unified sorted pill list
 const pills=[];
 const _now=new Date();
-dayEvts.forEach(ev=>{const et=ev.endTime||ev.startTime||'';let evPast=false;if(isT&&et){const[eh,em]=et.split(':').map(Number);evPast=_now.getHours()>eh||(_now.getHours()===eh&&_now.getMinutes()>=em)}else if(day.dateObj<TODAY)evPast=true;const dragAttr=ev.draggable?` draggable="true" ondragstart="dragEvtId=${ev.evtId};dragEvtAnchor='${ev.isStart?'start':'end'}';event.dataTransfer.setData('text/plain','evt:${ev.evtId}');event.dataTransfer.effectAllowed='move';this.classList.add('dragging')" ondragend="this.classList.remove('dragging')"`:'';const evtStyle=` style="background:var(--evt-${ev.colorN}-dim);color:var(--evt-${ev.colorN});border-color:var(--evt-${ev.colorN})"`;// A mirrored calendar event is drawn as its Season original: the tradition's emblem, the
+dayEvts.forEach(ev=>{const et=ev.endTime||ev.startTime||'';let evPast=false;if(isT&&et&&(!ev.isMulti||ev.isEnd)){const[eh,em]=et.split(':').map(Number);evPast=_now.getHours()>eh||(_now.getHours()===eh&&_now.getMinutes()>=em)}else if(day.dateObj<TODAY)evPast=true;const dragAttr=ev.draggable?` draggable="true" ondragstart="dragEvtId=${ev.evtId};dragEvtAnchor='${ev.isStart?'start':'end'}';event.dataTransfer.setData('text/plain','evt:${ev.evtId}');event.dataTransfer.effectAllowed='move';this.classList.add('dragging')" ondragend="this.classList.remove('dragging')"`:'';const evtStyle=` style="background:var(--evt-${ev.colorN}-dim);color:var(--evt-${ev.colorN});border-color:var(--evt-${ev.colorN})"`;// A mirrored calendar event is drawn as its Season original: the tradition's emblem, the
 // tradition's accent, and the outlined treatment if the original was an observance rather than a
 // scheduled gathering. It is its own kind of thing, not one of the numbered event colours.
 const calI=ev.calRef?calRefInfo(ev.calRef):null;const calS=calI?calI.S:null;
@@ -2728,7 +2767,7 @@ const calX=calS?`<button class="evt-cal-x" onclick="event.stopPropagation();calU
 // all-day event has no time to state, and on the later days of a multi-day run the start time has
 // already passed, so both show none.
 const evWhen=evtWhen(ev);
-pills.push({type:'evt',time:ev.startTime||'',html:`<span class="evt-chip${evPast?' evt-past':''}${calS?' evt-cal '+calS.cls+(calI.obs?' obs':''):''}${calS&&_calFlash===ev.calRef?' cal-flash':''}" data-tip="${ev.tip}" data-evt-id="${ev.evtId}"${dragAttr}${calStyle} onclick="event.stopPropagation();toggleEvtChipMenu(${ev.evtId},this)" ondblclick="event.stopPropagation();openEvtEdit(${ev.evtId})"><span class="mi" style="--ic:var(--ic-${calIco})"></span> <span class="evt-title">${ev.label}${evWhen?' <span class="pill-zone evt-when">'+evWhen+'</span>':''}</span>${calX}<span class="chip-acts"><button class="chip-btn" onclick="event.stopPropagation();openEvtEdit(${ev.evtId})" title="Edit"><span class="mi" style="--ic:var(--ic-edit)"></span></button><button class="chip-btn life-remove" onclick="event.stopPropagation();deleteEvent(${ev.evtId})" title="Delete"><span class="mi" style="--ic:var(--ic-x)"></span></button></span></span>`})});
+pills.push({type:'evt',time:ev.startTime||'',html:`<span class="evt-chip${evPast?' evt-past':''}${calS?' evt-cal '+calS.cls+(calI.obs?' obs':''):''}${calS&&_calFlash===ev.calRef?' cal-flash':''}" data-tip="${escAttr(ev.tip)}" data-evt-id="${ev.evtId}"${dragAttr}${calStyle} onclick="event.stopPropagation();toggleEvtChipMenu(${ev.evtId},this)" ondblclick="event.stopPropagation();openEvtEdit(${ev.evtId})"><span class="mi" style="--ic:var(--ic-${calIco})"></span> <span class="evt-title">${escHtml(ev.label)}${evWhen?' <span class="pill-zone evt-when">'+evWhen+'</span>':''}</span>${calX}<span class="chip-acts"><button class="chip-btn" onclick="event.stopPropagation();openEvtEdit(${ev.evtId})" title="Edit"><span class="mi" style="--ic:var(--ic-edit)"></span></button><button class="chip-btn life-remove" onclick="event.stopPropagation();deleteEvent(${ev.evtId})" title="Delete"><span class="mi" style="--ic:var(--ic-x)"></span></button></span></span>`})});
 sylChips.forEach(sc=>{const s=sc.entry;const sylTime=sc.dueTime||'09:00';const fmtSylTime=fmtPillTime(sylTime);
 // The title goes in its own element so the ten-line fitter can rewrite the text without touching
 // the multi-day counter that follows it.
@@ -2763,7 +2802,7 @@ else{acts=`<span class="chip-acts"><button class="chip-btn" onclick="event.stopP
 const _tip=catName(t.cat);
 const fmtChipTime=fmtPillTime(t.time);
 const _haloEnd=isoDate(new Date(TODAY.getTime()+7*864e5));const taskHalo=!t.done&&t.date>=isoDate(TODAY)&&t.date<=_haloEnd?' task-halo':'';
-return`<span class="chip ${catClass(t.cat)} ${t.priority==='high'?'high':''} ${t.done?'done':''}${taskHalo}" draggable="true" data-id="${t.id}" data-tip="${_tip}" onclick="event.stopPropagation();toggleChipMenu(${t.id},this)" ondblclick="event.stopPropagation();inlineEditChip(${t.id},this)" ondragstart="dragId=${t.id};event.dataTransfer.setData('text/plain','${t.id}');event.dataTransfer.effectAllowed='move';this.classList.add('dragging')" ondragend="this.classList.remove('dragging')">${t.priority==='high'?'<span class="mi" style="--ic:var(--ic-star);width:9px;height:9px;vertical-align:0"></span> ':''}${fmtChipTime?'<span class="t">'+fmtChipTime+'</span> ':''}${t.name}${acts}</span>`}
+return`<span class="chip ${catClass(t.cat)} ${t.priority==='high'?'high':''} ${t.done?'done':''}${taskHalo}" draggable="true" data-id="${t.id}" data-tip="${escAttr(_tip)}" onclick="event.stopPropagation();toggleChipMenu(${t.id},this)" ondblclick="event.stopPropagation();inlineEditChip(${t.id},this)" ondragstart="dragId=${t.id};event.dataTransfer.setData('text/plain','${t.id}');event.dataTransfer.effectAllowed='move';this.classList.add('dragging')" ondragend="this.classList.remove('dragging')">${t.priority==='high'?'<span class="mi" style="--ic:var(--ic-star);width:9px;height:9px;vertical-align:0"></span> ':''}${fmtChipTime?'<span class="t">'+fmtChipTime+'</span> ':''}${escHtml(t.name)}${acts}</span>`}
 
 function toggleChipMenu(id,el){const wasOpen=el.classList.contains('menu-open');document.querySelectorAll('.chip.menu-open').forEach(c=>{if(c!==el)c.classList.remove('menu-open')});el.classList.toggle('menu-open');if(!wasOpen){el.classList.add('menu-activating');setTimeout(()=>el.classList.remove('menu-activating'),250)}}
 document.addEventListener('click',e=>{if(!e.target.closest('.chip')&&!e.target.closest('.evt-chip')){document.querySelectorAll('.chip.menu-open,.evt-chip.menu-open').forEach(c=>c.classList.remove('menu-open'))}
@@ -2772,16 +2811,16 @@ let _lastTapTime=0,_lastTapEl=null;
 document.addEventListener('touchend',e=>{const now=Date.now();const chip=e.target.closest('.evt-chip');const taskChip=e.target.closest('.chip:not(.evt-chip):not(.syl-mirror)');const target=chip||taskChip;if(!target){_lastTapTime=0;_lastTapEl=null;return}if(target===_lastTapEl&&now-_lastTapTime<400){e.preventDefault();if(chip){const evtId=parseInt(chip.dataset.evtId);if(evtId)openEvtEdit(evtId)}else if(taskChip){const id=parseInt(taskChip.dataset.id);if(id)inlineEditChip(id,taskChip)}_lastTapTime=0;_lastTapEl=null}else{_lastTapTime=now;_lastTapEl=target}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){const pop=document.querySelector('.pop-scrim.open');if(pop){e.preventDefault();pop.classList.remove('open');return}const open=document.querySelector('.modal-overlay.open');if(open){e.preventDefault();open.classList.remove('open')}}});
 
-function renderLife(){const op=state.lifeTasks.filter(t=>!t.done),dn=state.lifeTasks.filter(t=>t.done);const cats={};op.forEach(t=>{const c=t.category||'General';if(!cats[c])cats[c]=[];cats[c].push(t)});Object.values(cats).forEach(a=>a.sort((a,b)=>(PRI_ORDER[a.priority]||3)-(PRI_ORDER[b.priority]||3)));
+function renderLife(){const op=state.lifeTasks.filter(t=>!t.done),dn=state.lifeTasks.filter(t=>t.done);const cats={};op.forEach(t=>{const c=t.category||'General';if(!cats[c])cats[c]=[];cats[c].push(t)});Object.values(cats).forEach(a=>a.sort((a,b)=>(PRI_ORDER[a.priority]??3)-(PRI_ORDER[b.priority]??3)));
 const catKeys=Object.keys(cats);const order=state.catOrder||[];const sortedCats=order.filter(c=>catKeys.includes(c)).concat(catKeys.filter(c=>!order.includes(c)));
-return`<div class="life-header"><span class="life-title">Tasks</span><span class="legend-hint">${op.length} open</span></div><div class="life-add-form"><input class="life-input" id="lifeNewName" value="${(_lifeAdd.name||'').replace(/"/g,'&quot;')}" oninput="_lifeAdd.name=this.value" placeholder="Task name" style="flex:2;min-width:120px"/>${(()=>{const allCats=[...new Set(state.lifeTasks.map(t=>t.category||'General'))];['General','Email','Projects','Income','Garden','Correspondence'].forEach(c=>{if(!allCats.includes(c))allCats.push(c)});return`<select class="life-select" id="lifeNewCat" onchange="_lifeAdd.cat=this.value">${allCats.sort().map(c=>`<option value="${c}"${_lifeAdd.cat===c?' selected':''}>${c}</option>`).join('')}<option value="__new__"${_lifeAdd.cat==='__new__'?' selected':''}>+ New category…</option></select>`})()}<select class="life-select" id="lifeNewPri" onchange="_lifeAdd.pri=this.value"><option value="high"${(_lifeAdd.pri===''||_lifeAdd.pri==='high')?' selected':''}>High</option><option value="med"${_lifeAdd.pri==='med'?' selected':''}>Medium</option><option value="low"${_lifeAdd.pri==='low'?' selected':''}>Low</option></select><input class="life-input" id="lifeNewDue" type="date" value="${_lifeAdd.due}" oninput="_lifeAdd.due=this.value" style="width:125px"/><button class="btn btn-quiet" onclick="addLifeTask()">+ Add</button></div>${sortedCats.map(c=>{const ec=c.replace(/'/g,"\\'").replace(/"/g,'&quot;');return`<div class="life-cat-group"><div class="life-cat-hdr" draggable="true" ondragstart="lifeCatDragStart(event,'${ec}')" ondragover="lifeCatDragOver(event)" ondragleave="lifeCatDragLeave(event)" ondrop="lifeCatDrop(event,'${ec}')" ondblclick="editCatName(this,'${ec}')">${c} (${cats[c].length})</div>${cats[c].map(t=>renderLifeItem(t,c)).join('')}</div>`}).join('')}${dn.length?`<div class="life-cat-group"><div class="life-cat-hdr" style="opacity:.7;display:flex;align-items:center;gap:8px">Completed (${dn.length})<button class="btn btn-quiet" onclick="event.stopPropagation();clearCompletedTasks()" style="font-size:var(--fs-2xs);opacity:.9;padding:2px 8px">Clear completed</button></div>${dn.map(t=>renderLifeItem(t,'')).join('')}</div>`:''}<div class="notes-box" style="margin-top:14px;border:1px dashed var(--accent-life)"><div class="notes-box-text" style="font-size:var(--fs-xs)"><strong style="color:var(--accent-life)">→</strong> Send to Week tab for scheduling</div></div>`}
+return`<div class="life-header"><span class="life-title">Tasks</span><span class="legend-hint">${op.length} open</span></div><div class="life-add-form"><input class="life-input" id="lifeNewName" value="${escAttr(_lifeAdd.name||'')}" oninput="_lifeAdd.name=this.value" placeholder="Task name" style="flex:2;min-width:120px"/>${(()=>{const allCats=[...new Set(state.lifeTasks.map(t=>t.category||'General'))];['General','Email','Projects','Income','Garden','Correspondence'].forEach(c=>{if(!allCats.includes(c))allCats.push(c)});return`<select class="life-select" id="lifeNewCat" onchange="_lifeAdd.cat=this.value">${allCats.sort().map(c=>`<option value="${escAttr(c)}"${_lifeAdd.cat===c?' selected':''}>${escHtml(c)}</option>`).join('')}<option value="__new__"${_lifeAdd.cat==='__new__'?' selected':''}>+ New category…</option></select>`})()}<select class="life-select" id="lifeNewPri" onchange="_lifeAdd.pri=this.value"><option value="high"${(_lifeAdd.pri===''||_lifeAdd.pri==='high')?' selected':''}>High</option><option value="med"${_lifeAdd.pri==='med'?' selected':''}>Medium</option><option value="low"${_lifeAdd.pri==='low'?' selected':''}>Low</option></select><input class="life-input" id="lifeNewDue" type="date" value="${_lifeAdd.due}" oninput="_lifeAdd.due=this.value" style="width:125px"/><button class="btn btn-quiet" onclick="addLifeTask()">+ Add</button></div>${sortedCats.map(c=>{const ec=jsArg(c);return`<div class="life-cat-group"><div class="life-cat-hdr" draggable="true" ondragstart="lifeCatDragStart(event,${ec})" ondragover="lifeCatDragOver(event)" ondragleave="lifeCatDragLeave(event)" ondrop="lifeCatDrop(event,${ec})" ondblclick="editCatName(this,${ec})">${escHtml(c)} (${cats[c].length})</div>${cats[c].map(t=>renderLifeItem(t,c)).join('')}</div>`}).join('')}${dn.length?`<div class="life-cat-group"><div class="life-cat-hdr" style="opacity:.7;display:flex;align-items:center;gap:8px">Completed (${dn.length})<button class="btn btn-quiet" onclick="event.stopPropagation();clearCompletedTasks()" style="font-size:var(--fs-2xs);opacity:.9;padding:2px 8px">Clear completed</button></div>${dn.map(t=>renderLifeItem(t,'')).join('')}</div>`:''}<div class="notes-box" style="margin-top:14px;border:1px dashed var(--accent-life)"><div class="notes-box-text" style="font-size:var(--fs-xs)"><strong style="color:var(--accent-life)">→</strong> Send to Week tab for scheduling</div></div>`}
 
 function renderLifeItem(t,cat){const ds=t.due?fmtDate(parseDate(t.due)):'';let dH='';if(t.due&&!t.done){const dl=daysBetween(TODAY,parseDate(t.due)),dc=dl<=3?'urgent':dl<=7?'soon':'ok';dH=`<span class="days li-days ${dc}">${dl<0?Math.abs(dl)+'d ago':dl===0?'today':dl+'d'}</span>`}
 const inSp=isInSprint(t.id);
 let sendBtn='<span></span>';
 if(!t.done){if(inSp){sendBtn=`<button class="li-send in-sprint" onclick="recallFromSprint(${t.id})" data-tip="Recall from Sprint"><span class="mi" style="--ic:var(--ic-up)"></span></button>`}else{sendBtn=`<button class="li-send" onclick="sendToBank(${t.id})" data-tip="Send to Sprint">→</button>`}}
-const ec=cat?cat.replace(/'/g,"\\'"):'';
-return`<div class="life-item ${t.done?'done-item':''}" draggable="true" ondragstart="lifeItemDragStart(event,${t.id},'${ec}')" ondragover="lifeItemDragOver(event)" ondragleave="lifeItemDragLeave(event)" ondrop="lifeItemDrop(event,${t.id},'${ec}')" ondragend="this.classList.remove('dragging')"><button class="li-check ${t.done?'checked':''}" onclick="toggleLifeDone(${t.id})">${t.done?'✓':''}</button><span class="li-name">${t.name}</span><span class="li-meta">${ds||''}</span>${dH}<span class="li-pri ${t.priority||'med'}">${(t.priority||'med').toUpperCase()}</span>${sendBtn}<span class="li-btns"><button class="btn-ghost xs" onclick="openLifeEdit(${t.id})"><span class="mi" style="--ic:var(--ic-edit)"></span></button><button class="btn-ghost xs del" onclick="deleteLifeTask(${t.id})"><span class="mi" style="--ic:var(--ic-x)"></span></button></span></div>`}
+const ec=jsArg(cat||'');
+return`<div class="life-item ${t.done?'done-item':''}" draggable="true" ondragstart="lifeItemDragStart(event,${t.id},${ec})" ondragover="lifeItemDragOver(event)" ondragleave="lifeItemDragLeave(event)" ondrop="lifeItemDrop(event,${t.id},${ec})" ondragend="this.classList.remove('dragging')"><button class="li-check ${t.done?'checked':''}" onclick="toggleLifeDone(${t.id})">${t.done?'✓':''}</button><span class="li-name">${escHtml(t.name)}</span><span class="li-meta">${ds||''}</span>${dH}<span class="li-pri ${t.priority||'med'}">${(t.priority||'med').toUpperCase()}</span>${sendBtn}<span class="li-btns"><button class="btn-ghost xs" onclick="openLifeEdit(${t.id})"><span class="mi" style="--ic:var(--ic-edit)"></span></button><button class="btn-ghost xs del" onclick="deleteLifeTask(${t.id})"><span class="mi" style="--ic:var(--ic-x)"></span></button></span></div>`}
 
 function renderNotes(){
 const notes=(state.notes||[]).slice();
@@ -2794,7 +2833,7 @@ notes.forEach((n,idx)=>{
 const ts=new Date(n.timestamp);const tStr=ts.toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'})+' '+ts.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
 const rows=Math.max(2,(n.text||'').split('\n').length+1);
 const isFirst=idx===0,isLast=idx===notes.length-1;
-const previewHtml=mdToHtml(n.text||'');h+=`<div class="note-entry" data-note-id="${n.id}"><div class="note-hdr"><button class="btn-ghost xs note-move" onclick="moveNote(${n.id},-1)" title="Move up"${isFirst?' disabled':''}><span class="mi" style="--ic:var(--ic-up)"></span></button><button class="btn-ghost xs note-move" onclick="moveNote(${n.id},1)" title="Move down"${isLast?' disabled':''}><span class="mi mi-flip" style="--ic:var(--ic-up)"></span></button><input class="note-title-input" value="${(n.title||'').replace(/"/g,'&quot;')}" placeholder="Untitled" oninput="updateNoteTitle(${n.id},this.value)"/><span class="note-ts">${tStr}</span><button class="btn-ghost xs del note-del" onclick="deleteNote(${n.id})"><span class="mi" style="--ic:var(--ic-x)"></span></button></div><div class="note-body"><textarea class="note-text" id="nt-${n.id}" rows="${rows}" inputmode="text" oninput="updateNote(${n.id},this.value);updateNotePreview(${n.id},this.value);this.style.height='auto';this.style.height=(this.scrollHeight+16)+'px'" onfocus="notesCursor.id=${n.id};showNoteEdit(${n.id})" onblur="notesCursor.sel=[this.selectionStart,this.selectionEnd];notesCursor.scroll=this.scrollTop;setTimeout(()=>showNotePreview(${n.id}),150)" style="display:none">${n.text||''}</textarea><div id="np-${n.id}" class="note-preview" onclick="showNoteEdit(${n.id})">${previewHtml||'<span style="opacity:.35;font-style:italic;font-size:var(--fs-xs)">click to edit</span>'}</div><div class="note-resize-btns"><button class="btn btn-quiet note-resize-btn" onclick="showNoteEdit(${n.id});resizeNote('nt-${n.id}','expand')" title="Expand">⤓</button><button class="btn btn-quiet note-resize-btn" onclick="showNoteEdit(${n.id});resizeNote('nt-${n.id}','collapse')" title="Collapse">⤒</button></div></div></div>`});
+const previewHtml=mdToHtml(n.text||'');h+=`<div class="note-entry" data-note-id="${n.id}"><div class="note-hdr"><button class="btn-ghost xs note-move" onclick="moveNote(${n.id},-1)" title="Move up"${isFirst?' disabled':''}><span class="mi" style="--ic:var(--ic-up)"></span></button><button class="btn-ghost xs note-move" onclick="moveNote(${n.id},1)" title="Move down"${isLast?' disabled':''}><span class="mi mi-flip" style="--ic:var(--ic-up)"></span></button><input class="note-title-input" value="${escAttr(n.title||'')}" placeholder="Untitled" oninput="updateNoteTitle(${n.id},this.value)"/><span class="note-ts">${tStr}</span><button class="btn-ghost xs del note-del" onclick="deleteNote(${n.id})"><span class="mi" style="--ic:var(--ic-x)"></span></button></div><div class="note-body"><textarea class="note-text" id="nt-${n.id}" rows="${rows}" inputmode="text" oninput="updateNote(${n.id},this.value);updateNotePreview(${n.id},this.value);this.style.height='auto';this.style.height=(this.scrollHeight+16)+'px'" onfocus="notesCursor.id=${n.id};showNoteEdit(${n.id})" onblur="notesCursor.sel=[this.selectionStart,this.selectionEnd];notesCursor.scroll=this.scrollTop;setTimeout(()=>showNotePreview(${n.id}),150)" style="display:none">${escHtml(n.text||'')}</textarea><div id="np-${n.id}" class="note-preview" onclick="showNoteEdit(${n.id})">${previewHtml||'<span style="opacity:.35;font-style:italic;font-size:var(--fs-xs)">click to edit</span>'}</div><div class="note-resize-btns"><button class="btn btn-quiet note-resize-btn" onclick="showNoteEdit(${n.id});resizeNote('nt-${n.id}','expand')" title="Expand">⤓</button><button class="btn btn-quiet note-resize-btn" onclick="showNoteEdit(${n.id});resizeNote('nt-${n.id}','collapse')" title="Collapse">⤒</button></div></div></div>`});
 return h}
 
 function renderEvents(){
@@ -2805,7 +2844,7 @@ function evtTimePast(e){const ed=e.endDate||e.date;const endDate=parseDate(ed);i
 const pastCount=evts.filter(evtDatePast).length;
 let h=`<div class="life-header"><span class="life-title">Events</span><span class="legend-hint">${evts.length} total</span>${pastCount?`<button class="btn btn-quiet" onclick="clearPastEvents()" style="font-size:var(--fs-2xs);opacity:.75">Clear ${pastCount} past</button>`:''}</div>`;
 h+=`<div style="margin-bottom:14px"><button class="btn btn-quiet" onclick="openPasteEvents()" style="opacity:.7;font-size:var(--fs-2xs)">Paste events</button></div><div id="evtPasteWrap" style="display:${_pasteOpen?'block':'none'};margin-bottom:18px"><textarea id="evtPasteArea" oninput="_pasteText=this.value" placeholder="Paste event text here — separate multiple events with blank lines" style="width:100%;min-height:80px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--font-sans);font-size:var(--fs-s);padding:8px 10px;border-radius:var(--r-s);resize:vertical">${escHtml(_pasteText)}</textarea><div style="display:flex;gap:6px;margin-top:6px"><button class="btn btn-quiet" onclick="parseEvents()">Parse</button><button class="btn btn-quiet" onclick="clearParsedEvents()" style="opacity:.6">Clear</button></div><div id="evtParsePreview">${parsedPreviewHtml()}</div></div>`;
-const _rh=roundedHour();h+=`<div class="evt-form"><div class="frow"><div class="field" style="flex:2;min-width:150px"><label>Event Name</label><input id="evtNewName" placeholder="Event name"/></div><div class="field"><label>Date</label><input id="evtNewDate" type="date" onchange="edStartChange('evtNewDate','evtNewEndDate')"/></div><div class="field"><label>Start Time</label><input id="evtNewStart" type="time" value="${_rh}" style="width:112px"/></div><button class="btn btn-primary" onclick="addEvent()"><span class="mi" style="--ic:var(--ic-check)"></span> Add</button></div><div class="opt-block"><span class="opt-cap">optional</span><div class="frow"><div class="field"><label>End Date</label><input id="evtNewEndDate" type="date" onfocus="edEndFocus('evtNewDate','evtNewEndDate')" onchange="edEndChange('evtNewEndDate')"/></div><div class="field"><label>End Time</label><input id="evtNewEnd" type="time" style="width:112px"/></div><div class="field" style="flex:1;min-width:140px"><label>Location</label><input id="evtNewLoc" placeholder="—"/></div><div class="field"><label>All Day</label><label class="chk"><input type="checkbox" id="evtNewAllDay"/> all-day</label></div></div></div></div>`;
+const _rh=roundedHour();h+=`<div class="evt-form"><div class="frow"><div class="field" style="flex:2;min-width:150px"><label>Event Name</label><input id="evtNewName" data-keep placeholder="Event name"/></div><div class="field"><label>Date</label><input id="evtNewDate" data-keep type="date" onchange="edStartChange('evtNewDate','evtNewEndDate')"/></div><div class="field"><label>Start Time</label><input id="evtNewStart" data-keep type="time" value="${_rh}" style="width:112px"/></div><button class="btn btn-primary" onclick="addEvent()"><span class="mi" style="--ic:var(--ic-check)"></span> Add</button></div><div class="opt-block"><span class="opt-cap">optional</span><div class="frow"><div class="field"><label>End Date</label><input id="evtNewEndDate" data-keep type="date" onfocus="edEndFocus('evtNewDate','evtNewEndDate')" onchange="edEndChange('evtNewEndDate')"/></div><div class="field"><label>End Time</label><input id="evtNewEnd" data-keep type="time" style="width:112px"/></div><div class="field" style="flex:1;min-width:140px"><label>Location</label><input id="evtNewLoc" data-keep placeholder="—"/></div><div class="field"><label>All Day</label><label class="chk"><input type="checkbox" id="evtNewAllDay" data-keep/> all-day</label></div></div></div></div>`;
 // Month grouping: one DISPLAY segment per (event, month it touches). Multi-month events repeat
 // in each month (display-only, same record); non-start-month segments are marked cont'd.
 const MONTH_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -2818,13 +2857,16 @@ return h}
 
 function renderEvtItem(e,isPast,cont){
 const fmtT=t=>{if(!t)return'';const[h,m]=t.split(':');const hr=parseInt(h);return(hr>12?hr-12:hr||12)+':'+m+(hr>=12?'pm':'am')};
-const multi=e.endDate&&e.endDate!==e.date;
+const multi=!!evtEndDate(e);
 const dateStr=multi?fmtDate(parseDate(e.date))+' → '+fmtDate(parseDate(e.endDate)):fmtDate(parseDate(e.date));
 const timeStr=e.allDay?'All day':(e.startTime?fmtT(e.startTime)+(e.endTime?'–'+fmtT(e.endTime):''):'');
 const cn=evtColorN(e.id);
 const contTag=cont?`<span class="evt-cont">cont'd</span>`:'';
-return`<div class="evt-item ${isPast?'past-evt':''}" ${cont?'':`id="evt-${e.id}"`} style="border-left:3px solid var(--evt-${cn})"><span class="evt-date">${dateStr}</span><span class="evt-info"><span class="evt-name">${e.name}${contTag}</span>${e.location?`<span class="evt-loc">${e.location}</span>`:''}</span><span class="evt-meta">${timeStr}</span><span class="evt-btns"><button class="btn-ghost xs" onclick="openEvtEdit(${e.id})"><span class="mi" style="--ic:var(--ic-edit)"></span></button><button class="btn-ghost xs del" onclick="deleteEvent(${e.id})"><span class="mi" style="--ic:var(--ic-x)"></span></button></span></div>`}
+return`<div class="evt-item ${isPast?'past-evt':''}" ${cont?'':`id="evt-${e.id}"`} style="border-left:3px solid var(--evt-${cn})"><span class="evt-date">${dateStr}</span><span class="evt-info"><span class="evt-name">${escHtml(e.name)}${contTag}</span>${e.location?`<span class="evt-loc">${escHtml(e.location)}</span>`:''}</span><span class="evt-meta">${timeStr}</span><span class="evt-btns"><button class="btn-ghost xs" onclick="openEvtEdit(${e.id})"><span class="mi" style="--ic:var(--ic-edit)"></span></button><button class="btn-ghost xs del" onclick="deleteEvent(${e.id})"><span class="mi" style="--ic:var(--ic-x)"></span></button></span></div>`}
 
+// Where an event ends. An end date on or before the start is no end date at all — read that way, an
+// event typed or pasted with its dates backwards still shows on its start day instead of on none.
+function evtEndDate(e){return(e.endDate&&e.endDate>e.date)?e.endDate:''}
 let _evtColorMap=new Map();
 // Six-color proximity cycling (presentational): sort by date+start-time; an event within 5 days of the
 // running chain advances to the NEXT color, a 5+ day gap resets to color 1. Multi-day events extend the
@@ -2834,7 +2876,7 @@ function evtColorN(id){return (_evtColorMap.get(id)||0)+1}
 function getEventsForDate(dateStr){
 const evts=state.events||[];const chips=[];
 evts.forEach(e=>{
-const start=e.date,end=e.endDate||e.date;
+const start=e.date,end=evtEndDate(e)||e.date;
 if(dateStr>=start&&dateStr<=end){
 const fmtT=t=>{if(!t)return'';const[h,m]=t.split(':');const hr=parseInt(h);return(hr>12?hr-12:hr||12)+':'+m+(hr>=12?'pm':'am')};
 let label=e.name;
@@ -2869,8 +2911,14 @@ function catClass(cat){return (sylClassOf(cat)||CAT_NAMES[cat])?cat:'custom'}
 function catShort(cat){const c=sylClassOf(cat);return c?c.alias:(CAT_SHORT[cat]||CAT_SHORT.custom)}
 // The workbook's own sheet order, then everything the workbook does not name.
 function sylCatRank(cat){const c=sylClassOf(cat);return c?c.order:100}
-function sylRealignCats(){let ch=false;(state.syllabus||[]).forEach(e=>{if(!e.clsAlias)return;
-  const c=sylClasses().find(x=>x.alias===e.clsAlias);if(c&&e.cat!==c.cat){e.cat=c.cat;ch=true}});return ch}
+/* An entry whose class is no longer in the workbook leaves that class's colour slot: left there, it
+   would be filed — silently — under whichever new class took the same slot next term. It reads as
+   Custom from a past term instead (`past:<alias>` is no class and none of the live kinds), which is
+   also what the Retired Classes sweep looks for, and it comes straight back if the alias does.
+   Only ever against a loaded workbook: with no classes known, nothing is moved. */
+function sylRealignCats(){let ch=false;const cls=sylClasses();if(!cls.length)return false;
+  (state.syllabus||[]).forEach(e=>{if(!e.clsAlias)return;
+  const c=cls.find(x=>x.alias===e.clsAlias),want=c?c.cat:'past:'+e.clsAlias;if(e.cat!==want){e.cat=want;ch=true}});return ch}
 function sylMark(id){return (state.sylMarks||{})[String(id)]||null}
 /* A feed row belongs to the spreadsheet, but a row can arrive needing a hand: a paragraph where a
    title should be, a stray URL, a date the class moved by email. So an edit made here is kept as a
@@ -2963,7 +3011,7 @@ function sylFind(id){return sylAll().find(s=>s.id===id)||null}
 function sylMetaHtml(e){if(!e.feed)return'';let h='';
   if(e.pages)h+=`<span class="syl-meta-tag">pp. ${escHtml(e.pages)}</span>`;
   if(e.source)h+=`<span class="syl-meta-tag">${escHtml(e.source)}</span>`;
-  if(e.link)h+=`<a class="syl-meta-tag link" href="${escHtml(e.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">link ↗</a>`;
+  if(e.link)h+=`<a class="syl-meta-tag link" href="${escAttr(e.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">link ↗</a>`;
   return h?`<span class="syl-meta">${h}</span>`:''}
 // The citation and the transcriber's note, in the app's own bullet convention ('+ ' = sub-bullet).
 /* What the detail block shows, and — the same string — what an editor opens on. A feed row's detail
@@ -3015,8 +3063,12 @@ function sylFeedStatusHtml(){
   if(err&&f)h+=`<div style="font-size:var(--fs-2xs);color:var(--danger)">Showing the last good copy; the most recent refresh failed (${escHtml(err)}).</div>`;
   return h}
 
+const ISO_DAY=/^\d{4}-\d{2}-\d{2}$/;
+// Entries with no usable due date have nowhere to be drawn; skipping them keeps one bad synced record
+// from throwing out of render() and blanking every tab.
+function sylDated(){return sylAll().filter(s=>s&&ISO_DAY.test(s.due||''))}
 function renderSyllabus(){
-const syl=sylAll().slice().sort((a,b)=>a.due.localeCompare(b.due)||sylCatRank(a.cat)-sylCatRank(b.cat)||a.title.localeCompare(b.title));
+const syl=sylDated().sort((a,b)=>a.due.localeCompare(b.due)||sylCatRank(a.cat)-sylCatRank(b.cat)||String(a.title||'').localeCompare(String(b.title||'')));
 const done=syl.filter(s=>s.done).length,rem=syl.length-done;
 // Group by semester week
 const weekMap={};
@@ -3028,12 +3080,12 @@ syl.forEach(s=>{
 const weekNums=Object.keys(weekMap).map(Number).sort((a,b)=>a-b);
 let h=`<div class="life-header"><span class="life-title">Syllabus</span><span class="legend-hint">${rem} remaining · ${done} complete</span></div>`;
 h+=sylFeedBarHtml();
-h+=`<div style="margin-bottom:14px"><button class="btn btn-quiet" onclick="toggleEl('sylAddForm')">+ Add Entry</button></div><div id="sylAddForm" style="display:none"><div class="syl-add-form"><input id="sylNewTitle" placeholder="Title" style="flex:2;min-width:120px"/><select id="sylNewCat">${sylClasses().map(c=>`<option value="${c.cat}">${escHtml(c.alias)}</option>`).join('')}<option value="custom">✎ Custom</option></select><select id="sylNewType"><option value="reading">Reading</option><option value="paper">Paper</option><option value="exam">Exam</option><option value="presentation">Presentation</option><option value="note">Note</option><option value="custom">Custom</option></select><div class="field"><label>Due</label><div style="display:flex;gap:0"><input id="sylNewDue" type="text" placeholder="M/D" style="width:80px;border-radius:var(--r-s) 0 0 var(--r-s)"/><button class="btn btn-quiet cal-pick-btn" onclick="openCalPick('sylNewDue')" type="button"><span class="mi" style="--ic:var(--ic-bell)"></span></button></div></div><div class="field"><label>Time</label><input id="sylNewTime" type="time" style="width:90px"/></div><button class="btn btn-quiet" onclick="addSylEntry()">Add</button></div><div style="margin-bottom:18px;margin-top:-4px"><textarea id="sylNewDetail" placeholder="Description (optional, '- ' for bullets, '+ ' for sub-bullets)" style="width:100%;min-height:36px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--font-sans);font-size:var(--fs-s);padding:6px 9px;border-radius:var(--r-s);resize:vertical"></textarea></div></div>`;
+h+=`<div style="margin-bottom:14px"><button class="btn btn-quiet" onclick="toggleEl('sylAddForm')">+ Add Entry</button></div><div id="sylAddForm" style="display:${_uiOpen.has('sylAddForm')?'block':'none'}"><div class="syl-add-form"><input id="sylNewTitle" data-keep placeholder="Title" style="flex:2;min-width:120px"/><select id="sylNewCat" data-keep>${sylClasses().map(c=>`<option value="${c.cat}">${escHtml(c.alias)}</option>`).join('')}<option value="custom">✎ Custom</option></select><select id="sylNewType" data-keep><option value="reading">Reading</option><option value="paper">Paper</option><option value="exam">Exam</option><option value="presentation">Presentation</option><option value="note">Note</option><option value="custom">Custom</option></select><div class="field"><label>Due</label><div style="display:flex;gap:0"><input id="sylNewDue" data-keep type="text" placeholder="M/D" style="width:80px;border-radius:var(--r-s) 0 0 var(--r-s)"/><button class="btn btn-quiet cal-pick-btn" onclick="openCalPick('sylNewDue')" type="button"><span class="mi" style="--ic:var(--ic-bell)"></span></button></div></div><div class="field"><label>Time</label><input id="sylNewTime" data-keep type="time" style="width:90px"/></div><button class="btn btn-quiet" onclick="addSylEntry()">Add</button></div><div style="margin-bottom:18px;margin-top:-4px"><textarea id="sylNewDetail" data-keep placeholder="Description (optional, '- ' for bullets, '+ ' for sub-bullets)" style="width:100%;min-height:36px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--font-sans);font-size:var(--fs-s);padding:6px 9px;border-radius:var(--r-s);resize:vertical"></textarea></div></div>`;
 const curWkN=semesterWeekNum(TODAY);
 const todayStr=isoDate(TODAY);
 const hiddenSylDays=state.hiddenSylDays||[];
 const pastWkNums=weekNums.filter(wkN=>wkN<curWkN);
-if(pastWkNums.length){h+=`<div style="margin-bottom:14px"><button class="btn btn-quiet" onclick="toggleEl('sylPastWeeks')" style="opacity:.6;font-size:var(--fs-2xs)">${pastWkNums.length} past week${pastWkNums.length>1?'s':''} (show)</button></div><div id="sylPastWeeks" style="display:none">`}
+if(pastWkNums.length){h+=`<div style="margin-bottom:14px"><button class="btn btn-quiet" onclick="toggleEl('sylPastWeeks')" style="opacity:.6;font-size:var(--fs-2xs)">${pastWkNums.length} past week${pastWkNums.length>1?'s':''} (show)</button></div><div id="sylPastWeeks" style="display:${_uiOpen.has('sylPastWeeks')?'block':'none'}">`}
 weekNums.forEach(wkN=>{
   const entries=weekMap[wkN];
   const wkStart=semesterWeekStart(wkN);
@@ -3048,7 +3100,7 @@ weekNums.forEach(wkN=>{
     return true;
   }):entries;
   const hiddenCount=entries.length-visibleEntries.length;
-  h+=`<div class="syl-week-section"><div class="syl-week-hdr">Week ${wkN}${isCur?' <span class="week-badge current">This Week</span>':''} <span class="syl-week-dates">${fmtDateShort(wkStart)} → ${fmtDateShort(wkEnd)}</span>${isCur&&hiddenCount?`<button class="expand-week-btn" onclick="expandSylDays(${wkN})" title="Show ${hiddenCount} hidden" style="margin-left:8px;font-size:var(--fs-2xs);opacity:.6;cursor:pointer;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-s);padding:2px 6px;color:var(--text-dim)">▼ ${hiddenCount} hidden</button>`:''}</div>`;
+  h+=`<div class="syl-week-section" data-wk="${wkN}"><div class="syl-week-hdr">Week ${wkN}${isCur?' <span class="week-badge current">This Week</span>':''} <span class="syl-week-dates">${fmtDateShort(wkStart)} → ${fmtDateShort(wkEnd)}</span>${isCur&&hiddenCount?`<button class="expand-week-btn" onclick="expandSylDays(${wkN})" title="Show ${hiddenCount} hidden" style="margin-left:8px;font-size:var(--fs-2xs);opacity:.6;cursor:pointer;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-s);padding:2px 6px;color:var(--text-dim)">▼ ${hiddenCount} hidden</button>`:''}</div>`;
   // Sub-group by due+cat for rowspan
   const groups=[];
   visibleEntries.forEach(e=>{
@@ -3087,7 +3139,7 @@ weekNums.forEach(wkN=>{
       // feed mark says whether one is in force, with Reset in the editor to take it back.
       const edT=` ondblclick="inlineSylEdit(${e.id},'title',this)"`;
       const edD=` ondblclick="inlineSylEdit(${e.id},'detail',this)"`;
-      h+=`<td class="syl-title-cell"><span class="syl-title-text"${edT}>${escHtml(e.title)}</span>${showTypeTag?`<span class="syl-type-tag ${e.type}">${e.type}</span>`:''}${sylMetaHtml(e)} ${detailHtml?`<div class="syl-detail-text"${edD}>${detailHtml}</div>`:''}${sylProgHtml(e)}</td>`;
+      h+=`<td class="syl-title-cell"><span class="syl-title-text"${edT}>${escHtml(e.title)}</span>${showTypeTag?`<span class="syl-type-tag ${escAttr(e.type)}">${escHtml(e.type)}</span>`:''}${sylMetaHtml(e)} ${detailHtml?`<div class="syl-detail-text"${edD}>${detailHtml}</div>`:''}${sylProgHtml(e)}</td>`;
       h+=e.feed
         ?`<td class="syl-btns-cell"><button class="btn-ghost xs" onclick="openProgEdit(${e.id})" title="Progress"><span class="mi" style="--ic:var(--ic-chart)"></span></button><button class="btn-ghost xs" onclick="openSylEdit(${e.id})" title="Edit this entry — the spreadsheet is not changed"><span class="mi" style="--ic:var(--ic-edit)"></span></button>${e.edited?`<button class="btn-ghost xs" onclick="sylResetEdit(${e.id})" title="Reset to what the syllabus feed says"><span class="mi" style="--ic:var(--ic-up)"></span></button>`:''}<span class="syl-feed-mark${e.edited?' edited':''}" title="${e.edited?'From calendars/source/syllabus.xlsx, edited here — reset to go back to the spreadsheet\'s text':'From calendars/source/syllabus.xlsx'}">${e.edited?'edited':'feed'}</span></td>`
         :`<td class="syl-btns-cell"><button class="btn-ghost xs" onclick="openProgEdit(${e.id})" title="Progress"><span class="mi" style="--ic:var(--ic-chart)"></span></button><button class="btn-ghost xs" onclick="openSylEdit(${e.id})"><span class="mi" style="--ic:var(--ic-edit)"></span></button><button class="btn-ghost xs del" onclick="deleteSylEntry(${e.id})"><span class="mi" style="--ic:var(--ic-x)"></span></button></td>`;
@@ -3114,12 +3166,12 @@ function renderSettings(){
   <div style="font-size:var(--fs-2xs);color:var(--text-muted)">Both dates are taken from the syllabus feed's own range when a new spreadsheet changes it${state.sylFeedRange?' (currently '+escHtml(state.sylFeedRange.replace('|',' → '))+')':''}. Edit them here and the edit stands until the feed's range changes again.</div></div>
   <div class="notes-box"><div class="notes-box-title">Syllabus Feed</div>
   <div class="settings-section"><label>Source</label>
-  <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">The Syllabus tab is generated from <code>calendars/source/syllabus.xlsx</code> in the repo — one sheet per class, named <em>Full Name (Alias)</em>, plus a <code>_Recurring</code> sheet holding one row per repeating assignment. Push a new spreadsheet and the planner picks it up on the next load; a new term is a new file, not a new build. Feed entries are read-only in the app, but ticking and highlighting them is yours and is stored separately, so a refresh never clears your progress.</div>
+  <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">The Syllabus tab is generated from <code>calendars/source/syllabus.xlsx</code> in the repo — one sheet per class, named <em>Full Name (Alias)</em>, plus a <code>_Recurring</code> sheet holding one row per repeating assignment. Push a new spreadsheet and the planner picks it up on the next load; a new term is a new file, not a new build. A feed entry can be edited here — the edit is kept as a patch over the spreadsheet's row, and Reset puts the row back — while ticks, stars and progress are yours and are stored separately, so a refresh never clears them.</div>
   ${sylFeedStatusHtml()}</div></div>
-  <div class="notes-box"><div class="notes-box-title">Almanac (Week tab)</div>
+  <div class="notes-box"><div class="notes-box-title">Almanac</div>
   <div class="settings-section"><label>Timezone</label>
   <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Places solar terms, 候 and moon quarters on the right day. This zone is used for the almanac only — tasks, events, countdowns and week boundaries keep using your device's local time. DST is handled automatically.</div>
-  <input class="life-input" id="almTzFilter" value="${_almTzFilter.replace(/"/g,'&quot;')}" oninput="almTzFilterInput(this.value)" placeholder="Filter zones…" style="width:190px;margin-bottom:6px"/>
+  <input class="life-input" id="almTzFilter" value="${escAttr(_almTzFilter)}" oninput="almTzFilterInput(this.value)" placeholder="Filter zones…" style="width:190px;margin-bottom:6px"/>
   <select class="life-select" id="almTzSelect" onchange="almSetTz(this.value)" style="width:260px;max-width:100%;display:block">${almTzOptionsHtml(_almTzFilter)}</select></div>
   <div class="settings-section"><label>72 候 list</label>
   <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Which names the pentads carry. The Ukiah Valley list is a local phenological calendar for 95482 — what is actually happening here in each five-day period, which is close to the inverse of the North China climate the classical list describes. Both use the identical astronomical frame, so switching changes only the names, never a date. Tap a 候 in the Season tab's right-hand lane to read its description.</div>
@@ -3156,12 +3208,15 @@ function renderSettings(){
 const LIVE_KINDS=['life','events','custom'];
 function legacyCatRecords(){
   const out={syllabus:[],tasks:[],deliverables:[]},seen=new Set();
-  for(const k in out){(state[k]||[]).forEach(r=>{const c=r&&r.cat;
-    if(!c||LIVE_KINDS.includes(c)||sylClassOf(c))return;
-    out[k].push(r);seen.add(c)})}
   const f=(typeof sylFeed==='function')?sylFeed():null;
-  out.stale=[];
-  if(f&&f.first)(state.syllabus||[]).forEach(r=>{
+  out.stale=[];out.total=0;out.cats=[];out.before='';
+  // Both tests, not just the date one: with no workbook loaded no class is known at all, so every
+  // record filed under a live class would read as retired and be offered for deletion.
+  if(!f||!(f.classes||[]).length)return out;
+  for(const k of ['syllabus','tasks','deliverables']){(state[k]||[]).forEach(r=>{const c=r&&r.cat;
+    if(!c||LIVE_KINDS.includes(c)||sylClassOf(c))return;
+    out[k].push(r);seen.add(String(c).replace(/^past:/,''))})}
+  if(f.first)(state.syllabus||[]).forEach(r=>{
     if(!r||!r.due||r.due>=f.first||out.syllabus.includes(r))return;
     out.syllabus.push(r);out.stale.push(r)});
   out.total=out.syllabus.length+out.tasks.length+out.deliverables.length;
@@ -3235,7 +3290,10 @@ function openCalPick(targetId){
   const cur=target?normalizeDateInput(target.value.trim()):'';
   picker.value=cur||isoDate(TODAY);
   picker.onchange=()=>{if(target&&picker.value){target.value=picker.value}};
-  picker.showPicker()
+  // showPicker is missing in older Safari and throws without a user gesture: fall back to making the
+  // field itself a date input, which normalizeDateInput already accepts.
+  try{if(typeof picker.showPicker==='function'){picker.showPicker();return}}catch(e){}
+  if(target){target.type='date';target.value=picker.value;target.focus()}
 }
 
 // ===== INTERACTIONS =====
@@ -3248,10 +3306,12 @@ function setTheme(t){state.theme=t;render();scheduleSave()}
 // controllable here; Android nav-button glyphs are OS-drawn and cannot be themed by the app.
 function updateThemeColor(){let c='';try{c=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()}catch(_){}if(!c)c='#1c1a18';let m=document.querySelector('meta[name="theme-color"]');if(!m){m=document.createElement('meta');m.name='theme-color';document.head.appendChild(m)}if(m.getAttribute('content')!==c)m.setAttribute('content',c)}
 function cycleTheme(){const ts=['light','ember','persia','ocean','pistachio'];const i=(ts.indexOf(state.theme)+1)%ts.length;setTheme(ts[i])}
-function toggleTheme(){cycleTheme()}
 // (gear dropdown removed — Settings is reached via the side-nav / mobile More-sheet Settings item,
 //  and Backup/Restore now live in the Settings view.)
-function toggleEl(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none'}
+// Which toggled panels are open. render() rebuilds them closed otherwise, so ticking an entry in the
+// expanded past weeks (or a background sync) slammed the section shut. Transient, never saved.
+const _uiOpen=new Set();
+function toggleEl(id){const el=document.getElementById(id);if(!el)return;const open=el.style.display==='none';el.style.display=open?'block':'none';if(open)_uiOpen.add(id);else _uiOpen.delete(id)}
 
 function hideDay(date){if(!state.hiddenDays)state.hiddenDays=[];if(!state.hiddenDays.includes(date))state.hiddenDays.push(date);render();scheduleSave()}
 function expandWeek(wkNum){const weeks=generateWeeks();const wk=weeks.find(w=>w.num===wkNum);if(!wk)return;const dates=wk.days.map(d=>d.date);state.hiddenDays=(state.hiddenDays||[]).filter(d=>!dates.includes(d));if(!state.expandedPastDays)state.expandedPastDays=[];dates.forEach(d=>{if(!state.expandedPastDays.includes(d))state.expandedPastDays.push(d)});render();scheduleSave()}
@@ -3261,11 +3321,18 @@ let dragId=null,dragEvtId=null,dragEvtAnchor=null;
 function toggleEvtChipMenu(id,el){const wasOpen=el.classList.contains('menu-open');document.querySelectorAll('.evt-chip.menu-open,.chip.menu-open').forEach(c=>{if(c!==el)c.classList.remove('menu-open')});el.classList.toggle('menu-open');if(!wasOpen){el.classList.add('menu-activating');setTimeout(()=>el.classList.remove('menu-activating'),250)}}
 function handleEvtDrop(evtId,date){const evt=(state.events||[]).find(e=>e.id===evtId);if(!evt)return;const anchor=dragEvtAnchor||'start';const anchorDate=anchor==='start'?evt.date:(evt.endDate||evt.date);const offset=daysBetween(parseDate(anchorDate),parseDate(date));if(offset===0)return;const newStart=parseDate(evt.date);newStart.setDate(newStart.getDate()+offset);evt.date=isoDate(newStart);if(evt.endDate){const newEnd=parseDate(evt.endDate);newEnd.setDate(newEnd.getDate()+offset);evt.endDate=isoDate(newEnd)}render();scheduleSave()}
 function handleDrop(e,date){e.preventDefault();e.currentTarget.classList.remove('alloc-highlight');if(dragEvtId!==null){handleEvtDrop(dragEvtId,date);dragEvtId=null;dragEvtAnchor=null;return}if(dragId!==null){const t=state.tasks.find(t=>t.id===dragId);if(t){t.date=date;delete t.weekNum;render();scheduleSave()}}dragId=null}
-function handleChipDragOver(e){e.preventDefault();e.stopPropagation();const area=e.currentTarget;clearDropIndicators(area);const chips=Array.from(area.querySelectorAll('.chip,.evt-chip[draggable]'));if(!chips.length)return;let insertBefore=null;for(const c of chips){const r=c.getBoundingClientRect();if(e.clientX<r.left+r.width/2){insertBefore=c;break}}if(insertBefore){insertBefore.classList.add('drop-before')}else if(chips.length){chips[chips.length-1].classList.add('drop-after')}}
+// The pill a drop lands in front of: the first one the pointer is above, or level with and left of the
+// middle of. Pills wrap onto several lines in a narrow day, so the row counts, not only x. Only task
+// pills are slots — a syllabus or event pill has no place in the task order.
+function chipDropBefore(chips,x,y){for(const c of chips){const r=c.getBoundingClientRect();if(y<r.top||(y<=r.bottom&&x<r.left+r.width/2))return c}return null}
+function handleChipDragOver(e){e.preventDefault();e.stopPropagation();const area=e.currentTarget;clearDropIndicators(area);if(dragId===null)return;const chips=Array.from(area.querySelectorAll('.chip[data-id]')).filter(c=>+c.dataset.id!==dragId);if(!chips.length)return;const insertBefore=chipDropBefore(chips,e.clientX,e.clientY);if(insertBefore){insertBefore.classList.add('drop-before')}else{chips[chips.length-1].classList.add('drop-after')}}
 function clearDropIndicators(area){area.querySelectorAll('.drop-before,.drop-after').forEach(el=>{el.classList.remove('drop-before','drop-after')})}
-function handleChipDrop(e,date){e.preventDefault();e.stopPropagation();const area=e.currentTarget;clearDropIndicators(area);if(dragEvtId!==null){handleEvtDrop(dragEvtId,date);dragEvtId=null;dragEvtAnchor=null;return}if(dragId===null)return;const t=state.tasks.find(t=>t.id===dragId);if(!t)return;const chips=Array.from(area.querySelectorAll('.chip'));let insertBeforeId=null;for(const c of chips){const r=c.getBoundingClientRect();if(e.clientX<r.left+r.width/2){insertBeforeId=parseInt(c.dataset.id);break}}state.tasks=state.tasks.filter(x=>x.id!==t.id);t.date=date;delete t.weekNum;if(insertBeforeId!==null){const idx=state.tasks.findIndex(x=>x.id===insertBeforeId);state.tasks.splice(idx,0,t)}else{const dayTasks=state.tasks.filter(x=>x.date===date);if(dayTasks.length){const lastIdx=state.tasks.lastIndexOf(dayTasks[dayTasks.length-1]);state.tasks.splice(lastIdx+1,0,t)}else{state.tasks.push(t)}}dragId=null;render();scheduleSave()}
+function handleChipDrop(e,date){e.preventDefault();e.stopPropagation();const area=e.currentTarget;clearDropIndicators(area);if(dragEvtId!==null){handleEvtDrop(dragEvtId,date);dragEvtId=null;dragEvtAnchor=null;return}if(dragId===null)return;const t=state.tasks.find(t=>t.id===dragId);if(!t)return;const chips=Array.from(area.querySelectorAll('.chip[data-id]')).filter(c=>+c.dataset.id!==t.id);const before=chipDropBefore(chips,e.clientX,e.clientY);const insertBeforeId=before?+before.dataset.id:null;state.tasks=state.tasks.filter(x=>x.id!==t.id);t.date=date;delete t.weekNum;const idx=insertBeforeId===null?-1:state.tasks.findIndex(x=>x.id===insertBeforeId);if(idx>=0){state.tasks.splice(idx,0,t)}else{const dayTasks=state.tasks.filter(x=>x.date===date);if(dayTasks.length){const lastIdx=state.tasks.lastIndexOf(dayTasks[dayTasks.length-1]);state.tasks.splice(lastIdx+1,0,t)}else{state.tasks.push(t)}}dragId=null;render();scheduleSave()}
 function deleteTask(id){const t=state.tasks.find(t=>t.id===id);if(!t)return;if(t.lifeSourceId){const lt=state.lifeTasks.find(l=>l.id===t.lifeSourceId);if(lt){lt.inBank=false;lt.done=false}}state.tasks=state.tasks.filter(t=>t.id!==id);render();scheduleSave()}
-function inlineEditChip(id,el){const t=state.tasks.find(t=>t.id===id);if(!t)return;el.setAttribute('draggable','false');const acts=el.querySelector('.chip-acts');if(acts)acts.style.display='none';const starSpan=t.priority==='high'?el.querySelector('span[style]'):null;el.innerHTML='';if(starSpan)el.appendChild(starSpan);const nameIn=document.createElement('input');nameIn.type='text';nameIn.value=t.name;nameIn.className='inline-edit-input';nameIn.style.cssText='width:'+Math.max(60,t.name.length*8)+'px;font-size:var(--fs-s);padding:1px 4px;border:1px solid var(--border);border-radius:var(--r-s);background:var(--surface);color:inherit;font-family:inherit;outline:none;';el.appendChild(nameIn);nameIn.focus();nameIn.select();function save(){t.name=nameIn.value.trim()||t.name;render();scheduleSave()}function onKey(e){if(e.key==='Enter'){e.preventDefault();save()}else if(e.key==='Escape'){render()}}nameIn.addEventListener('keydown',onKey);nameIn.addEventListener('blur',()=>setTimeout(()=>{if(!el.contains(document.activeElement))save()},100))}
+function inlineEditChip(id,el){const t=state.tasks.find(t=>t.id===id);if(!t)return;el.setAttribute('draggable','false');const acts=el.querySelector('.chip-acts');if(acts)acts.style.display='none';const starSpan=t.priority==='high'?el.querySelector('span[style]'):null;el.innerHTML='';if(starSpan)el.appendChild(starSpan);const nameIn=document.createElement('input');nameIn.type='text';nameIn.value=t.name;nameIn.className='inline-edit-input';nameIn.style.cssText='width:'+Math.max(60,t.name.length*8)+'px;font-size:var(--fs-s);padding:1px 4px;border:1px solid var(--border);border-radius:var(--r-s);background:var(--surface);color:inherit;font-family:inherit;outline:none;';el.appendChild(nameIn);nameIn.focus();nameIn.select();
+// Settled once: the render that ends an edit removes the field, and the blur that removal fires must not
+// save what Escape just threw away (or save a second time after Enter).
+let over=false;function save(){if(over)return;over=true;t.name=nameIn.value.trim()||t.name;render();scheduleSave()}function onKey(e){if(e.key==='Enter'){e.preventDefault();save()}else if(e.key==='Escape'){over=true;render()}}nameIn.addEventListener('keydown',onKey);nameIn.addEventListener('blur',()=>setTimeout(()=>{if(!el.contains(document.activeElement))save()},100))}
 
 function sendToBank(id){const t=state.lifeTasks.find(t=>t.id===id);if(t){t.inBank=true;render();scheduleSave()}}
 function recallFromSprint(id){const t=state.lifeTasks.find(t=>t.id===id);if(t){t.inBank=false}state.tasks=state.tasks.filter(t=>t.lifeSourceId!==id);render();scheduleSave()}
@@ -3275,8 +3342,6 @@ function startAllocate(id){allocatingId=allocatingId===id?null:id;render()}
 function placeAllocated(date){if(!allocatingId)return;const lt=state.lifeTasks.find(t=>t.id===allocatingId);if(lt){state.tasks.push({id:genId(),date,cat:'life',name:lt.name,priority:lt.priority==='high'?'high':'normal',done:false,lifeSourceId:lt.id});lt.inBank=false;allocatingId=null;render();scheduleSave()}}
 
 function returnToBank(sid){const t=state.tasks.find(t=>t.id===sid);if(!t)return;const lt=state.lifeTasks.find(l=>l.id===t.lifeSourceId);if(lt)lt.inBank=true;state.tasks=state.tasks.filter(t=>t.id!==sid);render();scheduleSave()}
-function completeLifeChip(sid){const t=state.tasks.find(t=>t.id===sid);if(!t)return;t.done=true;const lt=state.lifeTasks.find(l=>l.id===t.lifeSourceId);if(lt)lt.done=true;render();scheduleSave()}
-function removeLifeChip(sid){const t=state.tasks.find(t=>t.id===sid);if(!t)return;const lt=state.lifeTasks.find(l=>l.id===t.lifeSourceId);if(lt){lt.inBank=false;lt.done=false}state.tasks=state.tasks.filter(t=>t.id!==sid);render();scheduleSave()}
 function toggleTaskDone(id){const t=state.tasks.find(t=>t.id===id);if(!t)return;t.done=!t.done;if(t.lifeSourceId){const lt=state.lifeTasks.find(l=>l.id===t.lifeSourceId);if(lt)lt.done=t.done}render();scheduleSave()}
 function duplicateTask(id){const t=state.tasks.find(t=>t.id===id);if(!t)return;const dup={...t,id:genId(),done:false,lifeSourceId:null};state.tasks.push(dup);render();scheduleSave()}
 // Add task modal
@@ -3310,10 +3375,18 @@ function fillCatSelect(sel,cur,kinds,withCustom,withClasses){
     .concat(classes.map(c=>`<option value="${c.cat}">${escHtml(c.name)}</option>`));
   const stale=cur&&cur!=='custom'&&!kinds.includes(cur)&&!sylClassOf(cur);
   if(stale)opts.push(`<option value="${escAttr(cur)}">Custom (from a past term)</option>`);
-  if(withCustom)opts.push('<option value="custom">Custom</option>');
+  // A record already filed as Custom keeps that option even where Custom is not otherwise offered
+  // (the task editor), for the same reason a class tag keeps its one option above.
+  if(withCustom||cur==='custom')opts.push('<option value="custom">Custom</option>');
   sel.innerHTML=opts.join('');
   if(cur!=null)sel.value=cur;
 }
+/* Set a select to a stored value even when the value is not one of its options. Otherwise the select
+   drops to no selection, reads back as '', and an unrelated save blanks the field. */
+function selectKeeping(sel,v){if(!sel)return;sel.querySelectorAll('option[data-kept]').forEach(o=>o.remove());
+  v=v==null?'':String(v);
+  if(![...sel.options].some(o=>o.value===v)){const o=document.createElement('option');o.value=v;o.textContent=v||'—';o.dataset.kept='1';sel.appendChild(o)}
+  sel.value=v}
 // The Add modal is three forms in one, chosen by category. A workbook class is not a "task in a
 // class colour": picking one builds a real syllabus entry (v13.1), so the modal has to ask for what
 // a syllabus entry needs (type, description) and drop what it has no notion of (priority).
@@ -3330,7 +3403,7 @@ function toggleAddFields(){const cat=$('#aCat').value,isEvt=cat==='events',isSyl
 // in the Syllabus tab. Custom is the type with no other meaning attached, which makes it the safe
 // thing to land on when the user has not said. Reading is still one option away.
 function openAddTask(date){addingDate=date;$('#aName').value='';$('#aTime').value=roundedHour();$('#aEvtStartTime').value=roundedHour();fillCatSelect($('#aCat'),'events',['events','life'],true);$('#aPri').value='normal';$('#aPriToggle').className='pri-toggle';$('#aPriToggle').querySelectorAll('.pri-option').forEach((o,i)=>{o.classList.toggle('active',i===0)});$('#aEvtDate').value=date;$('#aEvtEndDate').value='';$('#aEvtEndTime').value='';$('#aEvtLoc').value='';$('#aEvtAllDay').checked=false;$('#aSylType').value='custom';$('#aSylDetail').value='';edResetTouched('aEvtEndDate');toggleAddFields();$('#addModal').classList.add('open')}
-$('#aSave').onclick=()=>{const name=$('#aName').value.trim();if(!name){$('#addModal').classList.remove('open');return}const cat=$('#aCat').value;if(cat==='events'){if(!state.events)state.events=[];state.events.push({id:genId(),name,date:$('#aEvtDate').value||addingDate,endDate:$('#aEvtEndDate').value||'',startTime:$('#aEvtStartTime').value||'',endTime:$('#aEvtEndTime').value||'',location:$('#aEvtLoc').value||'',allDay:$('#aEvtAllDay').checked});$('#addModal').classList.remove('open');render();scheduleSave();return}
+$('#aSave').onclick=()=>{const name=$('#aName').value.trim();if(!name){$('#addModal').classList.remove('open');return}const cat=$('#aCat').value;if(cat==='events'){if(!state.events)state.events=[];const _d=$('#aEvtDate').value||addingDate;state.events.push({id:genId(),name,date:_d,endDate:evtEndDate({date:_d,endDate:$('#aEvtEndDate').value}),startTime:$('#aEvtStartTime').value||'',endTime:$('#aEvtEndTime').value||'',location:$('#aEvtLoc').value||'',allDay:$('#aEvtAllDay').checked});$('#addModal').classList.remove('open');render();scheduleSave();return}
   // A class category becomes a syllabus entry proper — same shape addSylEntry() writes, so it lands
   // in the Syllabus tab and draws as a syllabus pill in the week, not as a task wearing the colour.
   const _cls=sylClassOf(cat);
@@ -3352,7 +3425,7 @@ $('#mCanc').onclick=()=>{$('#editModal').classList.remove('open')}
 $('#editModal').onclick=e=>{if(e.target.id==='editModal')$('#editModal').classList.remove('open')}
 
 let editLId=null;
-function openLifeEdit(id){editLId=id;const t=state.lifeTasks.find(t=>t.id===id);if(!t)return;$('#lName').value=t.name;const sel=$('#lCat');const allCats=[...new Set(state.lifeTasks.map(x=>x.category||'General'))];['General','Email','Projects','Income','Garden','Correspondence'].forEach(c=>{if(!allCats.includes(c))allCats.push(c)});sel.innerHTML=allCats.sort().map(c=>`<option value="${c}">${c}</option>`).join('')+'<option value="__new__">+ New category…</option>';sel.value=t.category||'General';$('#lPri').value=t.priority||'med';$('#lDue').value=t.due||'';$('#lifeModal').classList.add('open')}
+function openLifeEdit(id){editLId=id;const t=state.lifeTasks.find(t=>t.id===id);if(!t)return;$('#lName').value=t.name;const sel=$('#lCat');const allCats=[...new Set(state.lifeTasks.map(x=>x.category||'General'))];['General','Email','Projects','Income','Garden','Correspondence'].forEach(c=>{if(!allCats.includes(c))allCats.push(c)});sel.innerHTML=allCats.sort().map(c=>`<option value="${escAttr(c)}">${escHtml(c)}</option>`).join('')+'<option value="__new__">+ New category…</option>';sel.value=t.category||'General';$('#lPri').value=t.priority||'med';$('#lDue').value=t.due||'';$('#lifeModal').classList.add('open')}
 $('#lSave').onclick=()=>{const t=state.lifeTasks.find(t=>t.id===editLId);if(t){t.name=$('#lName').value;let cat=$('#lCat').value;if(cat==='__new__'){cat=prompt('New category name:');if(!cat||!cat.trim()){$('#lifeModal').classList.remove('open');render();return}cat=cat.trim()}t.category=cat;t.priority=$('#lPri').value;t.due=$('#lDue').value}$('#lifeModal').classList.remove('open');render();scheduleSave()}
 $('#lDel').onclick=()=>{state.lifeTasks=state.lifeTasks.filter(t=>t.id!==editLId);state.tasks=state.tasks.filter(t=>t.lifeSourceId!==editLId);$('#lifeModal').classList.remove('open');render();scheduleSave()}
 $('#lCanc').onclick=()=>{$('#lifeModal').classList.remove('open')}
@@ -3377,14 +3450,15 @@ function copyNoteUrl(){const url=location.origin+location.pathname+'?action=newn
 function handleUrlAction(){const params=new URLSearchParams(location.search);const action=params.get('action');if(action==='newnote'){history.replaceState(null,'',location.pathname);state.activeTab='notes';if(!state.notes)state.notes=[];const minOrder=state.notes.length?Math.min(...state.notes.map(n=>n.order??0))-1:0;const nid=genId();state.notes.push({id:nid,timestamp:new Date().toISOString(),text:'',order:minOrder});render();scheduleSave();setTimeout(()=>showNoteEdit(nid),100)}}
 function updateNoteTitle(id,title){const n=(state.notes||[]).find(n=>n.id===id);if(n){n.title=title;scheduleSave()}}
 function resizeNote(taId,mode){const ta=document.getElementById(taId);if(!ta)return;if(mode==='expand'){ta.style.height='auto';ta.style.height=(ta.scrollHeight+20)+'px'}else{const lines=(ta.value||'').split('\n').length;const lh=parseFloat(getComputedStyle(ta).lineHeight)||22;const rows=Math.min(Math.max(lines,7),7);ta.style.height=(rows*lh+20)+'px'}}
-function moveNote(id,dir){const arr=state.notes;arr.forEach((n,i)=>{if(n.order===undefined)n.order=i});const sorted=arr.slice().sort((a,b)=>a.order-b.order);const si=sorted.findIndex(n=>n.id===id);const ti=si+dir;if(ti<0||ti>=sorted.length)return;const tmp=sorted[si].order;sorted[si].order=sorted[ti].order;sorted[ti].order=tmp;render();scheduleSave()}
+function moveNote(id,dir){const arr=state.notes;arr.forEach((n,i)=>{if(n.order===undefined)n.order=i});const sorted=arr.slice().sort((a,b)=>a.order-b.order);
+// Two notes made on two devices can share an order; swapping equal values moves nothing, so renumber.
+if(new Set(sorted.map(n=>n.order)).size!==sorted.length)sorted.forEach((n,i)=>{n.order=i});const si=sorted.findIndex(n=>n.id===id);const ti=si+dir;if(ti<0||ti>=sorted.length)return;const tmp=sorted[si].order;sorted[si].order=sorted[ti].order;sorted[ti].order=tmp;render();scheduleSave()}
 function restoreNotesCursor(){if(notesCursor.id&&state.activeTab==='notes'){showNoteEdit(notesCursor.id);const ta=document.getElementById('nt-'+notesCursor.id);if(ta&&notesCursor.sel){ta.focus();ta.setSelectionRange(notesCursor.sel[0],notesCursor.sel[1]);ta.scrollTop=notesCursor.scroll}}}
 
 // ===== EVENTS =====
-function addEvent(){const name=$('#evtNewName')?.value.trim();if(!name)return;if(!state.events)state.events=[];const id=genId();state.events.push({id,name,date:normalizeDateInput($('#evtNewDate')?.value)||isoDate(TODAY),endDate:normalizeDateInput($('#evtNewEndDate')?.value)||'',startTime:$('#evtNewStart')?.value||'',endTime:$('#evtNewEnd')?.value||'',location:$('#evtNewLoc')?.value||'',allDay:$('#evtNewAllDay')?.checked||false});render();scheduleSave();scrollToEvent(id)}
+function addEvent(){const name=$('#evtNewName')?.value.trim();if(!name)return;if(!state.events)state.events=[];const id=genId();const _d=normalizeDateInput($('#evtNewDate')?.value)||isoDate(TODAY);state.events.push({id,name,date:_d,endDate:evtEndDate({date:_d,endDate:normalizeDateInput($('#evtNewEndDate')?.value)}),startTime:$('#evtNewStart')?.value||'',endTime:$('#evtNewEnd')?.value||'',location:$('#evtNewLoc')?.value||'',allDay:$('#evtNewAllDay')?.checked||false});['evtNewName','evtNewDate','evtNewEndDate','evtNewEnd','evtNewLoc'].forEach(k=>{const el=$('#'+k);if(el)el.value=''});const _s=$('#evtNewStart');if(_s)_s.value=roundedHour();const _a=$('#evtNewAllDay');if(_a)_a.checked=false;render();scheduleSave();scrollToEvent(id)}
 // After adding/committing an event, jump to where it landed in the (month-grouped) list and pulse it.
 function scrollToEvent(id){setTimeout(()=>{const row=document.getElementById('evt-'+id);if(!row)return;const cn=evtColorN(id);row.style.setProperty('--pulse-color','var(--evt-'+cn+'-dim)');row.scrollIntoView({behavior:'smooth',block:'center'});row.classList.remove('evt-pulse');void row.offsetWidth;row.classList.add('evt-pulse');setTimeout(()=>row.classList.remove('evt-pulse'),1700)},90)}
-function addEventAdv(){const name=$('#evtNewName')?.value.trim();if(!name)return;if(!state.events)state.events=[];state.events.push({id:genId(),name,date:normalizeDateInput($('#evtNewDate')?.value)||isoDate(TODAY),endDate:normalizeDateInput($('#evtNewEndDate')?.value)||'',startTime:$('#evtNewStart')?.value||'',endTime:$('#evtNewEnd')?.value||'',location:$('#evtNewLoc')?.value||'',allDay:$('#evtNewAllDay')?.checked||false});$('#evtNewName').value='';$('#evtNewDate').value='';$('#evtNewStart').value='';$('#evtNewEnd').value='';$('#evtNewEndDate').value='';$('#evtNewLoc').value='';$('#evtNewAllDay').checked=false;render();scheduleSave()}
 let _parsedEvents=[];
 // Ephemeral UI state for the paste-events panel so a re-render reconstructs it (never blanks it).
 let _pasteOpen=false,_pasteText='';
@@ -3393,7 +3467,10 @@ let _lifeAdd={name:'',due:'',cat:'',pri:''};
 function escHtml(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 // Same, for text going into a double-quoted attribute (class names and titles are spreadsheet text).
 function escAttr(s){return escHtml(s).replace(/"/g,'&quot;')}
-const MONTHS={january:0,february:1,march:2,april:3,may:4,june:5,july:6,august:7,september:8,october:9,november:10,december:11,jan:0,feb:1,mar:2,apr:3,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+// A value passed as a JS string argument from an inline handler: a JSON string literal, then made safe
+// for the double-quoted attribute it sits in. Quotes, apostrophes and backslashes all survive.
+function jsArg(v){return escAttr(JSON.stringify(String(v==null?'':v)))}
+const MONTHS={january:0,february:1,march:2,april:3,may:4,june:5,july:6,august:7,september:8,october:9,november:10,december:11,jan:0,feb:1,mar:2,apr:3,jun:5,jul:6,aug:7,sep:8,sept:8,oct:9,nov:10,dec:11};
 const DAYS={sunday:0,monday:1,tuesday:2,wednesday:3,thursday:4,friday:5,saturday:6,sun:0,mon:1,tue:2,tues:2,wed:3,weds:3,thu:4,thur:4,thurs:4,fri:5,sat:6};
 const MONTH_PAT=Object.keys(MONTHS).sort((a,b)=>b.length-a.length).join('|');
 const DAY_PAT=Object.keys(DAYS).sort((a,b)=>b.length-a.length).join('|');
@@ -3426,6 +3503,10 @@ name=name.replace(/[.,;:!?\s]+$/,'').trim();
 location=location.replace(/[.,;:!?\s]+$/,'').replace(/\s+(?:on|from|for)\s*$/i,'').replace(/[.,;:!?\s]+$/,'').trim();
 return{name,date,endDate,startTime,endTime,location,raw:text}
 }
+// A range that runs past New Year: "Dec 28 - Jan 3" ends in the year after it starts — unless the one
+// year written belongs to the end ("Dec 28 - Jan 3, 2027"), in which case the start is the year before.
+function rangeFix(start,end,yearOnEnd){if(!end||end>=start)return[start,end];
+  const bump=(d,n)=>(+d.slice(0,4)+n)+d.slice(4);return yearOnEnd?[bump(start,-1),end]:[start,bump(end,1)]}
 function extractDate(text){
 const yr=TODAY.getFullYear();let remaining=text,date='',endDate='';const clean=cleanForParsing(remaining);
 const tmrRe=/\b(tomorrow|tmrw?)\b/i;
@@ -3434,10 +3515,10 @@ if(/\btoday\b/i.test(remaining)){date=isoDate(TODAY);remaining=remaining.replace
 if(/\btonight\b/i.test(remaining)){date=isoDate(TODAY);remaining=remaining.replace(/\btonight\b/i,'').trim();return{date,endDate,remaining}}
 const rangeRe1=new RegExp('(?:(?:'+DAY_PAT+')\\s*[,]?\\s*)?('+MONTH_PAT+')\\s+(\\d{1,2})(?:st|nd|rd|th)?\\s*[-–—]\\s*(?:('+MONTH_PAT+')\\s+)?(\\d{1,2})(?:st|nd|rd|th)?(?:\\s+(?:morning|afternoon|evening))?(?:\\s*[,]?\\s*(\\d{4}))?(?:\\s*\\([^)]*\\))?','i');
 const rm1=clean.match(rangeRe1);
-if(rm1){const mo1=MONTHS[rm1[1].toLowerCase()],da1=parseInt(rm1[2]);const mo2=rm1[3]?MONTHS[rm1[3].toLowerCase()]:mo1;const da2=parseInt(rm1[4]);const y=rm1[5]?parseInt(rm1[5]):yr;date=y+'-'+String(mo1+1).padStart(2,'0')+'-'+String(da1).padStart(2,'0');endDate=y+'-'+String(mo2+1).padStart(2,'0')+'-'+String(da2).padStart(2,'0');remaining=flexRemove(remaining,rm1[0]);return{date,endDate,remaining}}
+if(rm1){const mo1=MONTHS[rm1[1].toLowerCase()],da1=parseInt(rm1[2]);const mo2=rm1[3]?MONTHS[rm1[3].toLowerCase()]:mo1;const da2=parseInt(rm1[4]);const y=rm1[5]?parseInt(rm1[5]):yr;date=y+'-'+String(mo1+1).padStart(2,'0')+'-'+String(da1).padStart(2,'0');endDate=y+'-'+String(mo2+1).padStart(2,'0')+'-'+String(da2).padStart(2,'0');[date,endDate]=rangeFix(date,endDate,!!rm1[5]);remaining=flexRemove(remaining,rm1[0]);return{date,endDate,remaining}}
 const rangeRe2=new RegExp('(?:('+DAY_PAT+')\\s*[,]?\\s*)?('+MONTH_PAT+')\\s+(\\d{1,2})(?:st|nd|rd|th)?(?:\\s*[,]?\\s*(\\d{4}))?\\s+to\\s+(?:('+DAY_PAT+')\\s*[,]?\\s*)?(?:('+MONTH_PAT+')\\s+)?(\\d{1,2})(?:st|nd|rd|th)?(?:\\s+(?:morning|afternoon|evening))?(?:\\s*[,]?\\s*(\\d{4}))?','i');
 const rm2=clean.match(rangeRe2);
-if(rm2){const mo1=MONTHS[rm2[2].toLowerCase()],da1=parseInt(rm2[3]);const mo2=rm2[6]?MONTHS[rm2[6].toLowerCase()]:mo1;const da2=parseInt(rm2[7]);const y=rm2[4]?parseInt(rm2[4]):(rm2[8]?parseInt(rm2[8]):yr);date=y+'-'+String(mo1+1).padStart(2,'0')+'-'+String(da1).padStart(2,'0');endDate=y+'-'+String(mo2+1).padStart(2,'0')+'-'+String(da2).padStart(2,'0');remaining=flexRemove(remaining,rm2[0]);return{date,endDate,remaining}}
+if(rm2){const mo1=MONTHS[rm2[2].toLowerCase()],da1=parseInt(rm2[3]);const mo2=rm2[6]?MONTHS[rm2[6].toLowerCase()]:mo1;const da2=parseInt(rm2[7]);const y=rm2[4]?parseInt(rm2[4]):(rm2[8]?parseInt(rm2[8]):yr);date=y+'-'+String(mo1+1).padStart(2,'0')+'-'+String(da1).padStart(2,'0');endDate=y+'-'+String(mo2+1).padStart(2,'0')+'-'+String(da2).padStart(2,'0');[date,endDate]=rangeFix(date,endDate,!rm2[4]&&!!rm2[8]);remaining=flexRemove(remaining,rm2[0]);return{date,endDate,remaining}}
 const r1=new RegExp('(?:(?:this\\s+|next\\s+)?(?:'+DAY_PAT+')\\s*[,.]?\\s*)?('+MONTH_PAT+')\\s+(\\d{1,2})(?:st|nd|rd|th)?(?:\\s*[,]\\s*(\\d{4}))?(?:\\s*[,.]?\\s*(?:'+DAY_PAT+'))?','i');
 const m1=clean.match(r1);
 if(m1){const mo=MONTHS[m1[1].toLowerCase()],da=parseInt(m1[2]);const y=m1[3]?parseInt(m1[3]):yr;date=y+'-'+String(mo+1).padStart(2,'0')+'-'+String(da).padStart(2,'0');remaining=flexRemove(remaining,m1[0]);return{date,endDate,remaining}}
@@ -3560,7 +3641,7 @@ console.log('Parser v2: '+pass+'/'+cases.length+(fail?' — '+fail+' FAILED':' �
 console.log('========================================\n');
 failures.forEach(f=>{console.log('  FAIL #'+f.num+': '+f.input);f.errs.forEach(e=>console.log('    → '+e))});
 return{pass,fail,total:cases.length}}
-function parsedPreviewHtml(){if(!_parsedEvents.length)return'';let h=`<div class="parsed-hdr">${_parsedEvents.length} staged event${_parsedEvents.length>1?'s':''} — edit, merge, or remove before confirming</div>`;_parsedEvents.forEach((e,i)=>{const nd=!e.date;const canMerge=i<_parsedEvents.length-1;h+=`<div class="parsed-evt${nd?' needs-date':''}"><button class="btn-ghost xs del parsed-evt-del" onclick="removeParsedEvent(${i})" title="Remove"><span class="mi" style="--ic:var(--ic-x)"></span></button><div class="parsed-evt-grid"><div><span class="parsed-evt-label">Name</span><input value="${(e.name||'').replace(/"/g,'&quot;')}" oninput="_parsedEvents[${i}].name=this.value"/></div><div><span class="parsed-evt-label">Date${nd?' <span class="needs-date-flag">needs date</span>':''}</span><input type="date" value="${e.date}" oninput="_parsedEvents[${i}].date=this.value"/></div><div><span class="parsed-evt-label">End Date</span><input type="date" value="${e.endDate||''}" oninput="_parsedEvents[${i}].endDate=this.value"/></div><div><span class="parsed-evt-label">Start</span><input type="time" value="${e.startTime}" oninput="_parsedEvents[${i}].startTime=this.value"/></div><div><span class="parsed-evt-label">End</span><input type="time" value="${e.endTime}" oninput="_parsedEvents[${i}].endTime=this.value"/></div><div><span class="parsed-evt-label">Location</span><input value="${(e.location||'').replace(/"/g,'&quot;')}" oninput="_parsedEvents[${i}].location=this.value"/></div></div><div class="parsed-evt-acts">${canMerge?`<button class="btn btn-quiet parsed-act-btn" onclick="mergeDownParsed(${i})" title="Combine with the row below (fills blanks)"><span class="mi" style="--ic:var(--ic-merge)"></span> Merge down</button>`:''}<button class="btn btn-quiet parsed-act-btn" id="trainBtn-${i}" onclick="copyTrainingCase(${i})" title="Copy raw + parsed JSON for a training case"><span class="mi" style="--ic:var(--ic-dup)"></span> Copy training case</button></div></div>`});h+=`<div class="parsed-confirm"><button class="btn btn-primary" onclick="confirmParsed()"><span class="mi" style="--ic:var(--ic-check)"></span> Confirm (${_parsedEvents.length})</button><span class="parsed-confirm-note">Nothing is saved until you Confirm.</span></div>`;return h}
+function parsedPreviewHtml(){if(!_parsedEvents.length)return'';let h=`<div class="parsed-hdr">${_parsedEvents.length} staged event${_parsedEvents.length>1?'s':''} — edit, merge, or remove before confirming</div>`;_parsedEvents.forEach((e,i)=>{const nd=!e.date;const canMerge=i<_parsedEvents.length-1;h+=`<div class="parsed-evt${nd?' needs-date':''}"><button class="btn-ghost xs del parsed-evt-del" onclick="removeParsedEvent(${i})" title="Remove"><span class="mi" style="--ic:var(--ic-x)"></span></button><div class="parsed-evt-grid"><div><span class="parsed-evt-label">Name</span><input value="${escAttr(e.name||'')}" oninput="_parsedEvents[${i}].name=this.value"/></div><div><span class="parsed-evt-label">Date${nd?' <span class="needs-date-flag">needs date</span>':''}</span><input type="date" value="${e.date}" oninput="_parsedEvents[${i}].date=this.value"/></div><div><span class="parsed-evt-label">End Date</span><input type="date" value="${e.endDate||''}" oninput="_parsedEvents[${i}].endDate=this.value"/></div><div><span class="parsed-evt-label">Start</span><input type="time" value="${e.startTime}" oninput="_parsedEvents[${i}].startTime=this.value"/></div><div><span class="parsed-evt-label">End</span><input type="time" value="${e.endTime}" oninput="_parsedEvents[${i}].endTime=this.value"/></div><div><span class="parsed-evt-label">Location</span><input value="${escAttr(e.location||'')}" oninput="_parsedEvents[${i}].location=this.value"/></div></div><div class="parsed-evt-acts">${canMerge?`<button class="btn btn-quiet parsed-act-btn" onclick="mergeDownParsed(${i})" title="Combine with the row below (fills blanks)"><span class="mi" style="--ic:var(--ic-merge)"></span> Merge down</button>`:''}<button class="btn btn-quiet parsed-act-btn" id="trainBtn-${i}" onclick="copyTrainingCase(${i})" title="Copy raw + parsed JSON for a training case"><span class="mi" style="--ic:var(--ic-dup)"></span> Copy training case</button></div></div>`});h+=`<div class="parsed-confirm"><button class="btn btn-primary" onclick="confirmParsed()"><span class="mi" style="--ic:var(--ic-check)"></span> Confirm (${_parsedEvents.length})</button><span class="parsed-confirm-note">Nothing is saved until you Confirm.</span></div>`;return h}
 function renderParsedPreview(){const el=$('#evtParsePreview');if(el)el.innerHTML=parsedPreviewHtml()}
 function openPasteEvents(){_pasteOpen=!_pasteOpen;render();if(_pasteOpen){navigator.clipboard.readText().then(t=>{if(t&&!_pasteText.trim()){_pasteText=t;const ta=$('#evtPasteArea');if(ta)ta.value=t}}).catch(()=>{})}}
 function removeParsedEvent(i){_parsedEvents.splice(i,1);renderParsedPreview()}
@@ -3571,7 +3652,7 @@ function mergeDownParsed(i){if(i<0||i>=_parsedEvents.length-1)return;const a=_pa
 // Copy the raw pasted text + parsed JSON for a staged row, to paste into a Claude session to tune the regex.
 function copyTrainingCase(i){const e=_parsedEvents[i];if(!e)return;const parsed={name:e.name||'',date:e.date||'',endDate:e.endDate||'',startTime:e.startTime||'',endTime:e.endTime||'',location:e.location||''};const payload='=== RAW ===\n'+(e._raw||'')+'\n\n=== PARSED ===\n'+JSON.stringify(parsed,null,2);const done=()=>{const b=document.getElementById('trainBtn-'+i);if(b){const o=b.innerHTML;b.innerHTML='<span class="mi" style="--ic:var(--ic-check)"></span> Copied';setTimeout(()=>{b.innerHTML=o},1400)}};navigator.clipboard.writeText(payload).then(done).catch(()=>prompt('Copy training case:',payload))}
 // Explicit commit — the ONLY write path for parsed events. Skips blank-name rows, then jumps to the first.
-function confirmParsed(){if(!_parsedEvents.length)return;if(!state.events)state.events=[];let firstId=null;_parsedEvents.forEach(e=>{if(e.name&&e.name.trim()){const id=genId();if(firstId==null)firstId=id;state.events.push({id,name:e.name.trim(),date:e.date||isoDate(TODAY),endDate:e.endDate||'',startTime:e.startTime||'',endTime:e.endTime||'',location:e.location||'',allDay:false})}});_parsedEvents=[];_pasteText='';_pasteOpen=false;render();scheduleSave();if(firstId!=null)scrollToEvent(firstId)}
+function confirmParsed(){if(!_parsedEvents.length)return;if(!state.events)state.events=[];let firstId=null;_parsedEvents.forEach(e=>{if(e.name&&e.name.trim()){const id=genId();if(firstId==null)firstId=id;const _d=e.date||isoDate(TODAY);state.events.push({id,name:e.name.trim(),date:_d,endDate:evtEndDate({date:_d,endDate:e.endDate}),startTime:e.startTime||'',endTime:e.endTime||'',location:e.location||'',allDay:false})}});_parsedEvents=[];_pasteText='';_pasteOpen=false;render();scheduleSave();if(firstId!=null)scrollToEvent(firstId)}
 function deleteEvent(id){if(!confirm('Delete event?'))return;state.events=(state.events||[]).filter(e=>e.id!==id);render();scheduleSave()}
 // Soft-delete (tombstone via detectAndQueue on scheduleSave): remove events fully in the past
 // (end date, or date, before today). In-progress multi-day events (end >= today) are kept.
@@ -3580,12 +3661,12 @@ function clearPastEvents(){const past=(state.events||[]).filter(e=>e.date&&parse
 function clearCompletedTasks(){const done=(state.lifeTasks||[]).filter(t=>t.done);if(!done.length)return;if(!confirm('Clear '+done.length+' completed task'+(done.length>1?'s':'')+'? This cannot be undone.'))return;const ids=new Set(done.map(t=>t.id));state.lifeTasks=(state.lifeTasks||[]).filter(t=>!t.done);state.tasks=(state.tasks||[]).filter(t=>!ids.has(t.lifeSourceId));render();scheduleSave()}
 let editEvtId=null;
 function openEvtEdit(id){editEvtId=id;const e=(state.events||[]).find(e=>e.id===id);if(!e)return;$('#evtModalTitle').textContent='Edit Event';$('#eName').value=e.name;$('#eDate').value=e.date;$('#eEndDate').value=e.endDate||'';$('#eStart').value=e.startTime||'';$('#eEnd').value=e.endTime||'';$('#eLoc').value=e.location||'';$('#eAllDay').checked=!!e.allDay;edResetTouched('eEndDate');$('#evtModal').classList.add('open')}
-$('#eSave').onclick=()=>{const e=(state.events||[]).find(e=>e.id===editEvtId);if(e){e.name=$('#eName').value;e.date=normalizeDateInput($('#eDate').value)||e.date;e.endDate=normalizeDateInput($('#eEndDate').value)||'';e.startTime=$('#eStart').value;e.endTime=$('#eEnd').value;e.location=$('#eLoc').value;e.allDay=$('#eAllDay').checked}$('#evtModal').classList.remove('open');render();scheduleSave()}
+$('#eSave').onclick=()=>{const e=(state.events||[]).find(e=>e.id===editEvtId);if(e){e.name=$('#eName').value;e.date=normalizeDateInput($('#eDate').value)||e.date;e.endDate=normalizeDateInput($('#eEndDate').value)||'';e.endDate=evtEndDate(e);e.startTime=$('#eStart').value;e.endTime=$('#eEnd').value;e.location=$('#eLoc').value;e.allDay=$('#eAllDay').checked}$('#evtModal').classList.remove('open');render();scheduleSave()}
 $('#eDel').onclick=()=>{state.events=(state.events||[]).filter(e=>e.id!==editEvtId);$('#evtModal').classList.remove('open');render();scheduleSave()}
 $('#eCanc').onclick=()=>{$('#evtModal').classList.remove('open')}
 $('#evtModal').onclick=e=>{if(e.target.id==='evtModal')$('#evtModal').classList.remove('open')}
 
-function editCatName(el,oldName){el.setAttribute('draggable','false');const count=el.textContent.match(/\((\d+)\)/)?.[1]||'';const inp=document.createElement('input');inp.type='text';inp.value=oldName;inp.className='life-input';inp.style.cssText='font-size:var(--fs-2xs);font-weight:700;text-transform:uppercase;width:120px;padding:2px 6px;';el.innerHTML='';el.appendChild(inp);inp.focus();inp.select();function save(){const nv=inp.value.trim();if(nv&&nv!==oldName){state.lifeTasks.forEach(t=>{if(t.category===oldName)t.category=nv});const sel=$('#lifeNewCat');if(sel){const opts=Array.from(sel.options);const has=opts.some(o=>o.value===nv);if(!has){const o=document.createElement('option');o.value=nv;o.textContent=nv;sel.appendChild(o)}}}render();scheduleSave()}inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();save()}else if(e.key==='Escape')render()});inp.addEventListener('blur',save)}
+function editCatName(el,oldName){el.setAttribute('draggable','false');const count=el.textContent.match(/\((\d+)\)/)?.[1]||'';const inp=document.createElement('input');inp.type='text';inp.value=oldName;inp.className='life-input';inp.style.cssText='font-size:var(--fs-2xs);font-weight:700;text-transform:uppercase;width:120px;padding:2px 6px;';el.innerHTML='';el.appendChild(inp);inp.focus();inp.select();let over=false;function save(){if(over)return;over=true;const nv=inp.value.trim();if(nv&&nv!==oldName){state.lifeTasks.forEach(t=>{if(t.category===oldName)t.category=nv});const sel=$('#lifeNewCat');if(sel){const opts=Array.from(sel.options);const has=opts.some(o=>o.value===nv);if(!has){const o=document.createElement('option');o.value=nv;o.textContent=nv;sel.appendChild(o)}}}render();scheduleSave()}inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();save()}else if(e.key==='Escape'){over=true;render()}});inp.addEventListener('blur',save)}
 
 // ===== TASKS TAB DRAG =====
 let lifeDragId=null,lifeDragCat=null,dragCatName=null;
@@ -3599,8 +3680,6 @@ function lifeCatDragLeave(e){e.currentTarget.classList.remove('drag-over')}
 function lifeCatDrop(e,targetCat){e.preventDefault();e.currentTarget.classList.remove('drag-over');if(lifeDragId!==null){const t=state.lifeTasks.find(t=>t.id===lifeDragId);if(t){t.category=targetCat;lifeDragId=null;render();scheduleSave();return}}if(dragCatName&&dragCatName!==targetCat){if(!state.catOrder)state.catOrder=[];const cats=new Set();state.lifeTasks.filter(t=>!t.done).forEach(t=>{const c=t.category||'General';cats.add(c)});let order=state.catOrder.filter(c=>cats.has(c));cats.forEach(c=>{if(!order.includes(c))order.push(c)});const fi=order.indexOf(dragCatName),ti=order.indexOf(targetCat);if(fi>=0&&ti>=0){order.splice(fi,1);order.splice(ti,0,dragCatName);state.catOrder=order}dragCatName=null;render();scheduleSave()}}
 
 // ===== SYLLABUS =====
-function hideSylWeek(wkN){if(!state.hiddenSylWeeks)state.hiddenSylWeeks=[];if(!state.hiddenSylWeeks.includes(wkN))state.hiddenSylWeeks.push(wkN);render();scheduleSave()}
-function expandSylWeek(wkN){state.hiddenSylWeeks=(state.hiddenSylWeeks||[]).filter(w=>w!==wkN);render();scheduleSave()}
 function hideSylDay(date){if(!state.hiddenSylDays)state.hiddenSylDays=[];if(!state.hiddenSylDays.includes(date))state.hiddenSylDays.push(date);render();scheduleSave()}
 function expandSylDays(wkN){const weeks=generateWeeks();const wk=weeks.find(w=>w.num===wkN);if(!wk){state.hiddenSylDays=[];render();scheduleSave();return}const dates=wk.days.map(d=>d.date);state.hiddenSylDays=(state.hiddenSylDays||[]).filter(d=>!dates.includes(d));render();scheduleSave()}
 // A feed entry's tick and star are the only part of it the user owns, so they are written to
@@ -3628,11 +3707,10 @@ function openSylFromWeek(id){const s=sylFind(id);switchTab('syllabus');setTimeou
 function sylWriteField(s,field,val){if(s.feed)sylSetEdit(s.id,{[field]:val});else s[field]=val}
 function inlineSylEdit(id,field,el){const s=sylFind(id);if(!s)return;
 
-if(field==='title'){const inp=document.createElement('input');inp.type='text';inp.value=s.title;inp.className='syl-title-edit';el.replaceWith(inp);inp.focus();inp.select();function save(){sylWriteField(s,'title',inp.value.trim()||s.title);render();scheduleSave()}inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();save()}else if(e.key==='Escape')render()});inp.addEventListener('blur',save)}
-else if(field==='detail'){const ta=document.createElement('textarea');ta.value=sylDetailSrc(s);ta.className='syl-detail-edit';ta.rows=Math.max(2,sylDetailSrc(s).split('\n').length+1);el.replaceWith(ta);ta.focus();function save(){sylWriteField(s,'detail',ta.value);render();scheduleSave()}ta.addEventListener('keydown',e=>{if(e.key==='Escape')render()});ta.addEventListener('blur',save)}}
+if(field==='title'){const inp=document.createElement('input');inp.type='text';inp.value=s.title;inp.className='syl-title-edit';el.replaceWith(inp);inp.focus();inp.select();let over=false;function save(){if(over)return;over=true;sylWriteField(s,'title',inp.value.trim()||s.title);render();scheduleSave()}inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();save()}else if(e.key==='Escape'){over=true;render()}});inp.addEventListener('blur',save)}
+else if(field==='detail'){const ta=document.createElement('textarea');ta.value=sylDetailSrc(s);ta.className='syl-detail-edit';ta.rows=Math.max(2,sylDetailSrc(s).split('\n').length+1);el.replaceWith(ta);ta.focus();let over=false;function save(){if(over)return;over=true;sylWriteField(s,'detail',ta.value);render();scheduleSave()}ta.addEventListener('keydown',e=>{if(e.key==='Escape'){over=true;render()}});ta.addEventListener('blur',save)}}
 function deleteSylEntry(id){if(!confirm('Delete syllabus entry?'))return;state.syllabus=(state.syllabus||[]).filter(s=>s.id!==id);render();scheduleSave()}
-function addSylEntry(){const title=$('#sylNewTitle')?.value.trim();if(!title)return;const newId=genId();const dueVal=normalizeDateInput($('#sylNewDue')?.value?.trim())||isoDate(TODAY);const dueEndVal='';const dueTimeVal=$('#sylNewTime')?.value||'';const newCat=$('#sylNewCat').value;const newCls=sylClassOf(newCat);state.syllabus.push({id:newId,cat:newCat,clsAlias:newCls?newCls.alias:'',type:$('#sylNewType').value,title,detail:$('#sylNewDetail')?.value||'',due:dueVal,dueEnd:dueEndVal,dueTime:dueTimeVal,done:false,highlighted:false});$('#sylNewTitle').value='';$('#sylNewDue').value='';$('#sylNewTime').value='';$('#sylNewDetail').value='';render();scheduleSave();setTimeout(()=>{const wk=semesterWeekNum(parseDate(dueVal));const sec=document.querySelector(`.syl-week-section:has(.syl-week-hdr:first-child)`);const sections=document.querySelectorAll('.syl-week-section');for(const s of sections){if(s.querySelector('.syl-week-hdr')?.textContent?.includes('Week '+wk)){s.scrollIntoView({behavior:'smooth',block:'center'});break}}},60)}
-function addSylType(id){const s=(state.syllabus||[]).find(s=>s.id===id);if(!s)return;const t=prompt('Enter type (reading, paper, exam, presentation, or custom):',s.type);if(t&&t.trim()){s.type=t.trim().toLowerCase();render();scheduleSave()}}
+function addSylEntry(){const title=$('#sylNewTitle')?.value.trim();if(!title)return;const newId=genId();const dueVal=normalizeDateInput($('#sylNewDue')?.value?.trim())||isoDate(TODAY);const dueEndVal='';const dueTimeVal=$('#sylNewTime')?.value||'';const newCat=$('#sylNewCat').value;const newCls=sylClassOf(newCat);state.syllabus.push({id:newId,cat:newCat,clsAlias:newCls?newCls.alias:'',type:$('#sylNewType').value,title,detail:$('#sylNewDetail')?.value||'',due:dueVal,dueEnd:dueEndVal,dueTime:dueTimeVal,done:false,highlighted:false});$('#sylNewTitle').value='';$('#sylNewDue').value='';$('#sylNewTime').value='';$('#sylNewDetail').value='';render();scheduleSave();setTimeout(()=>{const wk=semesterWeekNum(parseDate(dueVal));const sec=document.querySelector(`.syl-week-section[data-wk="${wk}"]`);if(sec)sec.scrollIntoView({behavior:'smooth',block:'center'})},60)}
 let editSylId=null;
 // Both kinds of entry open the same editor. A hand-added one is edited in place; a feed one is
 // edited as a patch over the spreadsheet's row, which is why Delete becomes Reset for it: there is
@@ -3643,10 +3721,13 @@ function openSylEdit(id){editSylId=id;const s=sylFind(id);if(!s)return;
   const del=$('#sDel');del.textContent=s.feed?'Reset to feed':'Delete';del.classList.toggle('btn-quiet',!!s.feed);del.classList.toggle('btn-danger',!s.feed);
   del.disabled=!!(s.feed&&!s.edited);del.style.opacity=del.disabled?'.4':'';
   del.title=s.feed?'Put this entry back to what the spreadsheet says':'';
-  $('#sTitle').value=s.title;$('#sDetail').value=sylDetailSrc(s);$('#sCat').value=s.cat;$('#sType').value=s.type;$('#sDue').value=s.due;$('#sDueTime').value=s.dueTime||'';$('#sDueEnd').value=s.dueEnd||'';$('#sDueEnd').min=s.due;edResetTouched('sDueEnd');$('#sylModal').classList.add('open')}
+  $('#sTitle').value=s.title;$('#sDetail').value=sylDetailSrc(s);$('#sCat').value=s.cat;selectKeeping($('#sType'),s.type);$('#sDue').value=s.due;$('#sDueTime').value=s.dueTime||'';$('#sDueEnd').value=s.dueEnd||'';$('#sDueEnd').min=s.due;edResetTouched('sDueEnd');
+  // A feed row is one day by construction and an end date is not part of its patch: hide the field
+  // rather than accept a value that would be silently dropped.
+  $('#sDueEnd').style.display=$('#sDueEndLbl').style.display=s.feed?'none':'';$('#sylModal').classList.add('open')}
 $('#sSave').onclick=()=>{const s=sylFind(editSylId);
   if(s&&s.feed){sylSetEdit(editSylId,{title:$('#sTitle').value,detail:$('#sDetail').value,cat:$('#sCat').value,type:$('#sType').value,due:normalizeDateInput($('#sDue').value)||s.due,dueTime:$('#sDueTime').value||''})}
-  else{const h=(state.syllabus||[]).find(x=>x.id===editSylId);if(h){h.title=$('#sTitle').value;h.detail=$('#sDetail').value;h.cat=$('#sCat').value;const _sc=sylClassOf(h.cat);h.clsAlias=_sc?_sc.alias:'';h.type=$('#sType').value;h.due=normalizeDateInput($('#sDue').value)||h.due;h.dueTime=$('#sDueTime').value||'';h.dueEnd=normalizeDateInput($('#sDueEnd').value)||''}}
+  else{const h=(state.syllabus||[]).find(x=>x.id===editSylId);if(h){const _prevCat=h.cat;h.title=$('#sTitle').value;h.detail=$('#sDetail').value;h.cat=$('#sCat').value;const _sc=sylClassOf(h.cat);if(_sc||h.cat!==_prevCat)h.clsAlias=_sc?_sc.alias:'';h.type=$('#sType').value;h.due=normalizeDateInput($('#sDue').value)||h.due;h.dueTime=$('#sDueTime').value||'';h.dueEnd=normalizeDateInput($('#sDueEnd').value)||'';if(h.dueEnd&&h.dueEnd<=h.due)h.dueEnd=''}}
   $('#sylModal').classList.remove('open');render();scheduleSave()}
 $('#sDel').onclick=()=>{const s=sylFind(editSylId);
   if(s&&s.feed){if(!confirm('Reset this entry to what the syllabus feed says?'))return;$('#sylModal').classList.remove('open');sylResetEdit(editSylId);return}
@@ -3744,7 +3825,7 @@ function importState(){
   };
   input.click();
 }
-function bumpOverdueTasks(){const todayStr=isoDate(TODAY);let changed=false;const toReturn=state.tasks.filter(t=>!t.done&&t.date<todayStr);toReturn.forEach(t=>{if(t.lifeSourceId){const lt=state.lifeTasks.find(l=>l.id===t.lifeSourceId);if(lt){lt.inBank=true}}else{state.lifeTasks.push({id:genId(),name:t.name,category:'General',priority:t.priority==='high'?'high':'med',due:'',done:false,inBank:true})}changed=true});state.tasks=state.tasks.filter(t=>t.done||t.date>=todayStr);if(changed)scheduleSave()}
+function bumpOverdueTasks(){const todayStr=isoDate(TODAY);let changed=false;const toReturn=state.tasks.filter(t=>!t.done&&t.date<todayStr);toReturn.forEach(t=>{const lt=t.lifeSourceId?state.lifeTasks.find(l=>l.id===t.lifeSourceId):null;if(lt){lt.inBank=true}else{state.lifeTasks.push({id:genId(),name:t.name,category:'General',priority:t.priority==='high'?'high':'med',due:'',done:false,inBank:true})}changed=true});state.tasks=state.tasks.filter(t=>t.done||t.date>=todayStr);if(changed)scheduleSave()}
 function migrateEventTasks(){const evtTasks=state.tasks.filter(t=>t.cat==='events');if(!evtTasks.length)return;if(!state.events)state.events=[];evtTasks.forEach(t=>{const exists=(state.events||[]).some(e=>e.name===t.name&&e.date===t.date);if(!exists){state.events.push({id:genId(),name:t.name,date:t.date,endDate:'',startTime:t.time||'',endTime:'',location:'',allDay:false})}});state.tasks=state.tasks.filter(t=>t.cat!=='events');scheduleSave()}
 /* Housekeeping that rewrites records — returning overdue sprint tasks to the bank — runs once per
    launch, AFTER the launch's first sync attempt rather than before the first paint (v14.4). Run on a
