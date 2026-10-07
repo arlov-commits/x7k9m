@@ -130,8 +130,10 @@ Verified headlessly (Chromium via Playwright against a local origin and an in-me
 - **The workbook is not part of the atomic shell precache** in `sw.js`: a missing `syllabus.xlsx` must never fail the install and strand devices on old code.
 - Add forms (`data-keep`) and toggled panels (`_uiOpen`) survive `render()`; an event whose end date is not after its start reads as one day (`evtEndDate`).
 
-## The way across to Bodhi Precepts (v14.6)
-The Week tab opens with a link to the **Bodhi Precepts** app (`PRECEPTS_URL`, `https://bodhi-precepts.pages.dev/` — the `arlov-commits/bodhi_precepts` repo), beside the legend in `.week-top`. It is **one-way by request**: the Precepts app carries no link back, so do not add one there. It is a **plain `<a target="_blank" rel="noopener">`, deliberately**: an installed copy takes the tap itself — Android hands a link inside an installed app's scope to that app, and a desktop install does when "Open supported links" is on for it — and anywhere else it opens the site. No JS detection: a page cannot see whether another origin's app is installed without that app publishing an assetlinks relation, and nothing here needs it. The seal is the Precepts app's own icon inlined (`PRECEPTS_SEAL`), so it needs no request and draws offline; it is its own ground, so it reads the same on every theme.
+## The way across to Bodhi Precepts (v14.6, a real switch since v14.7)
+The Week tab opens with the **Bodhi Precepts** app's own seal at the top right, beside the legend in `.week-top` — icon only, no label or frame (`PRECEPTS_SEAL`, inlined so it needs no request and draws offline). It goes to `PRECEPTS_URL`, `https://bodhi-precepts.pages.dev/` (the `arlov-commits/bodhi_precepts` repo). It is **one-way by request**: the Precepts app carries no link back, so do not add one there.
+
+**On Android the tap is an intent, not a link** (`preceptsOpen`/`preceptsIntentUrl`). A plain https link from inside an installed app is kept in a Chrome Custom Tab on top of it — the bar with the × and the address — which is not a switch. An `intent://…#Intent;scheme=https;…;S.browser_fallback_url=…;end` asks Android to give the address to whatever claims it, which is the installed Precepts app; only when nothing does is the fallback (the site) opened. Off Android it stays a plain `<a target="_blank">`: a desktop install takes it when "Open supported links" is on for it, and iOS cannot hand a link to a home-screen app at all. No JS detection of whether the app is installed: a page cannot see that for another origin without that app publishing an assetlinks relation, and the intent's fallback already covers the not-installed case. `_preceptsGo` is the one navigation call, so a test can observe it.
 
 ## Deploy workflow (NON-NEGOTIABLE)
 - **Never commit directly to `main`.** A live user depends on `main`.
@@ -142,7 +144,7 @@ The Week tab opens with a link to the **Bodhi Precepts** app (`PRECEPTS_URL`, `h
 
 ## Versioning
 - Version lives as an HTML comment on line 1: `<!-- Academic Planner vX.Y -->`, and in a visible `.version-label` in the header, and in the service worker `CACHE_NAME`.
-- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v14.6. All three locations must match.
+- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v14.7. All three locations must match.
 - Bumping the SW `CACHE_NAME` every change is required or installed devices serve stale code.
 
 ## Architecture rules (hard-won — do not violate)

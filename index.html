@@ -1,4 +1,4 @@
-<!-- Academic Planner v14.6 -->
+<!-- Academic Planner v14.7 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -224,20 +224,19 @@ mark.find-hit.cur{background:var(--warning);color:var(--bg);box-shadow:0 0 0 2px
 .legend-item{display:flex;align-items:center;gap:6px;font-size:var(--fs-xs);font-weight:600;color:var(--text-dim)}
 .legend-dot{width:10px;height:10px;border-radius:var(--r-s)}
 .legend-dot.life{background:var(--accent-life)}.legend-dot.events{background:var(--warning)}.legend-dot.custom{background:var(--text-muted)}
-/* The way across to the Bodhi Precepts app (v14.6), at the top of the Week tab beside the legend. It is
-   a plain link: an installed copy takes the tap itself (Android hands a link inside an installed app's
-   scope to that app; a desktop install does when "Open supported links" is on for it), and anywhere
-   else it simply opens the site. The seal is the Precepts app's own icon, inlined so it needs no
-   request and draws offline; it is its own ground, so it reads the same on every theme. */
-.week-top{display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:18px}
-.week-top .legend{margin-bottom:0}
-.app-jump{margin-left:auto;display:inline-flex;align-items:center;gap:8px;padding:6px 12px 6px 7px;
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-m);color:var(--text-dim);
-  font-family:var(--font-sans);font-size:var(--fs-xs);font-weight:600;text-decoration:none;white-space:nowrap;
-  -webkit-tap-highlight-color:transparent;transition:color var(--t-fast) var(--ease),border-color var(--t-fast) var(--ease)}
-.app-jump:hover{color:var(--text);border-color:var(--text-dim)}
-.app-jump svg{width:22px;height:22px;flex-shrink:0;display:block}
-.app-jump .app-jump-arrow{font-size:var(--fs-2xs);opacity:.6}
+/* The way across to the Bodhi Precepts app (v14.6, icon-only and a real switch since v14.7): the app's
+   own seal at the top right of the Week tab, beside the legend, and nothing else — no label, no frame.
+   The seal is inlined so it needs no request and draws offline; it is its own ground, so it reads the
+   same on every theme. How the tap switches apps is in preceptsOpen(). */
+/* One row at every width: the legend wraps inside itself rather than pushing the seal onto a line of its own. */
+.week-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:18px}
+.week-top .legend{margin-bottom:0;min-width:0}
+.app-jump{margin-left:auto;display:block;width:40px;height:40px;flex:0 0 auto;border-radius:10px;
+  -webkit-tap-highlight-color:transparent;transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
+.app-jump svg{width:100%;height:100%;display:block}
+.app-jump:hover{box-shadow:0 0 0 2px var(--border)}
+.app-jump:active{transform:scale(.94)}
+.app-jump:focus-visible{outline:2px solid var(--text-dim);outline-offset:2px}
 .hide-day-btn{font-size:var(--fs-2xs);padding:1px 5px;border:1px solid var(--border);border-radius:var(--r-s);background:var(--surface2);color:var(--text-muted);cursor:pointer;margin-top:2px;opacity:.5;transition:opacity var(--t-fast) var(--ease)}.hide-day-btn:hover{opacity:1}
 .expand-week-btn{font-size:var(--fs-2xs);padding:1px 6px;border:1px solid var(--border);border-radius:var(--r-s);background:var(--surface2);color:var(--text-muted);cursor:pointer;margin-left:8px;opacity:.6;transition:opacity var(--t-fast) var(--ease)}.expand-week-btn:hover{opacity:1}
 /* The per-week hide sits at the far end of the header so it is never confused with the "N hidden"
@@ -1608,7 +1607,7 @@ function render(){
   // Half-typed add forms survive the repaint: render() is also run by background syncs, and a field
 // that has lost focus is no longer protected by isUserEditing().
   const _keep={};document.querySelectorAll('#app [data-keep]').forEach(el=>{_keep[el.id]=el.type==='checkbox'?el.checked:el.value});
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v14.6</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;for(const id in _keep){const el=document.getElementById(id);if(el){if(el.type==='checkbox')el.checked=_keep[id];else el.value=_keep[id]}}FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v14.7</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;for(const id in _keep){const el=document.getElementById(id);if(el){if(el.type==='checkbox')el.checked=_keep[id];else el.value=_keep[id]}}FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -1635,7 +1634,18 @@ function renderDash(){
 // purpose: the Precepts app carries no link back.
 const PRECEPTS_URL='https://bodhi-precepts.pages.dev/';
 const PRECEPTS_SEAL='<svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#96231D"/><circle cx="30" cy="34" r="20.5" fill="#F8F4EC"/><circle cx="44.5" cy="27" r="19.5" fill="#96231D"/><path fill="#F8F4EC" d="M46.5,10.5Q47.9,16.1 53.5,17.5Q47.9,18.9 46.5,24.5Q45.1,18.9 39.5,17.5Q45.1,16.1 46.5,10.5z"/></svg>';
-function preceptsLinkHtml(){return`<a class="app-jump" href="${PRECEPTS_URL}" target="_blank" rel="noopener" title="Open the Bodhi Precepts app (or its site, where it is not installed)">${PRECEPTS_SEAL}<span>Bodhi Precepts</span><span class="app-jump-arrow" aria-hidden="true">↗</span></a>`}
+/* A real switch, not a page opened over the planner. On Android a plain https link from inside an
+   installed app is kept in a Custom Tab on top of it (the bar with the × and the address), so the tap
+   hands Android an intent instead: Android gives the address to the app that claims it — the installed
+   Bodhi Precepts — and only when nothing does is the fallback, the site itself, opened. Elsewhere the
+   link stays a link: a desktop install takes it when "Open supported links" is on for it, and iOS has no
+   way to hand a link to a home-screen app at all. */
+function preceptsIntentUrl(){const u=new URL(PRECEPTS_URL);
+  return'intent://'+u.host+u.pathname+'#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;S.browser_fallback_url='+encodeURIComponent(PRECEPTS_URL)+';end'}
+let _preceptsGo=u=>{location.href=u};
+function preceptsOpen(e){if(!/Android/i.test(navigator.userAgent))return true;
+  if(e)e.preventDefault();_preceptsGo(preceptsIntentUrl());return false}
+function preceptsLinkHtml(){return`<a class="app-jump" href="${PRECEPTS_URL}" target="_blank" rel="noopener" onclick="return preceptsOpen(event)" title="Switch to Bodhi Precepts" aria-label="Switch to Bodhi Precepts">${PRECEPTS_SEAL}</a>`}
 function renderSprints(){const weeks=generateWeeks();const bankTasks=state.lifeTasks.filter(t=>t.inBank&&!t.done&&!state.tasks.some(s=>s.lifeSourceId===t.id));
 // The legend follows the feed: one entry per class the spreadsheet defines, in its sheet order.
 let h=`<div class="week-top"><div class="legend">${sylClasses().map(c=>`<div class="legend-item"><span class="legend-dot ${c.cat}"></span>${escHtml(c.alias)}</div>`).join('')}<div class="legend-item"><span class="legend-dot events"></span>Events</div><div class="legend-item"><span class="legend-dot life"></span>Tasks</div></div>${preceptsLinkHtml()}</div>`;
