@@ -1,4 +1,4 @@
-<!-- Academic Planner v14.8 -->
+<!-- Academic Planner v14.9 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -225,7 +225,7 @@ mark.find-hit.cur{background:var(--warning);color:var(--bg);box-shadow:0 0 0 2px
 .legend-dot{width:10px;height:10px;border-radius:var(--r-s)}
 .legend-dot.life{background:var(--accent-life)}.legend-dot.events{background:var(--warning)}.legend-dot.custom{background:var(--text-muted)}
 /* Switches to the user's other apps (v14.6; two of them, as character tiles, since v14.8): Bodhi
-   Precepts (齋) and Kitchen Cleanup (廚), at the top right of the Week tab beside the legend. The tiles
+   Precepts (齋) and Kitchen Cleanup (淨), at the top right of the Week tab beside the legend. The tiles
    are exactly as tall as the legend — side by side while it is one line, stacked to split its height
    once it wraps (fitAppJumps sets --jump and .stack). Muted, retro takes on each app's own colour
    rather than its bright icon, set flat with a faint inset frame like a worn stamp; fixed colours,
@@ -1619,7 +1619,7 @@ function render(){
   // Half-typed add forms survive the repaint: render() is also run by background syncs, and a field
 // that has lost focus is no longer protected by isUserEditing().
   const _keep={};document.querySelectorAll('#app [data-keep]').forEach(el=>{_keep[el.id]=el.type==='checkbox'?el.checked:el.value});
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v14.8</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;for(const id in _keep){const el=document.getElementById(id);if(el){if(el.type==='checkbox')el.checked=_keep[id];else el.value=_keep[id]}}FIND_TABS=allTabs.slice();updateSI();almFitLabels();fitAppJumps();sylFitTitles();findReapply()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v14.9</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;for(const id in _keep){const el=document.getElementById(id);if(el){if(el.type==='checkbox')el.checked=_keep[id];else el.value=_keep[id]}}FIND_TABS=allTabs.slice();updateSI();almFitLabels();fitAppJumps();sylFitTitles();findReapply()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -1647,7 +1647,7 @@ function renderDash(){
 // phone and differs per device, so it is pasted into Settings and kept per device (state.appPkgs).
 const APP_JUMPS=[
   {key:'precepts',name:'Bodhi Precepts',glyph:'齋',url:'https://bodhi-precepts.pages.dev/'},
-  {key:'kitchen',name:'Kitchen Cleanup',glyph:'廚',url:'https://arlov-commits.github.io/kitchen_cleanup/'}
+  {key:'kitchen',name:'Kitchen Cleanup',glyph:'淨',url:'https://arlov-commits.github.io/kitchen_cleanup/'}
 ];
 const APP_PKG_RE=/^[A-Za-z][\w]*(\.[A-Za-z_][\w]*)+$/;
 function appPkg(key){const p=((state.appPkgs||{})[key]||'').trim();return APP_PKG_RE.test(p)?p:''}
@@ -1681,7 +1681,7 @@ function appPkgSet(key,v){if(!state.appPkgs)state.appPkgs={};const p=String(v||'
   if(p&&!APP_PKG_RE.test(p)){alert('That does not look like an Android package name (e.g. org.chromium.webapk.a1b2c3d4e5f6).');render();return}
   if(p)state.appPkgs[key]=p;else delete state.appPkgs[key];render();scheduleSave()}
 function appPkgSectionHtml(){return`<div class="notes-box"><div class="notes-box-title">App switching (Android)</div>
-  <div class="settings-section"><div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">The 齋 and 廚 tiles at the top of the Week tab switch to those apps. On Android that only works when this phone tells the planner which installed app to hand the address to: in Chrome, open <code>chrome://webapks</code>, find the app, and paste its <em>Package name</em> below. Kept on this device only. (Alternatively: Android Settings → Apps → the app → Open by default → turn on <em>Open supported links</em> and add its address.)</div>
+  <div class="settings-section"><div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">The 齋 and 淨 tiles at the top of the Week tab switch to those apps. On Android that only works when this phone tells the planner which installed app to hand the address to: in Chrome, open <code>chrome://webapks</code>, find the app, and paste its <em>Package name</em> below. Kept on this device only. (Alternatively: Android Settings → Apps → the app → Open by default → turn on <em>Open supported links</em> and add its address.)</div>
   ${APP_JUMPS.map(a=>`<label>${escHtml(a.glyph+' '+a.name)}</label><input class="life-input app-pkg" type="text" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="org.chromium.webapk.…" value="${escAttr((state.appPkgs||{})[a.key]||'')}" onchange="appPkgSet('${a.key}',this.value)"/>`).join('')}
   </div></div>`}
 function renderSprints(){const weeks=generateWeeks();const bankTasks=state.lifeTasks.filter(t=>t.inBank&&!t.done&&!state.tasks.some(s=>s.lifeSourceId===t.id));

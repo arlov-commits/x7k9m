@@ -1,4 +1,4 @@
-const CACHE_NAME = 'academic-planner-v14.8';
+const CACHE_NAME = 'academic-planner-v14.9';
 /* Opening the app must never wait on the network (v14.4). Before this, every request was
    network-first with no timeout, so on a connection that is up but carries nothing — one bar,
    a wifi network with no internet behind it, a captive portal — the page request simply hung, and

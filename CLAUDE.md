@@ -131,7 +131,7 @@ Verified headlessly (Chromium via Playwright against a local origin and an in-me
 - Add forms (`data-keep`) and toggled panels (`_uiOpen`) survive `render()`; an event whose end date is not after its start reads as one day (`evtEndDate`).
 
 ## Switching to the other apps (v14.6; tiles since v14.8)
-The Week tab opens with two **character tiles** at the top right, beside the legend in `.week-top`: **齋 Bodhi Precepts** (`https://bodhi-precepts.pages.dev/`, repo `arlov-commits/bodhi_precepts`) and **廚 Kitchen Cleanup** (`https://arlov-commits.github.io/kitchen_cleanup/`, repo `arlov-commits/kitchen_cleanup`, on GitHub Pages). Both live in `APP_JUMPS`; adding an app is one row there. **One-way by request**: neither app carries a link back, so do not add one.
+The Week tab opens with two **character tiles** at the top right, beside the legend in `.week-top`: **齋 Bodhi Precepts** (`https://bodhi-precepts.pages.dev/`, repo `arlov-commits/bodhi_precepts`) and **淨 Kitchen Cleanup** (`https://arlov-commits.github.io/kitchen_cleanup/`, repo `arlov-commits/kitchen_cleanup`, on GitHub Pages). Both live in `APP_JUMPS`; adding an app is one row there. **One-way by request**: neither app carries a link back, so do not add one.
 
 The tiles are **exactly as tall as the legend** (`fitAppJumps`, run from `render()`, on resize and when fonts land): side by side at its height while it is one line, **stacked to split its height** once it wraps (`.stack`, chosen when a stacked tile would still be ≥ `APP_JUMP_MIN`). Two passes, because the tiles' own width decides how far the legend wraps. Colours are **muted, retro takes on each app's own icon colour** — flat, with a faint inset rim — and fixed rather than themed, since a tile stands for another app.
 
@@ -148,7 +148,7 @@ The tiles are **exactly as tall as the legend** (`fitAppJumps`, run from `render
 
 ## Versioning
 - Version lives as an HTML comment on line 1: `<!-- Academic Planner vX.Y -->`, and in a visible `.version-label` in the header, and in the service worker `CACHE_NAME`.
-- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v14.8. All three locations must match.
+- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v14.9. All three locations must match.
 - Bumping the SW `CACHE_NAME` every change is required or installed devices serve stale code.
 
 ## Architecture rules (hard-won — do not violate)
