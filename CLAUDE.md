@@ -130,6 +130,9 @@ Verified headlessly (Chromium via Playwright against a local origin and an in-me
 - **The workbook is not part of the atomic shell precache** in `sw.js`: a missing `syllabus.xlsx` must never fail the install and strand devices on old code.
 - Add forms (`data-keep`) and toggled panels (`_uiOpen`) survive `render()`; an event whose end date is not after its start reads as one day (`evtEndDate`).
 
+## The way across to Bodhi Precepts (v14.6)
+The Week tab opens with a link to the **Bodhi Precepts** app (`PRECEPTS_URL`, `https://bodhi-precepts.pages.dev/` — the `arlov-commits/bodhi_precepts` repo), beside the legend in `.week-top`. It is **one-way by request**: the Precepts app carries no link back, so do not add one there. It is a **plain `<a target="_blank" rel="noopener">`, deliberately**: an installed copy takes the tap itself — Android hands a link inside an installed app's scope to that app, and a desktop install does when "Open supported links" is on for it — and anywhere else it opens the site. No JS detection: a page cannot see whether another origin's app is installed without that app publishing an assetlinks relation, and nothing here needs it. The seal is the Precepts app's own icon inlined (`PRECEPTS_SEAL`), so it needs no request and draws offline; it is its own ground, so it reads the same on every theme.
+
 ## Deploy workflow (NON-NEGOTIABLE)
 - **Never commit directly to `main`.** A live user depends on `main`.
 - Work on a branch. Push the branch → Cloudflare builds a **preview URL** automatically.
@@ -139,7 +142,7 @@ Verified headlessly (Chromium via Playwright against a local origin and an in-me
 
 ## Versioning
 - Version lives as an HTML comment on line 1: `<!-- Academic Planner vX.Y -->`, and in a visible `.version-label` in the header, and in the service worker `CACHE_NAME`.
-- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v14.5. All three locations must match.
+- **Bump the version on every commit** (patch bumps for fixes, minor for features). Current: v14.6. All three locations must match.
 - Bumping the SW `CACHE_NAME` every change is required or installed devices serve stale code.
 
 ## Architecture rules (hard-won — do not violate)
