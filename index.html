@@ -1,4 +1,4 @@
-<!-- Academic Planner v14.7 -->
+<!-- Academic Planner v14.8 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -224,19 +224,31 @@ mark.find-hit.cur{background:var(--warning);color:var(--bg);box-shadow:0 0 0 2px
 .legend-item{display:flex;align-items:center;gap:6px;font-size:var(--fs-xs);font-weight:600;color:var(--text-dim)}
 .legend-dot{width:10px;height:10px;border-radius:var(--r-s)}
 .legend-dot.life{background:var(--accent-life)}.legend-dot.events{background:var(--warning)}.legend-dot.custom{background:var(--text-muted)}
-/* The way across to the Bodhi Precepts app (v14.6, icon-only and a real switch since v14.7): the app's
-   own seal at the top right of the Week tab, beside the legend, and nothing else — no label, no frame.
-   The seal is inlined so it needs no request and draws offline; it is its own ground, so it reads the
-   same on every theme. How the tap switches apps is in preceptsOpen(). */
-/* One row at every width: the legend wraps inside itself rather than pushing the seal onto a line of its own. */
-.week-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:18px}
+/* Switches to the user's other apps (v14.6; two of them, as character tiles, since v14.8): Bodhi
+   Precepts (齋) and Kitchen Cleanup (廚), at the top right of the Week tab beside the legend. The tiles
+   are exactly as tall as the legend — side by side while it is one line, stacked to split its height
+   once it wraps (fitAppJumps sets --jump and .stack). Muted, retro takes on each app's own colour
+   rather than its bright icon, set flat with a faint inset frame like a worn stamp; fixed colours,
+   because a tile stands for another app, not for anything in this one's theme. How a tap switches
+   apps is in appJumpOpen(). */
+.week-top{display:flex;align-items:flex-start;gap:8px;margin-bottom:18px}
 .week-top .legend{margin-bottom:0;min-width:0}
-.app-jump{margin-left:auto;display:block;width:40px;height:40px;flex:0 0 auto;border-radius:10px;
-  -webkit-tap-highlight-color:transparent;transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
-.app-jump svg{width:100%;height:100%;display:block}
-.app-jump:hover{box-shadow:0 0 0 2px var(--border)}
+.app-jumps{margin-left:auto;flex:0 0 auto;display:grid;grid-auto-flow:column;gap:6px;--jump:38px}
+.app-jumps.stack{grid-auto-flow:row}
+.app-jump{width:var(--jump);height:var(--jump);display:flex;align-items:center;justify-content:center;
+  border-radius:calc(var(--jump) * .24);background:var(--jump-bg);color:var(--jump-fg);text-decoration:none;
+  box-shadow:inset 0 0 0 1.5px var(--jump-rim);
+  font-family:'Noto Serif CJK TC','Noto Serif TC','Source Han Serif TC','Songti TC','PMingLiU',serif;
+  font-size:calc(var(--jump) * .58);font-weight:600;line-height:1;
+  -webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;
+  transition:transform var(--t-fast) var(--ease),filter var(--t-fast) var(--ease)}
+.app-jump-glyph{display:block;transform:translateY(-.03em)}
+.app-jump.precepts{--jump-bg:#8a4a41;--jump-fg:#efe3cc;--jump-rim:rgba(239,227,204,.26)}
+.app-jump.kitchen{--jump-bg:#97693f;--jump-fg:#f4e8d0;--jump-rim:rgba(244,232,208,.26)}
+.app-jump:hover{filter:brightness(1.08)}
 .app-jump:active{transform:scale(.94)}
 .app-jump:focus-visible{outline:2px solid var(--text-dim);outline-offset:2px}
+.app-pkg{font-family:var(--font-mono);font-size:var(--fs-2xs);width:100%;max-width:340px}
 .hide-day-btn{font-size:var(--fs-2xs);padding:1px 5px;border:1px solid var(--border);border-radius:var(--r-s);background:var(--surface2);color:var(--text-muted);cursor:pointer;margin-top:2px;opacity:.5;transition:opacity var(--t-fast) var(--ease)}.hide-day-btn:hover{opacity:1}
 .expand-week-btn{font-size:var(--fs-2xs);padding:1px 6px;border:1px solid var(--border);border-radius:var(--r-s);background:var(--surface2);color:var(--text-muted);cursor:pointer;margin-left:8px;opacity:.6;transition:opacity var(--t-fast) var(--ease)}.expand-week-btn:hover{opacity:1}
 /* The per-week hide sits at the far end of the header so it is never confused with the "N hidden"
@@ -1607,7 +1619,7 @@ function render(){
   // Half-typed add forms survive the repaint: render() is also run by background syncs, and a field
 // that has lost focus is no longer protected by isUserEditing().
   const _keep={};document.querySelectorAll('#app [data-keep]').forEach(el=>{_keep[el.id]=el.type==='checkbox'?el.checked:el.value});
-  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v14.7</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;for(const id in _keep){const el=document.getElementById(id);if(el){if(el.type==='checkbox')el.checked=_keep[id];else el.value=_keep[id]}}FIND_TABS=allTabs.slice();updateSI();almFitLabels();sylFitTitles();findReapply()}
+  document.getElementById('app').innerHTML=`<div class="header"><div class="hdr-row1"><h1>Academic Planner</h1><span class="combined-status saved-online" id="comboStatus"><span class="status-dot"></span><span id="comboText">saved</span></span></div><div class="hdr-row2"><span class="today-badge">${fmtDate(TODAY)}</span><span style="margin-left:auto"></span><button class="hdr-icon-btn" onclick="findToggle()" title="Find in this tab (Ctrl+F)" aria-label="Find"><span class="mi" style="--ic:var(--ic-search)"></span></button><button class="theme-toggle" onclick="cycleTheme()"><span class="theme-dot"></span>${{light:'Parchment',ember:'Ember',persia:'Persia',ocean:'Ocean',pistachio:'Pistachio'}[state.theme]||state.theme}</button><span class="version-label">v14.8</span></div></div>${allTabs.map(t=>`<div class="view ${state.activeTab===t?'active':''}">${renderers[t]()}</div>`).join('')}`;for(const id in _keep){const el=document.getElementById(id);if(el){if(el.type==='checkbox')el.checked=_keep[id];else el.value=_keep[id]}}FIND_TABS=allTabs.slice();updateSI();almFitLabels();fitAppJumps();sylFitTitles();findReapply()}
 
 let _dashUndo=null,_dashUndoTimer=null;
 function dashUnstar(id){const s=sylFind(id);if(!s)return;if(s.feed)sylSetMark(id,'highlighted',false);else s.highlighted=false;_dashUndo=id;if(_dashUndoTimer)clearTimeout(_dashUndoTimer);_dashUndoTimer=setTimeout(()=>{_dashUndo=null;safeRender()},6000);render();scheduleSave()}
@@ -1630,25 +1642,51 @@ function renderDash(){
   for(let r=0;r<mx;r++){h+=`<div class="dash-grid-row" style="display:grid;grid-template-columns:${gc};gap:8px;margin-top:6px">`;activeCats.forEach(c=>{const s=groups[c][r];if(!s){h+=`<div class="dash-cell dash-cell-empty"></div>`;return}const dd=parseDate(s.due),dl=daysBetween(TODAY,dd),uc=dl<0?'past':dl===0?'today':dl<=3?'urgent':dl<=7?'soon':'ok',ds=dl<0?Math.abs(dl)+'d ago':dl===0?'TODAY':dl+'d';h+=`<div class="dash-cell${uc==='past'?' dash-past':''}" onclick="this.classList.toggle('dc-active')"><button class="dc-close" onclick="event.stopPropagation();dashUnstar(${s.id})" title="Un-highlight"><span class="mi" style="--ic:var(--ic-x)"></span></button><div class="dc-title">${escHtml(s.title)}</div><div class="dc-due">${fmtDate(dd)}</div><div class="days dc-days ${uc}">${ds}</div><span class="dc-tag" style="background:var(--accent-${c}-dim,var(--surface3));color:var(--accent-${c},var(--text-dim))">${escHtml(s.type)}</span></div>`});h+='</div>'}
   h+='</div>';return h}
 
-// Where the Bodhi Precepts app lives (arlov-commits/bodhi_precepts on Cloudflare Pages). One-way on
-// purpose: the Precepts app carries no link back.
-const PRECEPTS_URL='https://bodhi-precepts.pages.dev/';
-const PRECEPTS_SEAL='<svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#96231D"/><circle cx="30" cy="34" r="20.5" fill="#F8F4EC"/><circle cx="44.5" cy="27" r="19.5" fill="#96231D"/><path fill="#F8F4EC" d="M46.5,10.5Q47.9,16.1 53.5,17.5Q47.9,18.9 46.5,24.5Q45.1,18.9 39.5,17.5Q45.1,16.1 46.5,10.5z"/></svg>';
-/* A real switch, not a page opened over the planner. On Android a plain https link from inside an
-   installed app is kept in a Custom Tab on top of it (the bar with the × and the address), so the tap
-   hands Android an intent instead: Android gives the address to the app that claims it — the installed
-   Bodhi Precepts — and only when nothing does is the fallback, the site itself, opened. Elsewhere the
-   link stays a link: a desktop install takes it when "Open supported links" is on for it, and iOS has no
-   way to hand a link to a home-screen app at all. */
-function preceptsIntentUrl(){const u=new URL(PRECEPTS_URL);
-  return'intent://'+u.host+u.pathname+'#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;S.browser_fallback_url='+encodeURIComponent(PRECEPTS_URL)+';end'}
-let _preceptsGo=u=>{location.href=u};
-function preceptsOpen(e){if(!/Android/i.test(navigator.userAgent))return true;
-  if(e)e.preventDefault();_preceptsGo(preceptsIntentUrl());return false}
-function preceptsLinkHtml(){return`<a class="app-jump" href="${PRECEPTS_URL}" target="_blank" rel="noopener" onclick="return preceptsOpen(event)" title="Switch to Bodhi Precepts" aria-label="Switch to Bodhi Precepts">${PRECEPTS_SEAL}</a>`}
+// The user's other apps, one tile each at the top of the Week tab. One-way on purpose: neither app
+// carries a link back. `pkg` is not here: the Android package of an installed web app is assigned on the
+// phone and differs per device, so it is pasted into Settings and kept per device (state.appPkgs).
+const APP_JUMPS=[
+  {key:'precepts',name:'Bodhi Precepts',glyph:'齋',url:'https://bodhi-precepts.pages.dev/'},
+  {key:'kitchen',name:'Kitchen Cleanup',glyph:'廚',url:'https://arlov-commits.github.io/kitchen_cleanup/'}
+];
+const APP_PKG_RE=/^[A-Za-z][\w]*(\.[A-Za-z_][\w]*)+$/;
+function appPkg(key){const p=((state.appPkgs||{})[key]||'').trim();return APP_PKG_RE.test(p)?p:''}
+/* A real switch, not a page opened over the planner. On Android a plain link from inside an installed
+   app opens in a Custom Tab on top of it (the bar with the × and the address), and since Android 12 an
+   intent that only names the address goes to the browser too: Android hands a web address to an app
+   only when the app is verified for that domain, and an installed web app is not. Naming the app's
+   package skips that check, so the intent carries it whenever this device has been told it (Settings →
+   App switching). Without one it still asks Android, which works where the user has approved the domain
+   for the app (Android Settings → Apps → the app → Open by default), and otherwise falls back to the
+   site. Off Android the tile stays a link: a desktop install takes it when "Open supported links" is on
+   for it, and iOS cannot hand a link to a home-screen app at all. */
+function appIntentUrl(a){const u=new URL(a.url),pkg=appPkg(a.key);
+  return'intent://'+u.host+u.pathname+'#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;'
+    +(pkg?'package='+pkg+';':'')+'S.browser_fallback_url='+encodeURIComponent(a.url)+';end'}
+let _appGo=u=>{location.href=u};
+function appJumpOpen(e,key){const a=APP_JUMPS.find(x=>x.key===key);if(!a||!/Android/i.test(navigator.userAgent))return true;
+  if(e)e.preventDefault();_appGo(appIntentUrl(a));return false}
+function appJumpsHtml(){return`<div class="app-jumps">${APP_JUMPS.map(a=>`<a class="app-jump ${a.key}" href="${a.url}" target="_blank" rel="noopener" onclick="return appJumpOpen(event,'${a.key}')" title="Switch to ${a.name}" aria-label="Switch to ${a.name}"><span class="app-jump-glyph" aria-hidden="true">${a.glyph}</span></a>`).join('')}</div>`}
+/* The tiles are exactly as tall as the legend. While it is one line they sit side by side at its height;
+   once it wraps they stack and split its height, so a phone does not spend a third of the row on them.
+   Two passes, because the tiles' own width decides how far the legend wraps. */
+const APP_JUMP_MIN=28;
+function fitAppJumps(){document.querySelectorAll('.week-top').forEach(top=>{
+  const lg=top.querySelector('.legend'),box=top.querySelector('.app-jumps');if(!lg||!box||!lg.offsetParent)return;
+  const n=box.children.length,gap=6;
+  for(let pass=0;pass<2;pass++){const H=lg.offsetHeight,stacked=(H-gap*(n-1))/n,stack=stacked>=APP_JUMP_MIN;
+    box.classList.toggle('stack',stack);box.style.setProperty('--jump',(stack?stacked:H)+'px')}})}
+if(document.fonts&&document.fonts.addEventListener)document.fonts.addEventListener('loadingdone',()=>fitAppJumps());
+function appPkgSet(key,v){if(!state.appPkgs)state.appPkgs={};const p=String(v||'').trim();
+  if(p&&!APP_PKG_RE.test(p)){alert('That does not look like an Android package name (e.g. org.chromium.webapk.a1b2c3d4e5f6).');render();return}
+  if(p)state.appPkgs[key]=p;else delete state.appPkgs[key];render();scheduleSave()}
+function appPkgSectionHtml(){return`<div class="notes-box"><div class="notes-box-title">App switching (Android)</div>
+  <div class="settings-section"><div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">The 齋 and 廚 tiles at the top of the Week tab switch to those apps. On Android that only works when this phone tells the planner which installed app to hand the address to: in Chrome, open <code>chrome://webapks</code>, find the app, and paste its <em>Package name</em> below. Kept on this device only. (Alternatively: Android Settings → Apps → the app → Open by default → turn on <em>Open supported links</em> and add its address.)</div>
+  ${APP_JUMPS.map(a=>`<label>${escHtml(a.glyph+' '+a.name)}</label><input class="life-input app-pkg" type="text" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="org.chromium.webapk.…" value="${escAttr((state.appPkgs||{})[a.key]||'')}" onchange="appPkgSet('${a.key}',this.value)"/>`).join('')}
+  </div></div>`}
 function renderSprints(){const weeks=generateWeeks();const bankTasks=state.lifeTasks.filter(t=>t.inBank&&!t.done&&!state.tasks.some(s=>s.lifeSourceId===t.id));
 // The legend follows the feed: one entry per class the spreadsheet defines, in its sheet order.
-let h=`<div class="week-top"><div class="legend">${sylClasses().map(c=>`<div class="legend-item"><span class="legend-dot ${c.cat}"></span>${escHtml(c.alias)}</div>`).join('')}<div class="legend-item"><span class="legend-dot events"></span>Events</div><div class="legend-item"><span class="legend-dot life"></span>Tasks</div></div>${preceptsLinkHtml()}</div>`;
+let h=`<div class="week-top"><div class="legend">${sylClasses().map(c=>`<div class="legend-item"><span class="legend-dot ${c.cat}"></span>${escHtml(c.alias)}</div>`).join('')}<div class="legend-item"><span class="legend-dot events"></span>Events</div><div class="legend-item"><span class="legend-dot life"></span>Tasks</div></div>${appJumpsHtml()}</div>`;
 if(bankTasks.length||allocatingId){h+=`<div class="task-bank"><div class="task-bank-title">Task Bank${allocatingId?' — click a day to place':''}</div><div class="bank-items">`;if(!bankTasks.length)h+=`<span class="bank-empty">All placed. Send more from Tasks tab.</span>`;bankTasks.forEach(t=>{const isA=allocatingId===t.id;h+=`<div class="bank-chip ${isA?'allocating':''}">${escHtml(t.name)}<button class="bank-btn alloc" onclick="startAllocate(${t.id})" title="Place on a day"><span class="mi mi-flip" style="--ic:var(--ic-up)"></span></button><button class="bank-btn done-btn" onclick="bankComplete(${t.id})" title="Done"><span class="mi" style="--ic:var(--ic-check)"></span></button><button class="bank-btn remove-btn" onclick="bankRemove(${t.id})" title="Remove"><span class="mi" style="--ic:var(--ic-x)"></span></button></div>`});h+=`</div></div>`}
 const sel=almWeekSelection();
 if(sel.collapsedCount>0)h+=`<div style="margin-bottom:12px"><button class="expand-week-btn" onclick="expandAllPastWeeks()" style="font-size:var(--fs-2xs);padding:3px 10px">▼ ${sel.collapsedCount} past week${sel.collapsedCount>1?'s':''} (show)</button></div>`;
@@ -2302,7 +2340,7 @@ function almFitLabels(){
   m2.forEach(([r,lh,ph])=>{if(lh>ph)r.p.classList.add('tight')});
 }
 let _fitTimer=null;
-window.addEventListener('resize',()=>{clearTimeout(_fitTimer);_fitTimer=setTimeout(()=>{almFitLabels();sylFitTitles()},150)});
+window.addEventListener('resize',()=>{clearTimeout(_fitTimer);_fitTimer=setTimeout(()=>{almFitLabels();sylFitTitles();fitAppJumps()},150)});
 
 /* The one scrolling element in the app. The document itself no longer scrolls (the shell is exactly
    a viewport tall), so anything that used to read scrollY or call scrollTo reads and drives this. */
@@ -3200,7 +3238,8 @@ function renderSettings(){
   <div class="settings-section"><label>Backup to file</label>
   <div style="font-size:var(--fs-2xs);color:var(--text-muted);margin-bottom:8px">Download all your data as a JSON file you can re-import later.</div>
   <button class="btn btn-quiet" onclick="exportState()">Backup</button></div>
-  </div></div>
+  </div>
+  ${appPkgSectionHtml()}
   ${legacyCatSectionHtml()}`}
 
 /* Records left over from a term the workbook no longer defines. v12.0 took the retired classes out
